@@ -1,21 +1,95 @@
+
 <!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yeni Səhifə</title>
+    <title>Neon Universe</title>
     <style>
-        body { background: #121212; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .box { text-align: center; border: 2px solid #00ff88; padding: 40px; border-radius: 20px; box-shadow: 0 0 20px rgba(0,255,136,0.2); }
-        h1 { color: #00ff88; }
-        p { color: #888; }
+        :root { --neon: #00ff88; --bg: #0a0a0a; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; overflow-x: hidden; }
+        
+        /* Animasiyalı Fon */
+        .bg-animate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); }
+        
+        .container { width: 90%; max-width: 500px; text-align: center; padding: 20px; }
+        
+        /* Saat Bölməsi */
+        #clock { font-size: 3rem; font-weight: bold; text-shadow: 0 0 20px var(--neon); margin: 20px 0; color: var(--neon); }
+        
+        /* Kartlar */
+        .card { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border: 1px solid var(--neon); margin-bottom: 20px; backdrop-filter: blur(10px); animation: fadeIn 1s ease-in; }
+
+        /* Sayğac */
+        .counter-btn { background: transparent; border: 2px solid var(--neon); color: var(--neon); padding: 10px 25px; border-radius: 50px; font-size: 18px; cursor: pointer; transition: 0.3s; }
+        .counter-btn:active { transform: scale(0.9); background: var(--neon); color: #000; }
+
+        /* Mesaj Bölməsi */
+        .msg-box { display: flex; flex-direction: column; gap: 10px; }
+        textarea { background: #000; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 8px; resize: none; }
+        .post-btn { background: var(--neon); border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        #chat { text-align: left; max-height: 200px; overflow-y: auto; margin-top: 15px; border-top: 1px solid #333; padding-top: 10px; }
+        .msg { background: rgba(255,255,255,0.1); padding: 8px; margin-bottom: 5px; border-radius: 5px; font-size: 14px; border-left: 3px solid var(--neon); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h1>Xoş Gəldin!</h1>
-        <p>Bu sənin yeni və təmiz başlanğıcındır.</p>
-        <p>Hər şey işlək vəziyyətdədir.</p>
+    <div class="bg-animate"></div>
+
+    <div class="container">
+        <div id="clock">00:00:00</div>
+        
+        <div class="card">
+            <h3>Klik Sayğacı</h3>
+            <p id="countDisplay">Klik sayı: 0</p>
+            <button class="counter-btn" onclick="addClick()">KLİKLƏ!</button>
+        </div>
+
+        <div class="card">
+            <h3>Sürətli Mesaj</h3>
+            <div class="msg-box">
+                <textarea id="userMsg" placeholder="Nəsə yaz..."></textarea>
+                <button class="post-btn" onclick="postMsg()">GÖNDƏR</button>
+            </div>
+            <div id="chat"></div>
+        </div>
     </div>
+
+    <script>
+        // 1. Canlı Saat
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString('az-AZ');
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // 2. Klik Sayğacı
+        let count = localStorage.getItem('clicks') || 0;
+        document.getElementById('countDisplay').innerText = "Klik sayı: " + count;
+        function addClick() {
+            count++;
+            localStorage.setItem('clicks', count);
+            document.getElementById('countDisplay').innerText = "Klik sayı: " + count;
+        }
+
+        // 3. Mesajlaşma (Local - Sənin cihazında qalır)
+        let messages = JSON.parse(localStorage.getItem('myMsgs')) || [];
+        function displayMsgs() {
+            const chat = document.getElementById('chat');
+            chat.innerHTML = messages.map(m => `<div class="msg">${m}</div>`).reverse().join('');
+        }
+        function postMsg() {
+            const txt = document.getElementById('userMsg').value;
+            if(!txt) return;
+            messages.push(txt);
+            localStorage.setItem('myMsgs', JSON.stringify(messages));
+            document.getElementById('userMsg').value = '';
+            displayMsgs();
+        }
+        displayMsgs();
+    </script>
 </body>
 </html>
+
