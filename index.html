@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mega Chat Pro - All Features</title>
+    <title>Pro Chat - Voice & More</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --grad: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab); }
@@ -11,71 +11,27 @@
         @keyframes grad { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         .container { width: 100%; max-width: 500px; }
         .card { background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 20px; backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); margin-top: 10px; }
-        
-        .tabs { display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px; }
-        .tab-btn { background: none; border: none; color: white; cursor: pointer; font-weight: bold; opacity: 0.6; }
-        .tab-btn.active { opacity: 1; border-bottom: 2px solid white; }
-
-        .room-select { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
-        .room-btn { background: rgba(0,0,0,0.3); border: 1px solid white; color: white; padding: 6px 15px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 12px; }
-        .room-btn.active { background: white; color: #e73c7e; }
-
-        #chat { height: 350px; overflow-y: auto; background: rgba(0, 0, 0, 0.1); border-radius: 15px; padding: 10px; margin: 10px 0; }
-        .msg { background: white; color: #333; padding: 10px; border-radius: 15px; margin-bottom: 15px; position: relative; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .msg.private { border: 2px solid #ff00ff; background: #fff0ff; }
-        .nickname { font-weight: bold; color: #e73c7e; cursor: pointer; font-size: 11px; display: block; margin-bottom: 3px; }
-        
-        .reaction-bar { display: flex; gap: 5px; margin-top: 5px; border-top: 1px solid #eee; padding-top: 5px; }
-        .react-btn { cursor: pointer; font-size: 15px; opacity: 0.7; }
-        .react-count { font-size: 10px; color: #777; margin-right: 5px; }
-
-        .emoji-picker { display: flex; gap: 8px; background: rgba(0,0,0,0.1); padding: 5px; border-radius: 10px; margin-bottom: 5px; overflow-x: auto; }
-        .emoji-item { cursor: pointer; font-size: 20px; }
-
-        .input-area { display: flex; flex-direction: column; gap: 8px; }
-        input { padding: 12px; border-radius: 12px; border: none; outline: none; }
-        .btn-send { background: white; color: #e73c7e; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        #chat { height: 350px; overflow-y: auto; background: rgba(0, 0, 0, 0.1); border-radius: 15px; padding: 10px; margin: 10px 0; display: flex; flex-direction: column; }
+        .msg { background: white; color: #333; padding: 10px; border-radius: 15px; margin-bottom: 12px; font-size: 14px; align-self: flex-start; max-width: 85%; position: relative; }
+        .nickname { font-weight: bold; color: #e73c7e; font-size: 11px; display: block; margin-bottom: 3px; }
+        .input-area { display: flex; gap: 8px; align-items: center; }
+        input { flex: 1; padding: 12px; border-radius: 12px; border: none; outline: none; }
+        .btn-action { background: white; color: #e73c7e; border: none; padding: 10px; border-radius: 50%; cursor: pointer; font-size: 18px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; }
+        .recording { background: #ff4d4d !important; color: white !important; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        audio { width: 100%; height: 30px; margin-top: 5px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="card" id="nickCard">
-        <h2>Xoş Gəldin! ✨</h2>
-        <input type="text" id="nickInput" placeholder="Ləqəbin...">
-        <button class="btn-send" onclick="saveNick()" style="margin-top:10px; width:100%">Daxil Ol</button>
-    </div>
-
-    <div class="card" id="chatCard" style="display:none">
-        <div class="tabs">
-            <button class="tab-btn active" id="tabGroup" onclick="switchMode('group')">Qruplar</button>
-            <button class="tab-btn" id="tabPrivate" onclick="switchMode('private')">Şəxsi (DM)</button>
-        </div>
-
-        <div id="groupHeader">
-            <div class="room-select" id="roomList"></div>
-            <button onclick="addNewRoom()" style="background:none; border:1px dashed white; color:white; border-radius:10px; padding:5px; font-size:10px; cursor:pointer">+ Yeni Qrup</button>
-        </div>
-
-        <div id="privateHeader" style="display:none">
-            <p style="font-size:12px">Yazışırsan: <b id="chattingWith">Hər kəs</b></p>
-            <button onclick="targetUser='all'; switchMode('group')" style="font-size:10px; background:red; color:white; border:none; border-radius:5px; padding:3px 8px">Qruplara Dön</button>
-        </div>
-
+    <div class="card" id="chatCard">
         <div id="chat">Yüklənir...</div>
-
-        <div class="emoji-picker">
-            <span class="emoji-item" onclick="addEmoji('😊')">😊</span>
-            <span class="emoji-item" onclick="addEmoji('😂')">😂</span>
-            <span class="emoji-item" onclick="addEmoji('❤️')">❤️</span>
-            <span class="emoji-item" onclick="addEmoji('🔥')">🔥</span>
-            <span class="emoji-item" onclick="addEmoji('👍')">👍</span>
-            <span class="emoji-item" onclick="addEmoji('😮')">😮</span>
-        </div>
-
+        
         <div class="input-area">
+            <button class="btn-action" id="recordBtn" onclick="toggleRecord()">🎤</button>
             <input type="text" id="userMsg" placeholder="Mesaj yaz...">
-            <button class="btn-send" onclick="sendMsg()">GÖNDƏR 🚀</button>
+            <button class="btn-action" onclick="sendMsg()">🚀</button>
         </div>
     </div>
 </div>
@@ -85,99 +41,66 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU'; 
     const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    let myNick = localStorage.getItem('chat_nick');
-    let currentRoom = 'Ümumi';
-    let targetUser = 'all'; 
-    let mode = 'group';
-    let rooms = JSON.parse(localStorage.getItem('chat_rooms')) || ['Ümumi', 'Oyun', 'Musiqi'];
+    let myNick = localStorage.getItem('chat_nick') || "User" + Math.floor(Math.random()*1000);
+    let mediaRecorder;
+    let audioChunks = [];
 
-    if(myNick) showChat();
-
-    function saveNick() {
-        const n = document.getElementById('nickInput').value.trim();
-        if(n) { localStorage.setItem('chat_nick', n); myNick = n; showChat(); }
+    async function toggleRecord() {
+        const btn = document.getElementById('recordBtn');
+        if (!mediaRecorder || mediaRecorder.state === "inactive") {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = uploadAudio;
+            audioChunks = [];
+            mediaRecorder.start();
+            btn.innerText = "🛑";
+            btn.classList.add('recording');
+        } else {
+            mediaRecorder.stop();
+            btn.innerText = "🎤";
+            btn.classList.remove('recording');
+        }
     }
 
-    function showChat() {
-        document.getElementById('nickCard').style.display = 'none';
-        document.getElementById('chatCard').style.display = 'block';
-        renderRooms();
-        loadMsgs();
-    }
-
-    function renderRooms() {
-        const list = document.getElementById('roomList');
-        list.innerHTML = rooms.map(r => `<button class="room-btn ${r === currentRoom ? 'active' : ''}" onclick="setRoom('${r}')">${r}</button>`).join('');
-    }
-
-    function setRoom(r) { currentRoom = r; targetUser = 'all'; switchMode('group'); }
-
-    function switchMode(m) {
-        mode = m;
-        document.getElementById('tabGroup').classList.toggle('active', mode === 'group');
-        document.getElementById('tabPrivate').classList.toggle('active', mode === 'private');
-        document.getElementById('groupHeader').style.display = mode === 'group' ? 'block' : 'none';
-        document.getElementById('privateHeader').style.display = mode === 'private' ? 'block' : 'none';
-        document.getElementById('chattingWith').innerText = targetUser;
-        loadMsgs();
-    }
-
-    function startPrivate(nick) { if(nick !== myNick) { targetUser = nick; switchMode('private'); } }
-
-    function addEmoji(emoji) { document.getElementById('userMsg').value += emoji; }
-
-    async function react(msgId, emoji, currentReactions) {
-        let reactions = currentReactions || {};
-        reactions[emoji] = (reactions[emoji] || 0) + 1;
-        await _supabase.from('messages').update({ reactions: reactions }).eq('id', msgId);
-        loadMsgs();
-    }
-
-    function addNewRoom() {
-        const n = prompt("Qrup adı:");
-        if(n && !rooms.includes(n)) { rooms.push(n); localStorage.setItem('chat_rooms', JSON.stringify(rooms)); renderRooms(); }
+    async function uploadAudio() {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
+        const fileName = `${Date.now()}.mp3`;
+        
+        const { data, error } = await _supabase.storage.from('audio_messages').upload(fileName, audioBlob);
+        
+        if (data) {
+            const fileUrl = `${supabaseUrl}/storage/v1/object/public/audio_messages/${fileName}`;
+            sendMsg(fileUrl, true);
+        }
     }
 
     async function loadMsgs() {
-        let query = _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(40);
-        if (mode === 'group') {
-            query = query.eq('room', currentRoom).eq('receiver', 'all');
-        } else {
-            query = query.or(`and(nickname.eq.${myNick},receiver.eq.${targetUser}),and(nickname.eq.${targetUser},receiver.eq.${myNick})`);
-        }
-
-        const { data } = await query;
+        const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(20);
         if (data) {
-            document.getElementById('chat').innerHTML = data.map(m => {
-                let reactionHTML = ['❤️', '😂', '👍'].map(e => `
-                    <span class="react-btn" onclick='react(${m.id}, "${e}", ${JSON.stringify(m.reactions)})'>${e}</span>
-                    <span class="react-count">${m.reactions && m.reactions[e] ? m.reactions[e] : ''}</span>
-                `).join('');
-
-                return `
-                    <div class="msg ${m.receiver !== 'all' ? 'private' : ''}">
-                        <span class="nickname" onclick="startPrivate('${m.nickname}')">${m.nickname} ${m.receiver !== 'all' ? '🔒' : ''}</span>
-                        ${m.content}
-                        <div class="reaction-bar">${reactionHTML}</div>
-                    </div>
-                `;
-            }).join('');
+            document.getElementById('chat').innerHTML = data.map(m => `
+                <div class="msg">
+                    <span class="nickname">${m.nickname}</span>
+                    ${m.content.startsWith('http') && m.content.includes('audio_messages') 
+                        ? `<audio controls src="${m.content}"></audio>` 
+                        : m.content}
+                </div>
+            `).join('');
         }
     }
 
-    async function sendMsg() {
+    async function sendMsg(content = null, isAudio = false) {
         const inp = document.getElementById('userMsg');
-        if(!inp.value.trim()) return;
-        await _supabase.from('messages').insert([{ 
-            content: inp.value, nickname: myNick, 
-            room: mode === 'group' ? currentRoom : 'private',
-            receiver: mode === 'group' ? 'all' : targetUser
-        }]);
-        inp.value = '';
+        const msg = content || inp.value.trim();
+        if (!msg) return;
+
+        await _supabase.from('messages').insert([{ content: msg, nickname: myNick, room: 'Ümumi' }]);
+        if (!isAudio) inp.value = '';
         loadMsgs();
     }
 
     setInterval(loadMsgs, 3000);
+    loadMsgs();
 </script>
 </body>
 </html>
