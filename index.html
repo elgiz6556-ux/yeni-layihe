@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Chat - Voice & More</title>
+    <title>Pro Chat - Voice & Online</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --grad: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab); }
@@ -11,27 +11,43 @@
         @keyframes grad { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         .container { width: 100%; max-width: 500px; }
         .card { background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 20px; backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); margin-top: 10px; }
-        #chat { height: 350px; overflow-y: auto; background: rgba(0, 0, 0, 0.1); border-radius: 15px; padding: 10px; margin: 10px 0; display: flex; flex-direction: column; }
-        .msg { background: white; color: #333; padding: 10px; border-radius: 15px; margin-bottom: 12px; font-size: 14px; align-self: flex-start; max-width: 85%; position: relative; }
-        .nickname { font-weight: bold; color: #e73c7e; font-size: 11px; display: block; margin-bottom: 3px; }
-        .input-area { display: flex; gap: 8px; align-items: center; }
-        input { flex: 1; padding: 12px; border-radius: 12px; border: none; outline: none; }
-        .btn-action { background: white; color: #e73c7e; border: none; padding: 10px; border-radius: 50%; cursor: pointer; font-size: 18px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; }
-        .recording { background: #ff4d4d !important; color: white !important; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        audio { width: 100%; height: 30px; margin-top: 5px; }
+        
+        /* Online Siyahısı Paneli */
+        .online-panel { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px; margin-bottom: 10px; font-size: 13px; border-left: 4px solid #00ff00; }
+
+        #chat { height: 380px; overflow-y: auto; background: rgba(0, 0, 0, 0.15); border-radius: 15px; padding: 15px; margin: 10px 0; }
+        .msg { background: white; color: #333; padding: 12px; border-radius: 15px; margin-bottom: 10px; font-size: 14px; max-width: 85%; align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .nickname { font-weight: bold; color: #e73c7e; font-size: 11px; display: block; margin-bottom: 4px; }
+        
+        /* İdarəetmə Düymələri */
+        .controls { display: flex; gap: 8px; align-items: center; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 20px; }
+        input { flex: 1; padding: 10px; border-radius: 10px; border: none; outline: none; }
+        
+        .mic-btn { background: #28a745; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .send-btn { background: #007bff; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+        
+        .recording { background: #ff0000 !important; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        
+        audio { max-width: 100%; height: 35px; margin-top: 5px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="card" id="chatCard">
-        <div id="chat">Yüklənir...</div>
+    <div class="card" id="mainCard">
+        <div class="online-panel">
+            🟢 <b>Online:</b> <span id="userCount">Yüklənir...</span>
+        </div>
         
-        <div class="input-area">
-            <button class="btn-action" id="recordBtn" onclick="toggleRecord()">🎤</button>
-            <input type="text" id="userMsg" placeholder="Mesaj yaz...">
-            <button class="btn-action" onclick="sendMsg()">🚀</button>
+        <div id="chat">Söhbət yüklənir...</div>
+        
+        <div class="controls">
+            <button class="mic-btn" id="micBtn" onclick="handleVoice()">🎤</button>
+            
+            <input type="text" id="userMsg" placeholder="Mesajınız...">
+            
+            <button class="send-btn" onclick="sendMsg()">🚀</button>
         </div>
     </div>
 </div>
@@ -41,66 +57,78 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU'; 
     const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    let myNick = localStorage.getItem('chat_nick') || "User" + Math.floor(Math.random()*1000);
+    let myNick = localStorage.getItem('chat_nick') || "User";
     let mediaRecorder;
-    let audioChunks = [];
+    let chunks = [];
 
-    async function toggleRecord() {
-        const btn = document.getElementById('recordBtn');
+    // SƏS YAZMA LOGİKASI
+    async function handleVoice() {
+        const btn = document.getElementById('micBtn');
         if (!mediaRecorder || mediaRecorder.state === "inactive") {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.onstop = uploadAudio;
-            audioChunks = [];
-            mediaRecorder.start();
-            btn.innerText = "🛑";
-            btn.classList.add('recording');
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                chunks = [];
+                mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                mediaRecorder.onstop = async () => {
+                    const blob = new Blob(chunks, { type: 'audio/mp3' });
+                    const filePath = `voice_${Date.now()}.mp3`;
+                    
+                    // Supabase Storage-a yüklə
+                    const { data, error } = await _supabase.storage.from('audio_messages').upload(filePath, blob);
+                    if (data) {
+                        const url = `${supabaseUrl}/storage/v1/object/public/audio_messages/${filePath}`;
+                        sendMsg(url);
+                    }
+                };
+                mediaRecorder.start();
+                btn.innerHTML = "🛑";
+                btn.classList.add('recording');
+            } catch (err) {
+                alert("Mikrofon tapılmadı və ya icazə verilmədi!");
+            }
         } else {
             mediaRecorder.stop();
-            btn.innerText = "🎤";
+            btn.innerHTML = "🎤";
             btn.classList.remove('recording');
         }
     }
 
-    async function uploadAudio() {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
-        const fileName = `${Date.now()}.mp3`;
-        
-        const { data, error } = await _supabase.storage.from('audio_messages').upload(fileName, audioBlob);
-        
-        if (data) {
-            const fileUrl = `${supabaseUrl}/storage/v1/object/public/audio_messages/${fileName}`;
-            sendMsg(fileUrl, true);
-        }
-    }
-
     async function loadMsgs() {
-        const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(20);
+        const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(25);
         if (data) {
-            document.getElementById('chat').innerHTML = data.map(m => `
+            const chat = document.getElementById('chat');
+            chat.innerHTML = data.reverse().map(m => `
                 <div class="msg">
                     <span class="nickname">${m.nickname}</span>
-                    ${m.content.startsWith('http') && m.content.includes('audio_messages') 
+                    ${m.content.includes('audio_messages') 
                         ? `<audio controls src="${m.content}"></audio>` 
                         : m.content}
                 </div>
             `).join('');
+            chat.scrollTop = chat.scrollHeight;
         }
     }
 
-    async function sendMsg(content = null, isAudio = false) {
+    async function sendMsg(voiceUrl = null) {
         const inp = document.getElementById('userMsg');
-        const msg = content || inp.value.trim();
-        if (!msg) return;
+        const text = voiceUrl || inp.value.trim();
+        if (!text) return;
 
-        await _supabase.from('messages').insert([{ content: msg, nickname: myNick, room: 'Ümumi' }]);
-        if (!isAudio) inp.value = '';
+        await _supabase.from('messages').insert([{ content: text, nickname: myNick, room: 'Ümumi' }]);
+        inp.value = "";
         loadMsgs();
+    }
+
+    // Online istifadəçiləri simulyasiya edən funksiya
+    function updateOnline() {
+        const users = [myNick, "Dostun", "Admin"];
+        document.getElementById('userCount').innerText = users.join(", ");
     }
 
     setInterval(loadMsgs, 3000);
     loadMsgs();
+    updateOnline();
 </script>
 </body>
 </html>
