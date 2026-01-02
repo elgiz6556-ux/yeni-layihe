@@ -3,114 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rəngarəng Global Chat</title>
+    <title>Mega Color Chat</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Rənglərin daim dəyişdiyi fon animasiyası */
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         body { 
-            margin: 0;
-            padding: 20px;
-            font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            /* Rəngarəng gradient fon */
-            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            color: white;
+            margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab); background-size: 400% 400%; animation: gradientBG 15s ease infinite; color: white; padding: 10px;
         }
-
         .container { width: 100%; max-width: 500px; text-align: center; }
+        .card { background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 20px; backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); margin-top: 10px; }
+        #chat { text-align: left; height: 400px; overflow-y: auto; margin: 10px 0; padding: 10px; background: rgba(0, 0, 0, 0.1); border-radius: 15px; }
+        
+        /* Mesaj Stili */
+        .msg { background: rgba(255, 255, 255, 0.9); color: #333; padding: 10px; margin-bottom: 10px; border-radius: 15px; font-size: 14px; position: relative; }
+        .nickname { font-weight: bold; color: #e73c7e; display: block; margin-bottom: 4px; font-size: 12px; }
+        .msg img { max-width: 100%; border-radius: 10px; margin-top: 5px; display: block; }
+        audio { width: 100%; height: 30px; margin-top: 5px; }
 
-        #clock { 
-            font-size: 3rem; 
-            font-weight: bold; 
-            margin: 20px 0; 
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        .card { 
-            background: rgba(255, 255, 255, 0.2); 
-            padding: 20px; 
-            border-radius: 25px; 
-            backdrop-filter: blur(15px); 
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            margin-bottom: 20px;
-        }
-
-        #chat { 
-            text-align: left; 
-            height: 300px; 
-            overflow-y: auto; 
-            margin: 15px 0; 
-            padding: 15px; 
-            background: rgba(255, 255, 255, 0.1); 
-            border-radius: 15px; 
-        }
-
-        .msg { 
-            background: rgba(255, 255, 255, 0.25); 
-            padding: 12px; 
-            margin-bottom: 10px; 
-            border-radius: 12px; 
-            font-size: 14px; 
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-            color: #fff;
-            border: 1px dashed rgba(255,255,255,0.4);
-        }
-
-        .input-area { display: flex; gap: 8px; }
-
-        input { 
-            flex: 1; 
-            background: rgba(255, 255, 255, 0.9); 
-            border: none; 
-            color: #333; 
-            padding: 12px; 
-            border-radius: 12px; 
-            outline: none; 
-            font-weight: bold;
-        }
-
-        button { 
-            background: #fff; 
-            color: #e73c7e;
-            border: none; 
-            padding: 10px 20px; 
-            border-radius: 12px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            transition: 0.3s;
-        }
-
-        button:hover { transform: scale(1.05); background: #f0f0f0; }
+        .input-area { display: flex; flex-direction: column; gap: 8px; }
+        input { padding: 12px; border-radius: 10px; border: none; outline: none; }
+        button { background: #fff; color: #e73c7e; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div id="clock">00:00:00</div>
+        <div class="card" id="nickCard">
+            <h3>Ləqəbini seç</h3>
+            <input type="text" id="nickInput" placeholder="Adın və ya ləqəbin...">
+            <button onclick="saveNick()" style="margin-top:10px">Səhifəyə daxil ol</button>
+        </div>
 
-        <div class="card">
-            <h2 style="margin-top:0">Canlı Çat ✨</h2>
+        <div class="card" id="chatCard" style="display:none">
+            <h2 id="welcomeText">Xoş gəldin!</h2>
             <div id="chat">Yüklənir...</div>
             <div class="input-area">
-                <input type="text" id="userMsg" placeholder="Mesajınızı bura yazın...">
-                <button onclick="sendMsg()">GÖNDƏR</button>
+                <input type="text" id="userMsg" placeholder="Mesaj, Şəkil linki və ya Mahnı linki...">
+                <button onclick="sendMsg()">GÖNDƏR 🚀</button>
             </div>
+            <p style="font-size:10px; margin-top:5px; color:#eee">İpucu: .jpg/.png linki şəkil, .mp3 linki mahnı açır.</p>
         </div>
     </div>
 
@@ -119,18 +51,47 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU'; 
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        function updateClock() {
-            document.getElementById('clock').innerText = new Date().toLocaleTimeString('az-AZ');
+        let myNick = localStorage.getItem('chat_nick');
+
+        if(myNick) { showChat(); }
+
+        function saveNick() {
+            const n = document.getElementById('nickInput').value.trim();
+            if(n) { 
+                localStorage.setItem('chat_nick', n); 
+                myNick = n;
+                showChat(); 
+            }
         }
-        setInterval(updateClock, 1000);
-        updateClock();
+
+        function showChat() {
+            document.getElementById('nickCard').style.display = 'none';
+            document.getElementById('chatCard').style.display = 'block';
+            document.getElementById('welcomeText').innerText = "Salam, " + myNick + "!";
+            loadMsgs();
+        }
+
+        function formatMessage(content) {
+            // Şəkil yoxlaması
+            if (content.match(/\.(jpeg|jpg|gif|png)$/) != null) {
+                return `<img src="${content}" />`;
+            }
+            // Mahnı yoxlaması
+            if (content.match(/\.(mp3|wav|ogg)$/) != null) {
+                return `<audio controls><source src="${content}" type="audio/mpeg"></audio>`;
+            }
+            return content;
+        }
 
         async function loadMsgs() {
-            const { data, error } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(30);
+            const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(30);
             if (data) {
-                const chatDiv = document.getElementById('chat');
-                chatDiv.innerHTML = data.length === 0 ? "Hələ mesaj yok..." : 
-                data.map(m => `<div class="msg">${m.content}</div>`).join('');
+                document.getElementById('chat').innerHTML = data.map(m => `
+                    <div class="msg">
+                        <span class="nickname">${m.nickname || 'Anonim'}</span>
+                        ${formatMessage(m.content)}
+                    </div>
+                `).join('');
             }
         }
 
@@ -138,15 +99,12 @@
             const inp = document.getElementById('userMsg');
             const val = inp.value.trim();
             if(!val) return;
-            const { error } = await _supabase.from('messages').insert([{ content: val }]);
+            const { error } = await _supabase.from('messages').insert([{ content: val, nickname: myNick }]);
             if (error) alert("Xəta: " + error.message);
             else { inp.value = ''; loadMsgs(); }
         }
 
-        loadMsgs();
         setInterval(loadMsgs, 3000);
     </script>
 </body>
 </html>
- 
-
