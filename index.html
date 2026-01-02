@@ -3,146 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Chat v2</title>
+    <title>Pro Chat - Private & Groups</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --grad: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab); }
         @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; background: var(--grad); background-size: 400% 400%; animation: gradientBG 15s ease infinite; color: white; padding: 10px; transition: 0.5s; }
-        .container { width: 100%; max-width: 500px; text-align: center; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--grad); background-size: 400% 400%; animation: gradientBG 15s ease infinite; color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 10px; }
+        .container { width: 100%; max-width: 500px; }
         .card { background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 20px; backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); margin-top: 10px; }
-        .room-select { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding: 5px; }
-        .room-btn { background: rgba(0,0,0,0.2); border: 1px solid white; color: white; padding: 5px 12px; border-radius: 15px; cursor: pointer; white-space: nowrap; font-size: 12px; }
-        .room-btn.active { background: white; color: #e73c7e; font-weight: bold; }
-        #chat { text-align: left; height: 380px; overflow-y: auto; margin: 10px 0; padding: 10px; background: rgba(0, 0, 0, 0.15); border-radius: 15px; }
-        .msg { background: rgba(255, 255, 255, 0.95); color: #333; padding: 10px; margin-bottom: 10px; border-radius: 15px; position: relative; word-wrap: break-word; }
-        .nickname { font-weight: bold; color: #e73c7e; font-size: 11px; display: block; border-bottom: 1px solid #eee; margin-bottom: 5px; }
-        .delete-btn { position: absolute; top: 8px; right: 10px; cursor: pointer; opacity: 0.5; font-size: 14px; }
-        .msg img { max-width: 100%; border-radius: 10px; margin-top: 8px; display: block; }
-        audio { width: 100%; height: 35px; margin-top: 8px; }
+        
+        .tabs { display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px; }
+        .tab-btn { background: none; border: none; color: white; cursor: pointer; font-weight: bold; opacity: 0.6; }
+        .tab-btn.active { opacity: 1; border-bottom: 2px solid white; }
+
+        .room-select { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
+        .room-btn { background: rgba(0,0,0,0.3); border: 1px solid white; color: white; padding: 6px 15px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 12px; }
+        .room-btn.active { background: white; color: #e73c7e; }
+
+        #chat { height: 400px; overflow-y: auto; background: rgba(0, 0, 0, 0.1); border-radius: 15px; padding: 10px; margin: 10px 0; }
+        .msg { background: white; color: #333; padding: 10px; border-radius: 15px; margin-bottom: 10px; position: relative; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .msg.private { border: 2px solid #ff00ff; background: #fff0ff; }
+        .nickname { font-weight: bold; color: #e73c7e; cursor: pointer; font-size: 11px; display: block; margin-bottom: 3px; }
+        
         .input-area { display: flex; flex-direction: column; gap: 8px; }
-        input { padding: 12px; border-radius: 12px; border: none; outline: none; font-size: 14px; }
-        .btn-send { background: #fff; color: #e73c7e; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; }
-        .theme-panel { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
-        .dot { width: 25px; height: 25px; border-radius: 50%; cursor: pointer; border: 2px solid white; }
+        input { padding: 12px; border-radius: 12px; border: none; outline: none; }
+        .btn-send { background: white; color: #e73c7e; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="card" id="nickCard">
-            <h3>Xoş Gəldin! ✨</h3>
-            <input type="text" id="nickInput" placeholder="Ləqəbin...">
-            <button class="btn-send" onclick="saveNick()" style="margin-top:15px; width:100%">Daxil Ol</button>
-        </div>
-
-        <div class="card" id="chatCard" style="display:none">
-            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <span id="welcomeText" style="font-weight:bold; font-size: 18px;"></span>
-                <button onclick="changeNick()" style="font-size:10px; background:rgba(0,0,0,0.2); border:1px solid white; color:white; border-radius:5px; padding: 5px 10px; cursor:pointer">Çıxış 🚪</button>
-            </div>
-
-            <div class="room-select">
-                <button class="room-btn active" onclick="setRoom('Ümumi', this)">🌐 Ümumi</button>
-                <button class="room-btn" onclick="setRoom('Oyun', this)">🎮 Oyun</button>
-                <button class="room-btn" onclick="setRoom('Musiqi', this)">🎵 Musiqi</button>
-                <button class="room-btn" onclick="setRoom('Məktəb', this)">📚 Məktəb</button>
-            </div>
-
-            <div id="chat">Yüklənir...</div>
-
-            <div class="input-area">
-                <input type="text" id="userMsg" placeholder="Mesaj yaz və ya link yapışdır...">
-                <button class="btn-send" onclick="sendMsg()">GÖNDƏR 🚀</button>
-            </div>
-
-            <div class="theme-panel">
-                <div class="dot" style="background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);" onclick="setTheme(1)"></div>
-                <div class="dot" style="background: linear-gradient(to right, #0f2027, #203a43, #2c5364);" onclick="setTheme(2)"></div>
-                <div class="dot" style="background: linear-gradient(to right, #833ab4, #fd1d1d, #fcb045);" onclick="setTheme(3)"></div>
-                <div class="dot" style="background: linear-gradient(to right, #1d976c, #93f9b9);" onclick="setTheme(4)"></div>
-            </div>
-        </div>
+<div class="container">
+    <div class="card" id="nickCard">
+        <h2>Xoş Gəldin! ✨</h2>
+        <input type="text" id="nickInput" placeholder="Ləqəbin...">
+        <button class="btn-send" onclick="saveNick()" style="margin-top:10px; width:100%">Daxil Ol</button>
     </div>
 
-    <script>
-        const supabaseUrl = 'https://pyknspxnwnilhqsazidj.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU'; 
-        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    <div class="card" id="chatCard" style="display:none">
+        <div class="tabs">
+            <button class="tab-btn active" id="tabGroup" onclick="switchMode('group')">Qruplar</button>
+            <button class="tab-btn" id="tabPrivate" onclick="switchMode('private')">Şəxsi (DM)</button>
+        </div>
 
-        let myNick = localStorage.getItem('chat_nick');
-        let currentRoom = 'Ümumi';
+        <div id="groupHeader">
+            <div class="room-select" id="roomList"></div>
+            <button onclick="addNewRoom()" style="background:none; border:1px dashed white; color:white; border-radius:10px; padding:5px; font-size:10px; cursor:pointer">+ Yeni Qrup</button>
+        </div>
 
-        if(myNick) showChat();
+        <div id="privateHeader" style="display:none">
+            <p style="font-size:12px">Kiminlə yazışırsan: <b id="chattingWith">Hər kəs</b></p>
+            <button onclick="targetUser='all'; switchMode('private')" style="font-size:10px; background:red; color:white; border:none; border-radius:5px; padding:5px">Sıfırla</button>
+        </div>
 
-        function saveNick() {
-            const n = document.getElementById('nickInput').value.trim();
-            if(n) { localStorage.setItem('chat_nick', n); myNick = n; showChat(); }
+        <div id="chat">Yüklənir...</div>
+
+        <div class="input-area">
+            <input type="text" id="userMsg" placeholder="Mesaj yaz...">
+            <button class="btn-send" onclick="sendMsg()">GÖNDƏR 🚀</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const supabaseUrl = 'https://pyknspxnwnilhqsazidj.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU'; 
+    const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    let myNick = localStorage.getItem('chat_nick');
+    let currentRoom = 'Ümumi';
+    let targetUser = 'all'; // 'all' qrup deməkdir, ləqəb olsa şəxsi mesaj
+    let mode = 'group'; // 'group' və ya 'private'
+    let rooms = JSON.parse(localStorage.getItem('chat_rooms')) || ['Ümumi', 'Oyun', 'Musiqi'];
+
+    if(myNick) showChat();
+
+    function saveNick() {
+        const n = document.getElementById('nickInput').value.trim();
+        if(n) { localStorage.setItem('chat_nick', n); myNick = n; showChat(); }
+    }
+
+    function showChat() {
+        document.getElementById('nickCard').style.display = 'none';
+        document.getElementById('chatCard').style.display = 'block';
+        renderRooms();
+        loadMsgs();
+    }
+
+    function switchMode(m) {
+        mode = m;
+        document.getElementById('tabGroup').classList.toggle('active', mode === 'group');
+        document.getElementById('tabPrivate').classList.toggle('active', mode === 'private');
+        document.getElementById('groupHeader').style.display = mode === 'group' ? 'block' : 'none';
+        document.getElementById('privateHeader').style.display = mode === 'private' ? 'block' : 'none';
+        document.getElementById('chattingWith').innerText = targetUser === 'all' ? 'Hər kəs' : targetUser;
+        loadMsgs();
+    }
+
+    function startPrivate(nick) {
+        if(nick === myNick) return;
+        targetUser = nick;
+        switchMode('private');
+    }
+
+    function renderRooms() {
+        const list = document.getElementById('roomList');
+        list.innerHTML = rooms.map(r => `<button class="room-btn ${r === currentRoom ? 'active' : ''}" onclick="currentRoom='${r}'; targetUser='all'; switchMode('group')">${r}</button>`).join('');
+    }
+
+    function addNewRoom() {
+        const n = prompt("Qrup adı:");
+        if(n && !rooms.includes(n)) { rooms.push(n); localStorage.setItem('chat_rooms', JSON.stringify(rooms)); renderRooms(); }
+    }
+
+    async function loadMsgs() {
+        let query = _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(50);
+        
+        if (mode === 'group') {
+            query = query.eq('room', currentRoom).eq('receiver', 'all');
+        } else {
+            // Şəxsi mesajlar: mən ona göndərən və ya o mənə göndərən
+            query = query.or(`and(nickname.eq.${myNick},receiver.eq.${targetUser}),and(nickname.eq.${targetUser},receiver.eq.${myNick})`);
         }
 
-        function showChat() {
-            document.getElementById('nickCard').style.display = 'none';
-            document.getElementById('chatCard').style.display = 'block';
-            document.getElementById('welcomeText').innerText = "Salam, " + myNick;
-            loadMsgs();
+        const { data } = await query;
+        if (data) {
+            document.getElementById('chat').innerHTML = data.map(m => `
+                <div class="msg ${m.receiver !== 'all' ? 'private' : ''}">
+                    <span class="nickname" onclick="startPrivate('${m.nickname}')">${m.nickname} ${m.receiver !== 'all' ? '🔒' : ''}</span>
+                    ${m.content}
+                </div>
+            `).join('');
         }
+    }
 
-        function changeNick() { localStorage.removeItem('chat_nick'); location.reload(); }
+    async function sendMsg() {
+        const inp = document.getElementById('userMsg');
+        const val = inp.value.trim();
+        if(!val) return;
+        
+        await _supabase.from('messages').insert([{ 
+            content: val, 
+            nickname: myNick, 
+            room: mode === 'group' ? currentRoom : 'private',
+            receiver: mode === 'group' ? 'all' : targetUser
+        }]);
+        
+        inp.value = '';
+        loadMsgs();
+    }
 
-        function setRoom(roomName, btn) {
-            currentRoom = roomName;
-            document.querySelectorAll('.room-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            loadMsgs();
-        }
-
-        function setTheme(id) {
-            const themes = [
-                "linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab)",
-                "linear-gradient(to right, #0f2027, #203a43, #2c5364)",
-                "linear-gradient(to right, #833ab4, #fd1d1d, #fcb045)",
-                "linear-gradient(to right, #1d976c, #93f9b9)"
-            ];
-            document.body.style.background = themes[id-1];
-            document.body.style.backgroundSize = "400% 400%";
-        }
-
-        function formatMessage(content) {
-            if (content.match(/\.(jpeg|jpg|gif|png|webp)$/i)) return `<img src="${content}">`;
-            if (content.match(/\.(mp3|wav|ogg)$/i)) return `<audio controls><source src="${content}"></audio>`;
-            return content;
-        }
-
-        async function deleteMsg(id) {
-            if(confirm("Bu mesajı silmək istəyirsən?")) {
-                await _supabase.from('messages').delete().eq('id', id);
-                loadMsgs();
-            }
-        }
-
-        async function loadMsgs() {
-            const { data } = await _supabase.from('messages').select('*').eq('room', currentRoom).order('created_at', { ascending: false }).limit(40);
-            if (data) {
-                document.getElementById('chat').innerHTML = data.map(m => `
-                    <div class="msg">
-                        <span class="nickname">${m.nickname}</span>
-                        <span class="delete-btn" onclick="deleteMsg(${m.id})">🗑️</span>
-                        ${formatMessage(m.content)}
-                    </div>
-                `).join('');
-            }
-        }
-
-        async function sendMsg() {
-            const inp = document.getElementById('userMsg');
-            const val = inp.value.trim();
-            if(!val) return;
-            await _supabase.from('messages').insert([{ content: val, nickname: myNick, room: currentRoom }]);
-            inp.value = '';
-            loadMsgs();
-        }
-
-        setInterval(loadMsgs, 3000);
-    </script>
+    setInterval(loadMsgs, 3000);
+</script>
 </body>
 </html>
