@@ -3,38 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>X-Chat Pro Audio</title>
+    <title>X-Chat Pro Final</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #05070a; --accent: #00d2ff; --red: #ff3b30; }
-        body { margin: 0; background: var(--bg); color: #fff; font-family: sans-serif; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 80%; padding: 10px; border-radius: 15px; background: #1a1f2e; align-self: flex-start; }
-        .msg.my { align-self: flex-end; background: var(--accent); color: #000; }
-        .input-bar { padding: 15px; background: #0f121a; display: flex; gap: 10px; }
+        :root { --bg: #05070a; --accent: #00d2ff; --my-msg: #00d2ff; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: sans-serif; height: 100dvh; display: flex; flex-direction: column; }
         
-        /* Zəng Overlay */
-        #callOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        .call-ui { position: absolute; bottom: 50px; display: flex; gap: 20px; }
-        .btn { width: 60px; height: 60px; border-radius: 50%; border: none; cursor: pointer; font-size: 24px; }
+        /* Header */
+        .header { padding: 15px; background: #0f121a; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Çat sahəsi */
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 80%; padding: 12px; border-radius: 18px; background: #1a1f2e; font-size: 15px; line-height: 1.4; position: relative; }
+        .msg.my { align-self: flex-end; background: var(--my-msg); color: #000; font-weight: 500; }
+        .msg b { display: block; font-size: 10px; margin-bottom: 4px; opacity: 0.7; }
+
+        /* Giriş paneli */
+        .input-bar { padding: 10px 15px; background: #0f121a; display: flex; align-items: center; gap: 10px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+        #msgInp { flex: 1; background: #1a1f2e; border: 1px solid #333; padding: 12px 15px; border-radius: 25px; color: white; font-size: 16px; outline: none; }
+        .btn { width: 45px; height: 45px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+        /* Zəng Seçimi */
+        #callMenu { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #161b22; padding: 25px; border-radius: 25px; border: 1px solid var(--accent); flex-direction: column; gap: 15px; z-index: 1000; box-shadow: 0 0 30px rgba(0,210,255,0.3); }
+
+        /* Zəng Ekranı (WebRTC) */
+        #callOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; flex-direction: column; }
+        #remoteVideo { width: 100%; height: 100%; object-fit: cover; }
+        #localVideo { position: absolute; top: 20px; right: 20px; width: 100px; height: 140px; border-radius: 12px; border: 2px solid var(--accent); object-fit: cover; }
+        .call-controls { position: absolute; bottom: 50px; left: 0; width: 100%; display: flex; justify-content: center; gap: 20px; }
     </style>
 </head>
 <body>
 
+<div id="callMenu">
+    <h3 style="margin:0; text-align:center;">Zəng növü?</h3>
+    <button onclick="startP2P('video')" style="background:var(--accent); padding:12px; border-radius:12px; border:none; font-weight:bold;">📹 Görüntülü Zəng</button>
+    <button onclick="startP2P('audio')" style="background:#34d399; padding:12px; border-radius:12px; border:none; font-weight:bold;">📞 Səsli Zəng</button>
+    <button onclick="document.getElementById('callMenu').style.display='none'" style="background:none; color:#ff3b30; border:none;">Ləğv et</button>
+</div>
+
 <div id="callOverlay">
     <video id="remoteVideo" autoplay playsinline></video>
-    <div class="call-ui">
-        <button class="btn" style="background:var(--red);" onclick="endCall()">📞</button>
+    <video id="localVideo" autoplay playsinline muted></video>
+    <div class="call-controls">
+        <button class="btn" style="background:#ff3b30; color:white; width:70px; height:70px;" onclick="location.reload()">📞</button>
     </div>
+</div>
+
+<div class="header">
+    <b id="nickName">Yüklənir...</b>
+    <button onclick="document.getElementById('callMenu').style.display='flex'" style="background:none; border:none; font-size:24px;">📞</button>
 </div>
 
 <div id="chat"></div>
 
 <div class="input-bar">
-    <button onclick="initCall('video')" style="background:none; border:none; font-size:24px;">📞</button>
-    <input type="text" id="msgInp" placeholder="Mesaj..." style="flex:1; padding:10px; border-radius:20px; border:none;">
-    <button onclick="sendMsg()" style="background:var(--accent); border:none; padding:10px 20px; border-radius:20px;">🚀</button>
+    <input type="text" id="msgInp" placeholder="Mesaj yaz..." autocomplete="off">
+    <button class="btn" onclick="sendMsg()" style="background:var(--accent);">🚀</button>
 </div>
 
 <script>
@@ -42,46 +68,30 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    let myNick = localStorage.getItem('chat_nick') || prompt("Ad:") || "User";
-    
-    // 🔊 SƏS FAYLLARI
-    const msgSound = new Audio('https://raw.githubusercontent.com/rafael-pina/whatsapp-web-clone/master/src/assets/sounds/message_received.mp3');
-    const ringtone = new Audio('https://www.soundjay.com/phone/phone-calling-1.mp3');
-    ringtone.loop = true; // Zəng bitənə qədər çalınsın
+    let myNick = localStorage.getItem('chat_nick') || prompt("Adınız:") || "User";
+    localStorage.setItem('chat_nick', myNick);
+    document.getElementById('nickName').innerText = myNick;
 
-    // MESAJLARIN İZLƏNİLMƏSİ (Bildiriş səsi ilə)
-    _supabase.channel('messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => {
-        if (p.new.nickname !== myNick) {
-            msgSound.play().catch(e => console.log("Səs çalınmadı:", e));
-        }
+    // Səslər
+    const msgSnd = new Audio('https://raw.githubusercontent.com/rafael-pina/whatsapp-web-clone/master/src/assets/sounds/message_received.mp3');
+
+    // Realtime Mesajlar
+    _supabase.channel('room1').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => {
+        if(p.new.nickname !== myNick) msgSnd.play().catch(()=>{});
         appendMsg(p.new);
     }).subscribe();
 
-    // ZƏNG SİQNALLARI (Zəng səsi ilə)
-    const sig = _supabase.channel('p2p_signals');
-    sig.on('broadcast', { event: 'signal' }, async ({ payload }) => {
-        if (payload.to !== myNick && payload.to !== 'all') return;
-        
-        if (payload.type === 'offer') {
-            ringtone.play(); // Zəng səsi başlasın
-            if (confirm(`${payload.from} zəng edir...`)) {
-                ringtone.pause();
-                ringtone.currentTime = 0;
-                await answerCall(payload);
-            } else {
-                ringtone.pause();
-            }
-        } else if (payload.type === 'answer') {
-            ringtone.pause();
-            ringtone.currentTime = 0;
-            // PeerConnection məntiqi bura gəlir...
-        }
-    }).subscribe();
+    async function loadMsgs() {
+        const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(30);
+        if (data) data.reverse().forEach(appendMsg);
+    }
 
     function appendMsg(m) {
+        if (document.getElementById('m-' + m.id)) return;
         const div = document.createElement('div');
+        div.id = 'm-' + m.id;
         div.className = `msg ${m.nickname === myNick ? 'my' : ''}`;
-        div.innerText = `${m.nickname}: ${m.content}`;
+        div.innerHTML = `<b>${m.nickname}</b>${m.content}`;
         document.getElementById('chat').appendChild(div);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
@@ -89,12 +99,27 @@
     async function sendMsg() {
         const inp = document.getElementById('msgInp');
         if (!inp.value.trim()) return;
-        await _supabase.from('messages').insert([{ content: inp.value, nickname: myNick, receiver: 'all' }]);
+        const val = inp.value;
         inp.value = '';
+        await _supabase.from('messages').insert([{ content: val, nickname: myNick, receiver: 'all' }]);
     }
 
-    // DİGƏR ZƏNG FUNKSİYALARI (Əvvəlki kodla eyni məntiqdə davam edir...)
-    // ...
+    // P2P Zəng Məntiqi (Sadələşdirilmiş)
+    async function startP2P(type) {
+        document.getElementById('callMenu').style.display = 'none';
+        document.getElementById('callOverlay').style.display = 'flex';
+        
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: type === 'video' });
+            document.getElementById('localVideo').srcObject = type === 'video' ? stream : null;
+            // WebRTC signaling buraya əlavə edilə bilər
+        } catch (e) {
+            alert("Kamera/Mikrofon icazəsi verilmədi!");
+            location.reload();
+        }
+    }
+
+    loadMsgs();
 </script>
 </body>
 </html>
