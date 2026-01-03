@@ -3,73 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mega Chat Pro X</title>
+    <title>Mega Chat Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #0f172a; --sidebar: #1e293b; --accent: #3b82f6; --text: #f8fafc; --my-msg: #2563eb; }
-        body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; overflow: hidden; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b141a; color: #e9edef; height: 100vh; display: flex; flex-direction: column; }
         
-        /* Sidebar (Mobildə gizlənə bilən) */
-        .sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid #334155; display: flex; flex-direction: column; transition: 0.3s; z-index: 100; }
-        .sidebar.closed { margin-left: -260px; }
-        .sb-header { padding: 20px; font-weight: bold; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; }
-        .user-list { flex: 1; overflow-y: auto; padding: 10px; }
-        .user-item { padding: 12px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 5px; transition: 0.2s; }
-        .user-item:hover, .user-item.active { background: var(--accent); }
+        /* Header */
+        .header { background: #202c33; padding: 12px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+        #myAv { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #333; cursor: pointer; }
+        
+        /* Chat Sahəsi */
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-attachment: fixed; }
+        
+        /* Mesaj Balonları */
+        .msg { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 15px; position: relative; line-height: 1.4; color: #e9edef; word-wrap: break-word; }
+        .msg.my { align-self: flex-end; background: #005c4b; border-bottom-right-radius: 2px; }
+        .msg.other { align-self: flex-start; background: #202c33; border-bottom-left-radius: 2px; }
+        .msg b { display: block; font-size: 12px; color: #34d399; margin-bottom: 3px; }
+        .msg-time { font-size: 10px; opacity: 0.6; text-align: right; margin-top: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+        
+        /* Silmə Düyməsi */
+        .del { color: #ff5e5e; cursor: pointer; font-weight: bold; margin-left: 10px; font-size: 11px; }
 
-        /* Main */
-        .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-        .header { padding: 15px; background: #1e293b; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #334155; }
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-
-        /* Mesajlar */
-        .msg { max-width: 85%; padding: 10px 14px; border-radius: 15px; position: relative; font-size: 15px; transition: 0.2s; }
-        .msg.my { align-self: flex-end; background: var(--my-msg); border-bottom-right-radius: 2px; }
-        .msg.other { align-self: flex-start; background: #334155; border-bottom-left-radius: 2px; }
-        .msg-info { font-size: 11px; opacity: 0.6; display: flex; justify-content: space-between; margin-bottom: 4px; }
+        /* Alt İdarə Paneli */
+        .controls { background: #202c33; padding: 10px; display: flex; align-items: center; gap: 10px; }
+        #userMsg { flex: 1; background: #2a3942; border: none; padding: 12px 16px; border-radius: 20px; color: white; outline: none; font-size: 15px; }
+        .icon-btn { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 22px; transition: 0.2s; }
+        #micBtn { background: #00a884; color: white; }
+        #micBtn.rec { background: #f15c5c; animation: beat 1s infinite; }
+        @keyframes beat { 50% { transform: scale(1.1); } }
         
-        /* Silmə Menyusu (Long Press üçün) */
-        .msg-actions { font-size: 10px; color: #ff4d4d; cursor: pointer; margin-left: 10px; font-weight: bold; }
-
-        /* Controls */
-        .input-area { padding: 15px; background: #1e293b; display: flex; gap: 10px; align-items: center; }
-        input { flex: 1; background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 20px; color: white; outline: none; }
-        .btn { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; }
-        
-        /* Mobildə Sidebar düyməsi */
-        #menuToggle { display: none; background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
-        @media (max-width: 768px) { #menuToggle { display: block; } .sidebar { position: absolute; height: 100%; } }
-        
-        audio { height: 35px; width: 100%; max-width: 200px; filter: invert(1); }
+        audio { height: 35px; width: 200px; filter: invert(1); }
     </style>
 </head>
 <body>
 
-<div class="sidebar" id="sidebar">
-    <div class="sb-header">MegaChat PRO <button onclick="toggleSidebar()" style="color:white; background:none; border:none;">✕</button></div>
-    <div class="user-list">
-        <div class="user-item active" onclick="switchRoom('all')">🌐 Ümumi Qrup</div>
-        <div id="users-box"></div>
+<div class="header">
+    <img id="myAv" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" onclick="document.getElementById('avInp').click()">
+    <input type="file" id="avInp" hidden onchange="uploadAv(this)">
+    <div style="flex:1">
+        <b id="myNick">Yüklənir...</b>
+        <div id="typing" style="font-size:12px; color:#34d399; height:14px;"></div>
     </div>
+    <button onclick="startCall()" style="background:none; border:none; font-size:24px; cursor:pointer;">📞</button>
 </div>
 
-<div class="main">
-    <div class="header">
-        <button id="menuToggle" onclick="toggleSidebar()">☰</button>
-        <div>
-            <b id="chatTitle">Ümumi Qrup</b>
-            <div id="typing" style="font-size: 11px; color: var(--accent);"></div>
-        </div>
-        <button onclick="startCall()" style="margin-left:auto; background:none; border:none; font-size:22px; cursor:pointer;">📞</button>
-    </div>
+<div id="chat"></div>
 
-    <div id="chat">Yüklənir...</div>
-
-    <div class="input-area">
-        <button class="btn" id="micBtn" onclick="toggleVoice()" style="background:#ef4444;">🎤</button>
-        <input type="text" id="userMsg" placeholder="Yazın..." oninput="broadcastTyping()">
-        <button class="btn" onclick="sendMsg()" style="background:var(--accent);">🚀</button>
-    </div>
+<div class="controls">
+    <button class="icon-btn" id="micBtn" onclick="toggleVoice()">🎤</button>
+    <input type="text" id="userMsg" placeholder="Mesaj yazın..." oninput="isTyping()">
+    <button class="icon-btn" onclick="sendMsg()" style="background:none;">🚀</button>
 </div>
 
 <script>
@@ -77,102 +61,71 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    let myNick = localStorage.getItem('chat_nick') || prompt("Ləqəbiniz:") || "User";
+    let myNick = localStorage.getItem('chat_nick') || prompt("Adınız:") || "Qonaq";
     localStorage.setItem('chat_nick', myNick);
-    let currentRoom = 'all';
+    document.getElementById('myNick').innerText = myNick;
+    if(localStorage.getItem('chat_avatar')) document.getElementById('myAv').src = localStorage.getItem('chat_avatar');
 
-    // 1. REALTIME (Yeni Mesaj və Silinmə)
-    _supabase.channel('main').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
-        if (payload.eventType === 'INSERT') {
-            const m = payload.new;
-            if (m.receiver === 'all' || m.receiver === myNick || m.nickname === myNick) {
-                if (currentRoom === m.receiver || (currentRoom === m.nickname && m.receiver === myNick)) appendMsg(m);
-                addUserToSidebar(m.nickname);
-            }
-        } else if (payload.eventType === 'DELETE') {
-            document.getElementById('msg-' + payload.old.id)?.remove();
-        }
+    const chatBox = document.getElementById('chat');
+
+    // REALTIME DINLƏYİCİ (Ən vacib hissə)
+    _supabase.channel('messages').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
+        if (payload.eventType === 'INSERT') appendMsg(payload.new);
+        if (payload.eventType === 'DELETE') document.getElementById('m-' + payload.old.id)?.remove();
     }).subscribe();
 
     async function loadMsgs() {
-        document.getElementById('chat').innerHTML = '';
-        const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(50);
-        if (data) data.reverse().forEach(m => {
-            if (currentRoom === 'all' && m.receiver === 'all') appendMsg(m);
-            else if (currentRoom !== 'all' && ((m.nickname === myNick && m.receiver === currentRoom) || (m.nickname === currentRoom && m.receiver === myNick))) {
-                appendMsg(m);
-            }
-        });
+        const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(40);
+        if (data) {
+            chatBox.innerHTML = '';
+            data.reverse().forEach(appendMsg);
+        }
     }
 
     function appendMsg(m) {
-        if (document.getElementById('msg-' + m.id)) return;
+        if (document.getElementById('m-' + m.id)) return;
         const isMy = m.nickname === myNick;
         const div = document.createElement('div');
-        div.id = 'msg-' + m.id;
+        div.id = 'm-' + m.id;
         div.className = `msg ${isMy ? 'my' : 'other'}`;
         const isAud = m.content.includes('audio_messages');
 
         div.innerHTML = `
-            <div class="msg-info">
-                <b>${m.nickname}</b>
-                <span>${new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} 
-                ${isMy ? `<span class="msg-actions" onclick="deleteMsg(${m.id})">Sil</span>` : ''}</span>
-            </div>
+            <b>${m.nickname}</b>
             ${isAud ? `<audio controls src="${m.content}"></audio>` : `<span>${m.content}</span>`}
+            <div class="msg-time">
+                ${new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                ${isMy ? `<span class="del" onclick="delMsg(${m.id})">Sil</span>` : ''}
+                ${isMy ? '<span style="color:#34b7f1">✓✓</span>' : ''}
+            </div>
         `;
-        document.getElementById('chat').appendChild(div);
-        document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     async function sendMsg(vUrl = null) {
-        const val = vUrl || document.getElementById('userMsg').value.trim();
+        const inp = document.getElementById('userMsg');
+        const val = vUrl || inp.value.trim();
         if(!val) return;
-        await _supabase.from('messages').insert([{ content: val, nickname: myNick, receiver: currentRoom }]);
-        document.getElementById('userMsg').value = '';
+        await _supabase.from('messages').insert([{ content: val, nickname: myNick, receiver: 'all' }]);
+        inp.value = '';
     }
 
-    async function deleteMsg(id) {
-        if(confirm("Bu mesajı hər kəs üçün silmək?")) {
-            await _supabase.from('messages').delete().eq('id', id);
-        }
-    }
-
-    function switchRoom(room) {
-        currentRoom = room;
-        document.getElementById('chatTitle').innerText = room === 'all' ? "Ümumi Qrup" : "DM: " + room;
-        if(window.innerWidth < 768) toggleSidebar();
-        loadMsgs();
-    }
-
-    function addUserToSidebar(nick) {
-        if (nick === myNick || document.getElementById('user-' + nick)) return;
-        const div = document.createElement('div');
-        div.id = 'user-' + nick;
-        div.className = 'user-item';
-        div.onclick = () => switchRoom(nick);
-        div.innerHTML = `👤 ${nick}`;
-        document.getElementById('users-box').appendChild(div);
-    }
-
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('closed');
+    async function delMsg(id) {
+        if(confirm("Silsin?")) await _supabase.from('messages').delete().eq('id', id);
     }
 
     // TYPING...
-    const typeChan = _supabase.channel('typing');
-    typeChan.on('broadcast', { event: 't' }, p => {
-        if (p.payload.n !== myNick) {
+    const tChan = _supabase.channel('t');
+    tChan.on('broadcast', {event:'t'}, p => {
+        if(p.payload.n !== myNick) {
             document.getElementById('typing').innerText = p.payload.n + " yazır...";
             setTimeout(() => document.getElementById('typing').innerText = "", 2000);
         }
     }).subscribe();
+    function isTyping() { tChan.send({type:'broadcast', event:'t', payload:{n:myNick}}); }
 
-    function broadcastTyping() {
-        typeChan.send({ type: 'broadcast', event: 't', payload: { n: myNick } });
-    }
-
-    // SƏS (PRO)
+    // SƏS YAZMA
     let mediaRecorder, chunks = [];
     async function toggleVoice() {
         const btn = document.getElementById('micBtn');
@@ -180,10 +133,10 @@
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorder = new MediaRecorder(stream);
             chunks = [];
-            mediaRecorder.onstart = () => btn.innerText = "🛑";
+            mediaRecorder.onstart = () => btn.classList.add('rec');
             mediaRecorder.ondataavailable = e => chunks.push(e.data);
             mediaRecorder.onstop = async () => {
-                btn.innerText = "🎤";
+                btn.classList.remove('rec');
                 const blob = new Blob(chunks, { type: 'audio/webm' });
                 const fName = `v_${Date.now()}.webm`;
                 const { data } = await _supabase.storage.from('audio_messages').upload(fName, blob);
@@ -193,14 +146,20 @@
         } else { mediaRecorder.stop(); }
     }
 
-    function startCall() {
-        const url = `https://meet.jit.si/Mega_${Math.floor(Math.random()*1000)}`;
-        sendMsg(`📞 Zəng: ${url}`);
-        window.open(url, '_blank');
+    function startCall() { window.open('https://meet.jit.si/MegaChat_' + Math.floor(Math.random()*100), '_blank'); }
+
+    async function uploadAv(input) {
+        const file = input.files[0];
+        const fName = `av_${Date.now()}.jpg`;
+        const { data } = await _supabase.storage.from('avatars').upload(fName, file);
+        if (data) {
+            const url = `${supabaseUrl}/storage/v1/object/public/avatars/${fName}`;
+            localStorage.setItem('chat_avatar', url);
+            document.getElementById('myAv').src = url;
+        }
     }
 
     loadMsgs();
 </script>
 </body>
 </html>
- 
