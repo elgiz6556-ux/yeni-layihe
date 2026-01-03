@@ -2,48 +2,69 @@
 <html lang="az">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mega Chat Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Mega Chat Ultra</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b141a; color: #e9edef; height: 100vh; display: flex; flex-direction: column; }
+        :root { --bg: #0b141a; --header: #202c33; --my-msg: #005c4b; --other-msg: #202c33; --accent: #00a884; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: #e9edef; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
         /* Header */
-        .header { background: #202c33; padding: 12px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
-        #myAv { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #333; cursor: pointer; }
+        .header { background: var(--header); padding: 12px 16px; display: flex; align-items: center; gap: 12px; z-index: 10; height: 60px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        #myAv { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1.5px solid #333; cursor: pointer; }
         
-        /* Chat Sahəsi */
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-attachment: fixed; }
+        /* Chat Area */
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-size: 400px; }
         
-        /* Mesaj Balonları */
-        .msg { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 15px; position: relative; line-height: 1.4; color: #e9edef; word-wrap: break-word; }
-        .msg.my { align-self: flex-end; background: #005c4b; border-bottom-right-radius: 2px; }
-        .msg.other { align-self: flex-start; background: #202c33; border-bottom-left-radius: 2px; }
-        .msg b { display: block; font-size: 12px; color: #34d399; margin-bottom: 3px; }
-        .msg-time { font-size: 10px; opacity: 0.6; text-align: right; margin-top: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+        /* Message Bubbles */
+        .msg { max-width: 85%; padding: 8px 12px; border-radius: 12px; position: relative; font-size: 15px; line-height: 1.4; animation: pop 0.2s ease; word-wrap: break-word; }
+        @keyframes pop { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
-        /* Silmə Düyməsi */
-        .del { color: #ff5e5e; cursor: pointer; font-weight: bold; margin-left: 10px; font-size: 11px; }
+        .msg.my { align-self: flex-end; background: var(--my-msg); border-bottom-right-radius: 2px; }
+        .msg.other { align-self: flex-start; background: var(--other-msg); border-bottom-left-radius: 2px; }
+        .msg b { display: block; font-size: 11px; color: #34d399; margin-bottom: 2px; }
+        
+        .msg-meta { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 10px; opacity: 0.6; margin-top: 4px; }
+        .del-btn { color: #ff5e5e; cursor: pointer; margin-left: 8px; font-weight: bold; padding: 2px 5px; }
 
-        /* Alt İdarə Paneli */
-        .controls { background: #202c33; padding: 10px; display: flex; align-items: center; gap: 10px; }
-        #userMsg { flex: 1; background: #2a3942; border: none; padding: 12px 16px; border-radius: 20px; color: white; outline: none; font-size: 15px; }
-        .icon-btn { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 22px; transition: 0.2s; }
-        #micBtn { background: #00a884; color: white; }
-        #micBtn.rec { background: #f15c5c; animation: beat 1s infinite; }
-        @keyframes beat { 50% { transform: scale(1.1); } }
+        /* Controls */
+        .controls { background: var(--header); padding: 10px; display: flex; align-items: center; gap: 10px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+        #userMsg { flex: 1; background: #2a3942; border: none; padding: 12px 16px; border-radius: 24px; color: white; outline: none; font-size: 16px; }
         
-        audio { height: 35px; width: 200px; filter: invert(1); }
+        .action-btn { width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; }
+        #micBtn { background: var(--accent); }
+        #micBtn.recording { background: #ea4335; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        /* In-App Call Overlay */
+        #callOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 1000; }
+        #callFrame { width: 100%; height: calc(100% - 70px); border: none; }
+        .close-call { height: 70px; background: #ea4335; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; font-size: 18px; }
+
+        /* Loading Bar */
+        #loadingBar { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: var(--accent); z-index: 1001; }
+        .loading-progress { width: 30%; height: 100%; background: #fff; animation: loadingAnim 1.5s infinite; }
+        @keyframes loadingAnim { 0% { margin-left: -30%; } 100% { margin-left: 100%; } }
+
+        audio { height: 35px; width: 180px; filter: invert(1); margin-top: 5px; }
     </style>
 </head>
 <body>
+
+<div id="loadingBar"><div class="loading-progress"></div></div>
+
+<div id="callOverlay">
+    <iframe id="callFrame" allow="camera; microphone; fullscreen; display-capture; autoplay"></iframe>
+    <div class="close-call" onclick="closeCall()">Zəngi Bitir</div>
+</div>
 
 <div class="header">
     <img id="myAv" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" onclick="document.getElementById('avInp').click()">
     <input type="file" id="avInp" hidden onchange="uploadAv(this)">
     <div style="flex:1">
-        <b id="myNick">Yüklənir...</b>
-        <div id="typing" style="font-size:12px; color:#34d399; height:14px;"></div>
+        <b id="displayNick">Yüklənir...</b>
+        <div id="typingInfo" style="font-size:11px; color: var(--accent); height: 14px;"></div>
     </div>
     <button onclick="startCall()" style="background:none; border:none; font-size:24px; cursor:pointer;">📞</button>
 </div>
@@ -51,9 +72,9 @@
 <div id="chat"></div>
 
 <div class="controls">
-    <button class="icon-btn" id="micBtn" onclick="toggleVoice()">🎤</button>
-    <input type="text" id="userMsg" placeholder="Mesaj yazın..." oninput="isTyping()">
-    <button class="icon-btn" onclick="sendMsg()" style="background:none;">🚀</button>
+    <button class="action-btn" id="micBtn" onclick="toggleVoice()">🎤</button>
+    <input type="text" id="userMsg" placeholder="Mesaj yazın..." oninput="sendTyping()">
+    <button class="action-btn" onclick="sendMsg()" style="background:transparent;">🚀</button>
 </div>
 
 <script>
@@ -61,14 +82,14 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    let myNick = localStorage.getItem('chat_nick') || prompt("Adınız:") || "Qonaq";
+    let myNick = localStorage.getItem('chat_nick') || prompt("Adınız:") || "User";
     localStorage.setItem('chat_nick', myNick);
-    document.getElementById('myNick').innerText = myNick;
+    document.getElementById('displayNick').innerText = myNick;
     if(localStorage.getItem('chat_avatar')) document.getElementById('myAv').src = localStorage.getItem('chat_avatar');
 
     const chatBox = document.getElementById('chat');
 
-    // REALTIME DINLƏYİCİ (Ən vacib hissə)
+    // REALTIME SUBSCRIPTION
     _supabase.channel('messages').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
         if (payload.eventType === 'INSERT') appendMsg(payload.new);
         if (payload.eventType === 'DELETE') document.getElementById('m-' + payload.old.id)?.remove();
@@ -92,10 +113,10 @@
 
         div.innerHTML = `
             <b>${m.nickname}</b>
-            ${isAud ? `<audio controls src="${m.content}"></audio>` : `<span>${m.content}</span>`}
-            <div class="msg-time">
+            ${isAud ? `<audio controls preload="metadata" src="${m.content}"></audio>` : `<span>${m.content}</span>`}
+            <div class="msg-meta">
                 ${new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
-                ${isMy ? `<span class="del" onclick="delMsg(${m.id})">Sil</span>` : ''}
+                ${isMy ? `<span class="del-btn" onclick="delMsg(${m.id})">Sil</span>` : ''}
                 ${isMy ? '<span style="color:#34b7f1">✓✓</span>' : ''}
             </div>
         `;
@@ -107,46 +128,69 @@
         const inp = document.getElementById('userMsg');
         const val = vUrl || inp.value.trim();
         if(!val) return;
+        
+        document.getElementById('loadingBar').style.display = 'block';
         await _supabase.from('messages').insert([{ content: val, nickname: myNick, receiver: 'all' }]);
-        inp.value = '';
+        document.getElementById('loadingBar').style.display = 'none';
+        
+        if(!vUrl) inp.value = '';
     }
 
     async function delMsg(id) {
-        if(confirm("Silsin?")) await _supabase.from('messages').delete().eq('id', id);
+        if(confirm("Bu mesajı hər kəs üçün silmək istəyirsiz?")) {
+            await _supabase.from('messages').delete().eq('id', id);
+        }
     }
 
-    // TYPING...
-    const tChan = _supabase.channel('t');
-    tChan.on('broadcast', {event:'t'}, p => {
+    // TYPING BROADCAST
+    const tChan = _supabase.channel('typing');
+    tChan.on('broadcast', { event: 't' }, p => {
         if(p.payload.n !== myNick) {
-            document.getElementById('typing').innerText = p.payload.n + " yazır...";
-            setTimeout(() => document.getElementById('typing').innerText = "", 2000);
+            document.getElementById('typingInfo').innerText = p.payload.n + " yazır...";
+            setTimeout(() => document.getElementById('typingInfo').innerText = "", 2500);
         }
     }).subscribe();
-    function isTyping() { tChan.send({type:'broadcast', event:'t', payload:{n:myNick}}); }
+    function sendTyping() { tChan.send({ type: 'broadcast', event: 't', payload: { n: myNick } }); }
 
-    // SƏS YAZMA
+    // VOICE RECORDING
     let mediaRecorder, chunks = [];
     async function toggleVoice() {
         const btn = document.getElementById('micBtn');
         if (!mediaRecorder || mediaRecorder.state === "inactive") {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
+            const mime = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm';
+            mediaRecorder = new MediaRecorder(stream, { mimeType: mime });
             chunks = [];
-            mediaRecorder.onstart = () => btn.classList.add('rec');
+            mediaRecorder.onstart = () => btn.classList.add('recording');
             mediaRecorder.ondataavailable = e => chunks.push(e.data);
             mediaRecorder.onstop = async () => {
-                btn.classList.remove('rec');
-                const blob = new Blob(chunks, { type: 'audio/webm' });
-                const fName = `v_${Date.now()}.webm`;
+                btn.classList.remove('recording');
+                document.getElementById('loadingBar').style.display = 'block';
+                const blob = new Blob(chunks, { type: mime });
+                const fName = `v_${Date.now()}.${mime.includes('mp4')?'mp4':'webm'}`;
                 const { data } = await _supabase.storage.from('audio_messages').upload(fName, blob);
                 if (data) sendMsg(`${supabaseUrl}/storage/v1/object/public/audio_messages/${fName}`);
+                document.getElementById('loadingBar').style.display = 'none';
             };
             mediaRecorder.start();
         } else { mediaRecorder.stop(); }
     }
 
-    function startCall() { window.open('https://meet.jit.si/MegaChat_' + Math.floor(Math.random()*100), '_blank'); }
+    // CALL SYSTEM (IN-APP)
+    function startCall() {
+        const room = "MegaRoom_" + Math.floor(Math.random() * 1000);
+        const url = `https://meet.jit.si/${room}#config.prejoinPageEnabled=false&interfaceConfig.TOOLBAR_BUTTONS=['microphone','camera','hangup','chat','settings']`;
+        sendMsg(`📞 Görüntülü zəng başladı. Qoşulmaq üçün bura toxun: ${url}`);
+        openCall(url);
+    }
+    function openCall(url) {
+        document.getElementById('callFrame').src = url;
+        document.getElementById('callOverlay').style.display = 'block';
+    }
+    function closeCall() {
+        document.getElementById('callFrame').src = "";
+        document.getElementById('callOverlay').style.display = 'none';
+    }
 
     async function uploadAv(input) {
         const file = input.files[0];
