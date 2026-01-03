@@ -3,42 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mega Chat Ultra - Fixed Design</title>
+    <title>Mega Chat Ultra - Voice Fix</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --grad: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab); }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--grad); background-size: 400% 400%; animation: grad 15s ease infinite; color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 10px; overflow-x: hidden; }
         @keyframes grad { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-        
-        .container { width: 100%; max-width: 450px; position: relative; }
+        .container { width: 100%; max-width: 450px; }
         .card { background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 25px; backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.3); margin-top: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
-        
         .top-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 20px; margin-bottom: 10px; }
-        .user-info { display: flex; align-items: center; gap: 10px; }
-        
-        /* Şəkil ölçüsünü burada sabitlədik ki, böyüməsin */
         #avatarImg { width: 40px !important; height: 40px !important; border-radius: 50%; object-fit: cover; border: 2px solid #fff; cursor: pointer; }
-        
-        .tabs { display: flex; justify-content: space-around; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.2); }
-        .tab-btn { background: none; border: none; color: white; cursor: pointer; padding: 8px; font-weight: bold; opacity: 0.6; font-size: 14px; }
-        .tab-btn.active { opacity: 1; border-bottom: 2px solid white; }
-
         #chat { height: 60vh; overflow-y: auto; background: rgba(0, 0, 0, 0.1); border-radius: 20px; padding: 15px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
-        
-        .msg { background: white; color: #333; padding: 10px; border-radius: 18px; align-self: flex-start; max-width: 80%; position: relative; display: flex; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 14px; line-height: 1.4; }
+        .msg { background: white; color: #333; padding: 10px; border-radius: 18px; align-self: flex-start; max-width: 80%; position: relative; display: flex; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 14px; }
         .msg.my-msg { align-self: flex-end; background: #e3f2fd; border-bottom-right-radius: 2px; }
         .msg-avatar { width: 30px !important; height: 30px !important; border-radius: 50%; object-fit: cover; }
-        
-        .reaction-bar { position: absolute; bottom: -12px; right: 8px; background: white; border-radius: 12px; padding: 2px 6px; font-size: 11px; display: flex; gap: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); font-weight: bold; }
-        .emoji-picker { display: none; position: absolute; top: -35px; left: 0; background: white; padding: 5px; border-radius: 20px; gap: 8px; z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .msg:hover .emoji-picker, .msg:active .emoji-picker { display: flex; }
-
         .controls { display: flex; gap: 10px; align-items: center; margin-top: 15px; background: rgba(255,255,255,0.1); padding: 8px; border-radius: 30px; }
-        input[type="text"] { flex: 1; padding: 12px; border-radius: 25px; border: none; outline: none; background: white; }
+        input[type="text"] { flex: 1; padding: 12px; border-radius: 25px; border: none; outline: none; }
         .btn-act { background: #4CAF50; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; }
-        
-        audio { width: 150px; height: 30px; }
-        input[type="color"] { border: none; width: 30px; height: 30px; cursor: pointer; background: none; }
+        audio { width: 160px; height: 35px; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -46,21 +28,14 @@
 <div class="container">
     <div class="card">
         <div class="top-bar">
-            <div class="user-info">
+            <div style="display:flex; align-items:center; gap:10px;">
                 <input type="file" id="avInp" hidden onchange="uploadAv(this)">
                 <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" id="avatarImg" onclick="document.getElementById('avInp').click()">
-                <b id="nickLabel">Yüklənir...</b>
+                <b id="nickLabel">...</b>
             </div>
-            <input type="color" id="userColor" title="Yazı rəngi">
+            <input type="color" id="userColor">
         </div>
-
-        <div class="tabs">
-            <button class="tab-btn active" id="tG" onclick="setM('group')">Qrup</button>
-            <button class="tab-btn" id="tP" onclick="setM('private')">Şəxsi (<span id="targetN">Yoxdur</span>)</button>
-        </div>
-
-        <div id="chat">Mesajlar yüklənir...</div>
-
+        <div id="chat">Yüklənir...</div>
         <div class="controls">
             <button class="btn-act" id="micBtn" onclick="toggleVoice()">🎤</button>
             <input type="text" id="userMsg" placeholder="Yazın...">
@@ -74,59 +49,25 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    let myNick = localStorage.getItem('chat_nick') || prompt("Ləqəbiniz:") || "Qonaq";
-    localStorage.setItem('chat_nick', myNick);
+    let myNick = localStorage.getItem('chat_nick') || prompt("Ləqəb:") || "User";
     document.getElementById('nickLabel').innerText = myNick;
 
-    let mode = 'group', target = 'all', isUserScrolling = false;
     const chatBox = document.getElementById('chat');
     const colorPicker = document.getElementById('userColor');
-    colorPicker.value = localStorage.getItem('chat_color') || "#333333";
-
-    chatBox.onscroll = () => { isUserScrolling = chatBox.scrollHeight - chatBox.scrollTop > chatBox.clientHeight + 60; };
-
-    function setM(m) {
-        mode = m;
-        document.getElementById('tG').classList.toggle('active', m === 'group');
-        document.getElementById('tP').classList.toggle('active', m === 'private');
-        loadMsgs();
-    }
-
-    async function addReact(id, emoji, current) {
-        let r = current || {};
-        for (let key in r) { r[key] = r[key].filter(u => u !== myNick); if (r[key].length === 0) delete r[key]; }
-        if (!r[emoji]) r[emoji] = [];
-        r[emoji].push(myNick);
-        await _supabase.from('messages').update({ reactions: r }).eq('id', id);
-        loadMsgs();
-    }
+    let isUserScrolling = false;
 
     async function loadMsgs() {
-        let q = _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(40);
-        if (mode === 'group') q = q.eq('receiver', 'all');
-        else q = q.or(`and(nickname.eq."${myNick}",receiver.eq."${target}"),and(nickname.eq."${target}",receiver.eq."${myNick}")`);
-
-        const { data, error } = await q;
+        const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(40);
         if (data) {
             chatBox.innerHTML = data.reverse().map(m => {
                 const isAud = m.content.includes('audio_messages');
-                let rsHtml = "";
-                if (m.reactions) {
-                    for (const [emo, users] of Object.entries(m.reactions)) rsHtml += `<span>${emo}${users.length}</span>`;
-                }
                 return `
-                    <div class="msg ${m.nickname === myNick ? 'my-msg' : ''}" style="color: ${m.user_color || '#333'}">
-                        <div class="emoji-picker">
-                            <span onclick='addReact(${m.id},"❤️",${JSON.stringify(m.reactions || {})})'>❤️</span>
-                            <span onclick='addReact(${m.id},"😂",${JSON.stringify(m.reactions || {})})'>😂</span>
-                            <span onclick='addReact(${m.id},"👍",${JSON.stringify(m.reactions || {})})'>👍</span>
-                        </div>
-                        <img src="${m.avatar_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="msg-avatar" onclick="if('${m.nickname}'!=='${myNick}'){target='${m.nickname}'; document.getElementById('targetN').innerText=target; setM('private');}">
+                    <div class="msg ${m.nickname === myNick ? 'my-msg' : ''}" style="color: ${m.user_color}">
+                        <img src="${m.avatar_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="msg-avatar">
                         <div>
                             <small><b>${m.nickname}</b></small><br>
                             ${isAud ? `<audio controls src="${m.content}"></audio>` : m.content}
                         </div>
-                        ${rsHtml ? `<div class="reaction-bar">${rsHtml}</div>` : ''}
                     </div>
                 `;
             }).join('');
@@ -139,40 +80,59 @@
         if(!val) return;
         await _supabase.from('messages').insert([{ 
             content: val, nickname: myNick, user_color: colorPicker.value, 
-            receiver: mode === 'group' ? 'all' : target, avatar_url: localStorage.getItem('chat_avatar')
+            receiver: 'all', avatar_url: localStorage.getItem('chat_avatar')
         }]);
         document.getElementById('userMsg').value = '';
         isUserScrolling = false; loadMsgs();
     }
 
-    async function uploadAv(input) {
-        const file = input.files[0];
-        const fName = `av_${Date.now()}.jpg`;
-        const { data } = await _supabase.storage.from('avatars').upload(fName, file);
-        if (data) {
-            const url = `${supabaseUrl}/storage/v1/object/public/avatars/${fName}`;
-            localStorage.setItem('chat_avatar', url);
-            document.getElementById('avatarImg').src = url;
-            alert("Profil şəkli yeniləndi!");
-        }
-    }
-
+    // SƏS PROBLEMİNİ HƏLL EDƏN YENİ FUNKSİYA
     let mediaRecorder;
+    let audioChunks = [];
+
     async function toggleVoice() {
         const btn = document.getElementById('micBtn');
+        
         if (!mediaRecorder || mediaRecorder.state === "inactive") {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            let chunks = [];
-            mediaRecorder.ondataavailable = e => chunks.push(e.data);
-            mediaRecorder.onstop = async () => {
-                const blob = new Blob(chunks, { type: 'audio/mpeg' });
-                const fName = `v_${Date.now()}.mp3`;
-                const { data } = await _supabase.storage.from('audio_messages').upload(fName, blob);
-                if (data) sendMsg(`${supabaseUrl}/storage/v1/object/public/audio_messages/${fName}`);
-            };
-            mediaRecorder.start(); btn.innerText = "🛑";
-        } else { mediaRecorder.stop(); btn.innerText = "🎤"; }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = []; // Hər dəfə sıfırla
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
+                    if (audioBlob.size < 1000) { // Çox kiçik səs fayllarını (xətalı) göndərmə
+                        alert("Səs çox qısa oldu, yenidən sınayın.");
+                        return;
+                    }
+                    
+                    const fName = `v_${Date.now()}.mp3`;
+                    const { data, error } = await _supabase.storage.from('audio_messages').upload(fName, audioBlob);
+                    
+                    if (data) {
+                        const publicUrl = `${supabaseUrl}/storage/v1/object/public/audio_messages/${fName}`;
+                        sendMsg(publicUrl);
+                    }
+                };
+
+                // Hər 1 saniyədən bir datanı topla (kəsilmənin qarşısını alır)
+                mediaRecorder.start(1000); 
+                btn.innerText = "🛑";
+                btn.style.background = "red";
+            } catch (err) {
+                alert("Mikrofon tapılmadı və ya icazə verilmədi.");
+            }
+        } else {
+            mediaRecorder.stop();
+            btn.innerText = "🎤";
+            btn.style.background = "#4CAF50";
+        }
     }
 
     setInterval(loadMsgs, 3000);
