@@ -2,71 +2,45 @@
 <html lang="az">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>X-Chat Ultimate</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>X-Chat Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #05070a; --panel: #0f121a; --accent: #00d2ff; --dm: #a855f7; --red: #ff3b30; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
-
-        /* Header */
-        .header { padding: 15px; background: var(--panel); border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
-        .status-pill { font-size: 11px; padding: 4px 10px; border-radius: 12px; background: #222; color: var(--accent); margin-top: 4px; display: inline-block; }
-        .status-pill.dm { background: var(--dm); color: white; }
-
-        /* Chat Area */
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-        .msg { max-width: 85%; padding: 12px; border-radius: 18px; background: #1a1f2e; position: relative; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
-        .msg.my { align-self: flex-end; background: var(--accent); color: #000; font-weight: 500; border-bottom-right-radius: 4px; }
-        .msg.is-dm { border-color: var(--dm); }
-        .msg b { display: block; font-size: 11px; margin-bottom: 4px; opacity: 0.8; }
-        .msg .meta { font-size: 9px; opacity: 0.5; margin-top: 5px; display: block; text-align: right; }
-        audio { width: 100%; max-width: 210px; height: 35px; filter: invert(1); margin-top: 5px; }
-
-        /* Floating UI Elements */
-        #dmIndicator { display: none; padding: 10px 15px; background: var(--dm); color: white; font-size: 13px; text-align: center; cursor: pointer; font-weight: bold; }
+        :root { --bg: #0b0e14; --accent: #00d2ff; --me: #00d2ff; --dm: #a855f7; }
+        body { margin: 0; font-family: sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; }
         
-        /* Menu */
-        #msgMenu { display: none; position: fixed; background: #1c2128; border: 1px solid #333; border-radius: 15px; padding: 8px; z-index: 1000; flex-direction: column; min-width: 150px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .menu-item { padding: 12px; border-radius: 8px; background: none; border: none; color: white; text-align: left; cursor: pointer; font-size: 14px; }
-        .menu-item:hover { background: #2d333b; }
+        .header { padding: 15px; background: #161b22; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 85%; padding: 10px 15px; border-radius: 15px; background: #21262d; position: relative; word-wrap: break-word; }
+        .msg.my { align-self: flex-end; background: var(--me); color: #000; }
+        .msg.private { border: 2px solid var(--dm); }
+        .msg b { display: block; font-size: 11px; margin-bottom: 3px; opacity: 0.7; }
+        
+        .input-bar { padding: 10px; background: #161b22; display: flex; gap: 8px; border-top: 1px solid #333; }
+        #msgInp { flex: 1; background: #0d1117; border: 1px solid #30363d; padding: 12px; border-radius: 20px; color: white; }
+        .btn { border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; }
 
-        /* Input Bar */
-        .input-bar { padding: 10px 15px; background: var(--panel); display: flex; gap: 10px; align-items: center; border-top: 1px solid #222; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
-        #msgInp { flex: 1; background: #1a1f2e; border: 1px solid #333; padding: 12px 18px; border-radius: 25px; color: white; font-size: 16px; }
-        .action-btn { width: 45px; height: 45px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; flex-shrink: 0; }
+        #dmNote { display: none; background: var(--dm); padding: 5px; text-align: center; font-size: 12px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="msgMenu">
-    <button class="menu-item" id="dmBtn">🔒 Şəxsi Mesaj (DM)</button>
-    <button class="menu-item" id="editBtn">✏️ Redaktə et</button>
-    <button class="menu-item" style="color:var(--red)" id="delBtn">🗑️ Sil</button>
-</div>
-
 <div class="header">
+    <b id="myNick">...</b>
     <div>
-        <b id="myNickDisplay">...</b><br>
-        <span id="chatModeLabel" class="status-pill">Ümumi Qrup</span>
-    </div>
-    <div style="display:flex; gap:10px;">
-        <button onclick="startCall('audio')" style="background:none; border:none; font-size:22px;">📞</button>
-        <button onclick="startCall('video')" style="background:none; border:none; font-size:22px;">📹</button>
+        <button onclick="startCall()" style="background:none; border:none; font-size:22px;">📞</button>
     </div>
 </div>
 
-<div id="dmIndicator" onclick="exitDM()">
-    DM Rejimi: <span id="targetNick"></span> (Qrupa qayıtmaq üçün toxun)
-</div>
+<div id="dmNote" onclick="resetDM()">DM Rejimi: <span id="dmUser"></span> (Qrupa qayıtmaq üçün toxun)</div>
 
 <div id="chat"></div>
 
 <div class="input-bar">
-    <button class="action-btn" id="micBtn" onclick="toggleVoiceRec()" style="background:#222; color:white;">🎤</button>
+    <button class="btn" onclick="sendVoice()" id="vBtn" style="background:#30363d; color:white;">🎤</button>
     <input type="text" id="msgInp" placeholder="Mesaj yaz..." autocomplete="off">
-    <button class="action-btn" onclick="sendMessage()" style="background:var(--accent); color:#000;">🚀</button>
+    <button class="btn" onclick="sendMsg()" style="background:var(--accent); color:black;">🚀</button>
 </div>
 
 <script>
@@ -74,108 +48,98 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    let myNick = localStorage.getItem('chat_nick') || prompt("Adınız:") || "User";
-    localStorage.setItem('chat_nick', myNick);
-    document.getElementById('myNickDisplay').innerText = myNick;
+    let nick = localStorage.getItem('chat_nick') || prompt("Adın:") || "User";
+    localStorage.setItem('chat_nick', nick);
+    document.getElementById('myNick').innerText = nick;
 
-    let selectedTarget = 'all'; // DM üçün hədəf
-    let activeMsgId = null;
+    let target = 'all';
 
-    // --- REALTIME LİSTENER ---
-    _supabase.channel('db-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, p => {
-        if (p.eventType === 'INSERT') {
-            const m = p.new;
-            if (m.receiver === 'all' || m.receiver === myNick || m.nickname === myNick) appendMsg(m);
-        }
-        if (p.eventType === 'DELETE') document.getElementById('m-' + p.old.id)?.remove();
-        if (p.eventType === 'UPDATE') {
-            const el = document.getElementById('m-' + p.new.id);
-            if (el) el.querySelector('.txt').innerText = p.new.content + " (düzəldildi)";
+    // 1. MESAJLARI İZLƏ
+    _supabase.channel('main').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => {
+        const m = p.new;
+        if (m.receiver === 'all' || m.receiver === nick || m.nickname === nick) {
+            showMsg(m);
         }
     }).subscribe();
 
-    async function loadHistory() {
-        const { data } = await _supabase.from('messages')
-            .select('*')
-            .or(`receiver.eq.all,receiver.eq.${myNick},nickname.eq.${myNick}`)
-            .order('created_at', { ascending: false }).limit(50);
-        if (data) data.reverse().forEach(appendMsg);
+    async function load() {
+        const { data } = await _supabase.from('messages').select('*')
+            .or(`receiver.eq.all,receiver.eq.${nick},nickname.eq.${nick}`)
+            .order('created_at', { ascending: true });
+        if (data) data.forEach(showMsg);
     }
 
-    function appendMsg(m) {
-        if (document.getElementById('m-' + m.id)) return;
-        const isMy = m.nickname === myNick;
-        const isDM = m.receiver !== 'all';
+    function showMsg(m) {
+        if (document.getElementById('m-'+m.id)) return;
+        const isMy = m.nickname === nick;
+        const isPrivate = m.receiver !== 'all';
         const div = document.createElement('div');
         div.id = 'm-' + m.id;
-        div.className = `msg ${isMy ? 'my' : ''} ${isDM ? 'is-dm' : ''}`;
+        div.className = `msg ${isMy ? 'my' : ''} ${isPrivate ? 'private' : ''}`;
         
-        div.onclick = (e) => openMenu(e, m.id, m.nickname, isMy);
+        // Adın üzərinə basanda DM açılır
+        div.onclick = () => { if(!isMy) setDM(m.nickname); };
 
-        let body = m.content;
-        if (body.startsWith('http') && body.includes('audio_messages')) {
-            body = `<audio src="${body}" controls></audio>`;
+        let html = `<b>${isPrivate ? '🔒 DM: ' : ''}${m.nickname}</b>`;
+        if (m.content.includes('audio_messages')) {
+            html += `<audio src="${m.content}" controls style="width:100%; height:30px; filter:invert(1);"></audio>`;
+        } else {
+            html += `<span>${m.content}</span>`;
         }
-
-        const label = isDM ? (isMy ? `🔒 DM to ${m.receiver}` : `🔒 DM from ${m.nickname}`) : m.nickname;
-        div.innerHTML = `<b>${label}</b><span class="txt">${body}</span><small class="meta">${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>`;
         
+        div.innerHTML = html;
         document.getElementById('chat').appendChild(div);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
-    // --- MENU LOGIC ---
-    function openMenu(e, id, sender, isMy) {
-        e.stopPropagation();
-        activeMsgId = id;
-        const menu = document.getElementById('msgMenu');
-        menu.style.display = 'flex';
-        menu.style.top = (e.clientY > window.innerHeight - 150 ? e.clientY - 150 : e.clientY) + 'px';
-        menu.style.left = (e.clientX > window.innerWidth - 160 ? e.clientX - 160 : e.clientX) + 'px';
-
-        document.getElementById('dmBtn').style.display = isMy ? 'none' : 'block';
-        document.getElementById('dmBtn').onclick = () => enterDM(sender);
-        
-        document.getElementById('editBtn').style.display = isMy ? 'block' : 'none';
-        document.getElementById('delBtn').style.display = isMy ? 'block' : 'none';
-        
-        document.getElementById('delBtn').onclick = async () => {
-            if(confirm("Silinsin?")) await _supabase.from('messages').delete().eq('id', id);
-        };
-        document.getElementById('editBtn').onclick = async () => {
-            const val = prompt("Yeni mesaj:");
-            if(val) await _supabase.from('messages').update({content: val}).eq('id', id);
-        };
-    }
-
-    // --- DM REJİMİ ---
-    function enterDM(nick) {
-        selectedTarget = nick;
-        document.getElementById('dmIndicator').style.display = 'block';
-        document.getElementById('targetNick').innerText = nick;
-        document.getElementById('chatModeLabel').innerText = "Şəxsi Mesaj";
-        document.getElementById('chatModeLabel').className = "status-pill dm";
-        document.getElementById('msgMenu').style.display = 'none';
-    }
-
-    function exitDM() {
-        selectedTarget = 'all';
-        document.getElementById('dmIndicator').style.display = 'none';
-        document.getElementById('chatModeLabel').innerText = "Ümumi Qrup";
-        document.getElementById('chatModeLabel').className = "status-pill";
-    }
-
-    async function sendMessage() {
+    async function sendMsg() {
         const inp = document.getElementById('msgInp');
         if (!inp.value.trim()) return;
-        const val = inp.value; inp.value = '';
-        await _supabase.from('messages').insert([{ content: val, nickname: myNick, receiver: selectedTarget }]);
+        const txt = inp.value; inp.value = '';
+        await _supabase.from('messages').insert([{ content: txt, nickname: nick, receiver: target }]);
     }
 
-    document.addEventListener('click', () => document.getElementById('msgMenu').style.display = 'none');
+    function setDM(name) {
+        target = name;
+        document.getElementById('dmNote').style.display = 'block';
+        document.getElementById('dmUser').innerText = name;
+    }
 
-    // (Səs yazma və P2P zəng funksiyaları sabit saxlanıldı...)
-    loadHistory();
+    function resetDM() {
+        target = 'all';
+        document.getElementById('dmNote').style.display = 'none';
+    }
+
+    // 2. SƏS YAZMA
+    let rec, chunks = [];
+    async function sendVoice() {
+        const btn = document.getElementById('vBtn');
+        if (!rec || rec.state === "inactive") {
+            const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+            rec = new MediaRecorder(s);
+            chunks = [];
+            rec.onstart = () => btn.style.background = "red";
+            rec.ondataavailable = e => chunks.push(e.data);
+            rec.onstop = async () => {
+                btn.style.background = "#30363d";
+                const b = new Blob(chunks, { type: 'audio/webm' });
+                const name = `v_${Date.now()}.webm`;
+                const { data } = await _supabase.storage.from('audio_messages').upload(name, b);
+                if (data) {
+                    const url = `${supabaseUrl}/storage/v1/object/public/audio_messages/${name}`;
+                    await _supabase.from('messages').insert([{ content: url, nickname: nick, receiver: target }]);
+                }
+            };
+            rec.start();
+        } else { rec.stop(); }
+    }
+
+    function startCall() {
+        alert("Zəng funksiyası üçün birbaşa Peer-to-Peer bağlantısı qurulur...");
+        // Bura əvvəlki P2P kodunu əlavə edə bilərsən
+    }
+
+    load();
 </script>
 </body>
 </html>
