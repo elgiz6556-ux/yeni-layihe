@@ -3,140 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Chat Pro</title>
+    <title>X-Chat Pro Final</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #0b0e14; --accent: #00d2ff; --me: #00d2ff; --dm: #a855f7; }
-        body { margin: 0; font-family: sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; }
+        :root { --bg: #0d1117; --panel: #161b22; --accent: #58a6ff; --my-msg: #238636; --dm: #8957e5; }
+        body { margin: 0; font-family: -apple-system, sans-serif; background: var(--bg); color: #c9d1d9; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
         
-        .header { padding: 15px; background: #161b22; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
-        
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 85%; padding: 10px 15px; border-radius: 15px; background: #21262d; position: relative; word-wrap: break-word; }
-        .msg.my { align-self: flex-end; background: var(--me); color: #000; }
-        .msg.private { border: 2px solid var(--dm); }
-        .msg b { display: block; font-size: 11px; margin-bottom: 3px; opacity: 0.7; }
-        
-        .input-bar { padding: 10px; background: #161b22; display: flex; gap: 8px; border-top: 1px solid #333; }
-        #msgInp { flex: 1; background: #0d1117; border: 1px solid #30363d; padding: 12px; border-radius: 20px; color: white; }
-        .btn { border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        /* Header */
+        .header { padding: 15px; background: var(--panel); border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; }
+        .header b { color: var(--accent); }
 
-        #dmNote { display: none; background: var(--dm); padding: 5px; text-align: center; font-size: 12px; cursor: pointer; }
+        /* Chat List */
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+        .msg { max-width: 80%; padding: 10px 14px; border-radius: 12px; background: #21262d; position: relative; font-size: 15px; cursor: pointer; }
+        .msg.my { align-self: flex-end; background: var(--my-msg); color: white; }
+        .msg.is-dm { border: 1px solid var(--dm); box-shadow: 0 0 5px var(--dm); }
+        .msg b { display: block; font-size: 11px; margin-bottom: 3px; opacity: 0.8; }
+        
+        /* DM Alert */
+        #dmBox { display: none; background: var(--dm); color: white; padding: 8px; text-align: center; font-size: 13px; font-weight: bold; cursor: pointer; }
+
+        /* Input area */
+        .input-bar { padding: 12px; background: var(--panel); display: flex; gap: 10px; align-items: center; border-top: 1px solid #30363d; }
+        #msgInp { flex: 1; background: #0d1117; border: 1px solid #30363d; padding: 10px 15px; border-radius: 20px; color: white; outline: none; }
+        .btn { border: none; border-radius: 50%; width: 42px; height: 42px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+
+        audio { width: 100%; max-width: 200px; height: 30px; filter: invert(1); margin-top: 5px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <b id="myNick">...</b>
-    <div>
-        <button onclick="startCall()" style="background:none; border:none; font-size:22px;">📞</button>
+    <div><b>X-Chat</b> <span id="myNick" style="font-size: 12px; color:gray"></span></div>
+    <div style="display:flex; gap:15px">
+        <button onclick="alert('Zəng sistemi üçün HTTPS və kamera icazəsi lazımdır.')" style="background:none; border:none; font-size:20px;">📞</button>
     </div>
 </div>
 
-<div id="dmNote" onclick="resetDM()">DM Rejimi: <span id="dmUser"></span> (Qrupa qayıtmaq üçün toxun)</div>
+<div id="dmBox" onclick="closeDM()">🔒 DM: <span id="dmTarget"></span> (Qrupa qayıtmaq üçün toxun)</div>
 
 <div id="chat"></div>
 
 <div class="input-bar">
-    <button class="btn" onclick="sendVoice()" id="vBtn" style="background:#30363d; color:white;">🎤</button>
-    <input type="text" id="msgInp" placeholder="Mesaj yaz..." autocomplete="off">
-    <button class="btn" onclick="sendMsg()" style="background:var(--accent); color:black;">🚀</button>
+    <button class="btn" id="micBtn" onclick="doVoice()" style="background:#30363d; color:white;">🎤</button>
+    <input type="text" id="msgInp" placeholder="Mesaj..." autocomplete="off">
+    <button class="btn" onclick="doSend()" style="background:var(--accent); color:white;">🚀</button>
 </div>
 
 <script>
     const supabaseUrl = 'https://pyknspxnwnilhqsazidj.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
-    const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const _sb = supabase.createClient(supabaseUrl, supabaseKey);
 
-    let nick = localStorage.getItem('chat_nick') || prompt("Adın:") || "User";
+    let nick = localStorage.getItem('chat_nick') || prompt("Adınız:") || "Qonaq";
     localStorage.setItem('chat_nick', nick);
-    document.getElementById('myNick').innerText = nick;
+    document.getElementById('myNick').innerText = "@" + nick;
 
     let target = 'all';
 
-    // 1. MESAJLARI İZLƏ
-    _supabase.channel('main').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => {
+    // REALTIME - Mesajları dinlə
+    _sb.channel('any').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => {
         const m = p.new;
         if (m.receiver === 'all' || m.receiver === nick || m.nickname === nick) {
-            showMsg(m);
+            addMsg(m);
         }
     }).subscribe();
 
     async function load() {
-        const { data } = await _supabase.from('messages').select('*')
-            .or(`receiver.eq.all,receiver.eq.${nick},nickname.eq.${nick}`)
-            .order('created_at', { ascending: true });
-        if (data) data.forEach(showMsg);
+        const { data } = await _sb.from('messages').select('*').or(`receiver.eq.all,receiver.eq.${nick},nickname.eq.${nick}`).order('created_at', { ascending: true });
+        if (data) data.forEach(addMsg);
     }
 
-    function showMsg(m) {
+    function addMsg(m) {
         if (document.getElementById('m-'+m.id)) return;
         const isMy = m.nickname === nick;
-        const isPrivate = m.receiver !== 'all';
-        const div = document.createElement('div');
-        div.id = 'm-' + m.id;
-        div.className = `msg ${isMy ? 'my' : ''} ${isPrivate ? 'private' : ''}`;
-        
-        // Adın üzərinə basanda DM açılır
-        div.onclick = () => { if(!isMy) setDM(m.nickname); };
+        const isDM = m.receiver !== 'all';
+        const d = document.createElement('div');
+        d.id = 'm-' + m.id;
+        d.className = `msg ${isMy ? 'my' : ''} ${isDM ? 'is-dm' : ''}`;
+        d.onclick = () => { if(!isMy) openDM(m.nickname); };
 
-        let html = `<b>${isPrivate ? '🔒 DM: ' : ''}${m.nickname}</b>`;
-        if (m.content.includes('audio_messages')) {
-            html += `<audio src="${m.content}" controls style="width:100%; height:30px; filter:invert(1);"></audio>`;
-        } else {
-            html += `<span>${m.content}</span>`;
+        let content = m.content;
+        if (content.includes('audio_messages')) {
+            content = `<audio src="${content}" controls></audio>`;
         }
-        
-        div.innerHTML = html;
-        document.getElementById('chat').appendChild(div);
+
+        d.innerHTML = `<b>${isDM ? '🔒 ' : ''}${m.nickname}</b>${content}`;
+        document.getElementById('chat').appendChild(d);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
-    async function sendMsg() {
-        const inp = document.getElementById('msgInp');
-        if (!inp.value.trim()) return;
-        const txt = inp.value; inp.value = '';
-        await _supabase.from('messages').insert([{ content: txt, nickname: nick, receiver: target }]);
+    async function doSend() {
+        const i = document.getElementById('msgInp');
+        if (!i.value.trim()) return;
+        const text = i.value; i.value = '';
+        await _sb.from('messages').insert([{ content: text, nickname: nick, receiver: target }]);
     }
 
-    function setDM(name) {
+    function openDM(name) {
         target = name;
-        document.getElementById('dmNote').style.display = 'block';
-        document.getElementById('dmUser').innerText = name;
+        document.getElementById('dmBox').style.display = 'block';
+        document.getElementById('dmTarget').innerText = name;
     }
 
-    function resetDM() {
+    function closeDM() {
         target = 'all';
-        document.getElementById('dmNote').style.display = 'none';
+        document.getElementById('dmBox').style.display = 'none';
     }
 
-    // 2. SƏS YAZMA
-    let rec, chunks = [];
-    async function sendVoice() {
-        const btn = document.getElementById('vBtn');
-        if (!rec || rec.state === "inactive") {
+    // SƏS YAZMA
+    let r, c = [];
+    async function doVoice() {
+        const b = document.getElementById('micBtn');
+        if (!r || r.state === "inactive") {
             const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-            rec = new MediaRecorder(s);
-            chunks = [];
-            rec.onstart = () => btn.style.background = "red";
-            rec.ondataavailable = e => chunks.push(e.data);
-            rec.onstop = async () => {
-                btn.style.background = "#30363d";
-                const b = new Blob(chunks, { type: 'audio/webm' });
+            r = new MediaRecorder(s);
+            c = [];
+            r.onstart = () => b.style.background = "red";
+            r.ondataavailable = e => c.push(e.data);
+            r.onstop = async () => {
+                b.style.background = "#30363d";
+                const blob = new Blob(c, { type: 'audio/webm' });
                 const name = `v_${Date.now()}.webm`;
-                const { data } = await _supabase.storage.from('audio_messages').upload(name, b);
+                const { data } = await _sb.storage.from('audio_messages').upload(name, blob);
                 if (data) {
                     const url = `${supabaseUrl}/storage/v1/object/public/audio_messages/${name}`;
-                    await _supabase.from('messages').insert([{ content: url, nickname: nick, receiver: target }]);
+                    await _sb.from('messages').insert([{ content: url, nickname: nick, receiver: target }]);
                 }
             };
-            rec.start();
-        } else { rec.stop(); }
-    }
-
-    function startCall() {
-        alert("Zəng funksiyası üçün birbaşa Peer-to-Peer bağlantısı qurulur...");
-        // Bura əvvəlki P2P kodunu əlavə edə bilərsən
+            r.start();
+        } else { r.stop(); }
     }
 
     load();
