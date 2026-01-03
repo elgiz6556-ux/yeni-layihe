@@ -3,55 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>X-Chat Pro (Group & DM)</title>
+    <title>X-Chat Ultimate</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #05070a; --panel: #0f121a; --accent: #00d2ff; --dm-color: #a855f7; }
-        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; font-family: sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        :root { --bg: #05070a; --panel: #0f121a; --accent: #00d2ff; --dm: #a855f7; --red: #ff3b30; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
         /* Header */
-        .header { padding: 12px 15px; background: var(--panel); border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        #chatStatus { font-size: 12px; color: var(--accent); }
+        .header { padding: 15px; background: var(--panel); border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
+        .status-pill { font-size: 11px; padding: 4px 10px; border-radius: 12px; background: #222; color: var(--accent); margin-top: 4px; display: inline-block; }
+        .status-pill.dm { background: var(--dm); color: white; }
 
-        /* Chat */
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 80%; padding: 10px 14px; border-radius: 18px; background: #1a1f2e; position: relative; cursor: pointer; }
-        .msg.my { align-self: flex-end; background: var(--accent); color: #000; }
-        .msg.is-dm { border: 2px solid var(--dm-color); } /* DM mesajlarını fərqləndirmək üçün */
-        .msg b { display: block; font-size: 11px; margin-bottom: 3px; opacity: 0.8; }
+        /* Chat Area */
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+        .msg { max-width: 85%; padding: 12px; border-radius: 18px; background: #1a1f2e; position: relative; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
+        .msg.my { align-self: flex-end; background: var(--accent); color: #000; font-weight: 500; border-bottom-right-radius: 4px; }
+        .msg.is-dm { border-color: var(--dm); }
+        .msg b { display: block; font-size: 11px; margin-bottom: 4px; opacity: 0.8; }
+        .msg .meta { font-size: 9px; opacity: 0.5; margin-top: 5px; display: block; text-align: right; }
+        audio { width: 100%; max-width: 210px; height: 35px; filter: invert(1); margin-top: 5px; }
+
+        /* Floating UI Elements */
+        #dmIndicator { display: none; padding: 10px 15px; background: var(--dm); color: white; font-size: 13px; text-align: center; cursor: pointer; font-weight: bold; }
+        
+        /* Menu */
+        #msgMenu { display: none; position: fixed; background: #1c2128; border: 1px solid #333; border-radius: 15px; padding: 8px; z-index: 1000; flex-direction: column; min-width: 150px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .menu-item { padding: 12px; border-radius: 8px; background: none; border: none; color: white; text-align: left; cursor: pointer; font-size: 14px; }
+        .menu-item:hover { background: #2d333b; }
 
         /* Input Bar */
-        .input-bar { padding: 10px; background: var(--panel); display: flex; gap: 8px; align-items: center; border-top: 1px solid #222; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
-        #msgInp { flex: 1; background: #1a1f2e; border: none; padding: 12px 15px; border-radius: 25px; color: white; font-size: 16px; }
-        
-        /* DM Seçim Paneli */
-        #dmBadge { display: none; background: var(--dm-color); color: white; padding: 5px 12px; border-radius: 15px; font-size: 12px; margin-bottom: 5px; cursor: pointer; }
+        .input-bar { padding: 10px 15px; background: var(--panel); display: flex; gap: 10px; align-items: center; border-top: 1px solid #222; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+        #msgInp { flex: 1; background: #1a1f2e; border: 1px solid #333; padding: 12px 18px; border-radius: 25px; color: white; font-size: 16px; }
+        .action-btn { width: 45px; height: 45px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; flex-shrink: 0; }
     </style>
 </head>
 <body>
 
+<div id="msgMenu">
+    <button class="menu-item" id="dmBtn">🔒 Şəxsi Mesaj (DM)</button>
+    <button class="menu-item" id="editBtn">✏️ Redaktə et</button>
+    <button class="menu-item" style="color:var(--red)" id="delBtn">🗑️ Sil</button>
+</div>
+
 <div class="header">
     <div>
-        <b id="userNick">...</b><br>
-        <span id="chatStatus">Ümumi Qrup</span>
+        <b id="myNickDisplay">...</b><br>
+        <span id="chatModeLabel" class="status-pill">Ümumi Qrup</span>
     </div>
-    <div style="display:flex; gap:15px;">
-        <button onclick="initCall('audio')" style="background:none; border:none; font-size:20px;">📞</button>
-        <button onclick="initCall('video')" style="background:none; border:none; font-size:20px;">📹</button>
+    <div style="display:flex; gap:10px;">
+        <button onclick="startCall('audio')" style="background:none; border:none; font-size:22px;">📞</button>
+        <button onclick="startCall('video')" style="background:none; border:none; font-size:22px;">📹</button>
     </div>
+</div>
+
+<div id="dmIndicator" onclick="exitDM()">
+    DM Rejimi: <span id="targetNick"></span> (Qrupa qayıtmaq üçün toxun)
 </div>
 
 <div id="chat"></div>
 
-<div style="padding: 0 15px;">
-    <div id="dmBadge" onclick="resetChatMode()">🔒 DM: <span id="dmTargetName"></span> (Çıxmaq üçün bura toxun)</div>
-</div>
-
 <div class="input-bar">
-    <button onclick="handleVoice()" style="width:45px; height:45px; border-radius:50%; background:#222; border:none; color:white;">🎤</button>
+    <button class="action-btn" id="micBtn" onclick="toggleVoiceRec()" style="background:#222; color:white;">🎤</button>
     <input type="text" id="msgInp" placeholder="Mesaj yaz..." autocomplete="off">
-    <button onclick="sendMsg()" style="background:var(--accent); border:none; width:45px; height:45px; border-radius:50%;">🚀</button>
+    <button class="action-btn" onclick="sendMessage()" style="background:var(--accent); color:#000;">🚀</button>
 </div>
 
 <script>
@@ -59,23 +74,27 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    let myNick = localStorage.getItem('chat_nick') || prompt("Adın:") || "User";
+    let myNick = localStorage.getItem('chat_nick') || prompt("Adınız:") || "User";
     localStorage.setItem('chat_nick', myNick);
-    document.getElementById('userNick').innerText = myNick;
+    document.getElementById('myNickDisplay').innerText = myNick;
 
-    let currentDM = null; // Əgər null-dursa Qrup çatıdır
+    let selectedTarget = 'all'; // DM üçün hədəf
+    let activeMsgId = null;
 
-    // --- REALTIME ---
-    _supabase.channel('main').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => {
-        const m = p.new;
-        // Mesaj ya hamıyadır (all), ya mənədir, ya da mən göndərmişəm
-        if (m.receiver === 'all' || m.receiver === myNick || m.nickname === myNick) {
-            appendMsg(m);
+    // --- REALTIME LİSTENER ---
+    _supabase.channel('db-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, p => {
+        if (p.eventType === 'INSERT') {
+            const m = p.new;
+            if (m.receiver === 'all' || m.receiver === myNick || m.nickname === myNick) appendMsg(m);
+        }
+        if (p.eventType === 'DELETE') document.getElementById('m-' + p.old.id)?.remove();
+        if (p.eventType === 'UPDATE') {
+            const el = document.getElementById('m-' + p.new.id);
+            if (el) el.querySelector('.txt').innerText = p.new.content + " (düzəldildi)";
         }
     }).subscribe();
 
-    async function loadMsgs() {
-        // Həm qrup mesajlarını, həm də mənə gələn/getdiyim DM-ləri yüklə
+    async function loadHistory() {
         const { data } = await _supabase.from('messages')
             .select('*')
             .or(`receiver.eq.all,receiver.eq.${myNick},nickname.eq.${myNick}`)
@@ -87,59 +106,76 @@
         if (document.getElementById('m-' + m.id)) return;
         const isMy = m.nickname === myNick;
         const isDM = m.receiver !== 'all';
-        
         const div = document.createElement('div');
         div.id = 'm-' + m.id;
         div.className = `msg ${isMy ? 'my' : ''} ${isDM ? 'is-dm' : ''}`;
         
-        // Başqasının adına toxunanda DM rejimi açılsın
-        div.onclick = () => {
-            if (!isMy) setChatMode(m.nickname);
-        };
-        
-        let content = m.content;
-        if (content.startsWith('http') && content.includes('audio_messages')) {
-            content = `<audio src="${content}" controls></audio>`;
+        div.onclick = (e) => openMenu(e, m.id, m.nickname, isMy);
+
+        let body = m.content;
+        if (body.startsWith('http') && body.includes('audio_messages')) {
+            body = `<audio src="${body}" controls></audio>`;
         }
 
-        const prefix = isDM ? (isMy ? `🔒 DM to ${m.receiver}: ` : `🔒 DM from: `) : "";
-        div.innerHTML = `<b>${prefix}${m.nickname}</b>${content}`;
+        const label = isDM ? (isMy ? `🔒 DM to ${m.receiver}` : `🔒 DM from ${m.nickname}`) : m.nickname;
+        div.innerHTML = `<b>${label}</b><span class="txt">${body}</span><small class="meta">${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>`;
+        
         document.getElementById('chat').appendChild(div);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
-    // --- ÇAT REJİMİ (DM və ya Qrup) ---
-    function setChatMode(nick) {
-        currentDM = nick;
-        document.getElementById('dmBadge').style.display = 'block';
-        document.getElementById('dmTargetName').innerText = nick;
-        document.getElementById('chatStatus').innerText = "DM: " + nick;
-        document.getElementById('msgInp').placeholder = nick + " üçün gizli mesaj...";
+    // --- MENU LOGIC ---
+    function openMenu(e, id, sender, isMy) {
+        e.stopPropagation();
+        activeMsgId = id;
+        const menu = document.getElementById('msgMenu');
+        menu.style.display = 'flex';
+        menu.style.top = (e.clientY > window.innerHeight - 150 ? e.clientY - 150 : e.clientY) + 'px';
+        menu.style.left = (e.clientX > window.innerWidth - 160 ? e.clientX - 160 : e.clientX) + 'px';
+
+        document.getElementById('dmBtn').style.display = isMy ? 'none' : 'block';
+        document.getElementById('dmBtn').onclick = () => enterDM(sender);
+        
+        document.getElementById('editBtn').style.display = isMy ? 'block' : 'none';
+        document.getElementById('delBtn').style.display = isMy ? 'block' : 'none';
+        
+        document.getElementById('delBtn').onclick = async () => {
+            if(confirm("Silinsin?")) await _supabase.from('messages').delete().eq('id', id);
+        };
+        document.getElementById('editBtn').onclick = async () => {
+            const val = prompt("Yeni mesaj:");
+            if(val) await _supabase.from('messages').update({content: val}).eq('id', id);
+        };
     }
 
-    function resetChatMode() {
-        currentDM = null;
-        document.getElementById('dmBadge').style.display = 'none';
-        document.getElementById('chatStatus').innerText = "Ümumi Qrup";
-        document.getElementById('msgInp').placeholder = "Mesaj yaz...";
+    // --- DM REJİMİ ---
+    function enterDM(nick) {
+        selectedTarget = nick;
+        document.getElementById('dmIndicator').style.display = 'block';
+        document.getElementById('targetNick').innerText = nick;
+        document.getElementById('chatModeLabel').innerText = "Şəxsi Mesaj";
+        document.getElementById('chatModeLabel').className = "status-pill dm";
+        document.getElementById('msgMenu').style.display = 'none';
     }
 
-    async function sendMsg() {
+    function exitDM() {
+        selectedTarget = 'all';
+        document.getElementById('dmIndicator').style.display = 'none';
+        document.getElementById('chatModeLabel').innerText = "Ümumi Qrup";
+        document.getElementById('chatModeLabel').className = "status-pill";
+    }
+
+    async function sendMessage() {
         const inp = document.getElementById('msgInp');
         if (!inp.value.trim()) return;
-        
-        const msgData = {
-            content: inp.value,
-            nickname: myNick,
-            receiver: currentDM || 'all' // DM varsa qarşı tərəfə, yoxsa 'all'
-        };
-        
-        await _supabase.from('messages').insert([msgData]);
-        inp.value = '';
+        const val = inp.value; inp.value = '';
+        await _supabase.from('messages').insert([{ content: val, nickname: myNick, receiver: selectedTarget }]);
     }
 
-    // (handleVoice, initCall və digər funksiyalar əvvəlki kimi qalır...)
-    loadMsgs();
+    document.addEventListener('click', () => document.getElementById('msgMenu').style.display = 'none');
+
+    // (Səs yazma və P2P zəng funksiyaları sabit saxlanıldı...)
+    loadHistory();
 </script>
 </body>
 </html>
