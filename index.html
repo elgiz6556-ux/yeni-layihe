@@ -3,35 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>X-Chat Fixed</title>
+    <title>X-Chat Pro Fix</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #05070a; --panel: #0f121a; --accent: #00d2ff; --my-msg: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%); --other-msg: #1a1f2e; }
+        :root { --bg: #05070a; --panel: #0f121a; --accent: #00d2ff; --my-msg: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%); }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        /* Dinamik hündürlük fiksi */
-        body { margin: 0; font-family: sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        /* Mobil brauzerlər üçün dinamik hündürlük */
+        html, body { height: 100%; overflow: hidden; margin: 0; background: var(--bg); }
+        body { font-family: -apple-system, system-ui, sans-serif; display: flex; flex-direction: column; height: 100dvh; }
 
-        .header { padding: 15px; background: var(--panel); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #222; flex-shrink: 0; }
-        .avatar { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--accent); }
+        .header { padding: 15px; background: var(--panel); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #222; flex-shrink: 0; z-index: 10; }
+        .avatar { width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--accent); }
 
-        /* Çat sahəsi klaviatur açılanda daralacaq */
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: #05070a; }
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background: #05070a; scroll-behavior: smooth; }
         
-        .msg { max-width: 85%; padding: 12px; border-radius: 18px; font-size: 15px; word-wrap: break-word; }
-        .msg.my { align-self: flex-end; background: var(--my-msg); border-bottom-right-radius: 4px; }
-        .msg.other { align-self: flex-start; background: var(--other-msg); border-bottom-left-radius: 4px; border: 1px solid #222; }
-        .msg b { display: block; font-size: 11px; margin-bottom: 4px; color: #34d399; }
+        .msg { max-width: 80%; padding: 10px 14px; border-radius: 18px; font-size: 15px; line-height: 1.4; position: relative; }
+        .msg.my { align-self: flex-end; background: var(--my-msg); color: white; border-bottom-right-radius: 4px; }
+        .msg.other { align-self: flex-start; background: #1a1f2e; border: 1px solid #222; border-bottom-left-radius: 4px; }
+        .msg b { display: block; font-size: 10px; margin-bottom: 3px; color: #00d2ff; }
 
-        /* Giriş hissəsi - Daha yuxarıda və sabit */
-        .input-area { 
-            padding: 12px 15px; 
+        /* Mesaj yazma yeri - Mobil üçün optimizasiya edilmiş */
+        .input-wrapper { 
             background: var(--panel); 
+            padding: 10px 15px; 
+            padding-bottom: calc(10px + env(safe-area-inset-bottom)); 
+            border-top: 1px solid #222; 
             display: flex; 
+            align-items: center; 
             gap: 10px; 
-            align-items: center;
-            border-top: 1px solid #222;
-            padding-bottom: calc(15px + env(safe-area-inset-bottom)); /* iPhone/Android alt zolağı üçün boşluq */
             flex-shrink: 0;
         }
         
@@ -39,44 +39,43 @@
             flex: 1; 
             background: #1a1f2e; 
             border: 1px solid #333; 
-            padding: 12px 15px; 
+            padding: 12px 16px; 
             border-radius: 25px; 
             color: white; 
             outline: none; 
-            font-size: 16px; /* 16px Safari-də avtomatik zoom-un qarşısını alır */
+            font-size: 16px; 
         }
         
-        .btn-action { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+        .action-btn { width: 42px; height: 42px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; transition: 0.2s; }
 
-        /* Zəng Overlay */
-        #callOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; }
-        #callFrame { width: 100%; height: calc(100% - 70px); border: none; }
-        .end-call-btn { height: 70px; background: #ff3b30; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
+        #callOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100; }
+        #callFrame { width: 100%; height: calc(100% - 80px); border: none; }
+        .end-call { height: 80px; background: #ff3b30; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
 
-        audio { height: 35px; width: 180px; filter: invert(1); }
+        audio { height: 35px; width: 170px; filter: invert(1); }
     </style>
 </head>
 <body>
 
 <div id="callOverlay">
     <iframe id="callFrame" allow="camera; microphone; fullscreen; autoplay"></iframe>
-    <div class="end-call-btn" onclick="closeCall()">ZƏNGİ BİTİR</div>
+    <div class="end-call" onclick="closeCall()">ZƏNGİ BİTİR</div>
 </div>
 
 <div class="header">
     <div style="display:flex; align-items:center; gap:10px;">
         <img class="avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
-        <b id="nickShow">Yüklənir...</b>
+        <b id="nickShow">...</b>
     </div>
-    <button onclick="startCall()" style="background:none; border:none; font-size:24px;">📞</button>
+    <button onclick="startCall()" style="background:none; border:none; font-size:24px; cursor:pointer;">📞</button>
 </div>
 
 <div id="chat"></div>
 
-<div class="input-area">
-    <button class="btn-action" id="micBtn" onclick="toggleMic()" style="background:#222; color:white;">🎤</button>
-    <input type="text" id="msgInp" placeholder="Mesaj yazın..." autocomplete="off">
-    <button class="btn-action" onclick="sendMsg()" style="background:var(--accent); color:black;">🚀</button>
+<div class="input-wrapper" id="inputBar">
+    <button class="action-btn" id="micBtn" onclick="toggleMic()" style="background:#222; color:white;">🎤</button>
+    <input type="text" id="msgInp" placeholder="Yazın..." autocomplete="off">
+    <button class="action-btn" onclick="sendMsg()" style="background:var(--accent); color:black;">🚀</button>
 </div>
 
 <script>
@@ -84,18 +83,24 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    let myNick = localStorage.getItem('chat_nick') || prompt("Adınız:") || "User";
+    let myNick = localStorage.getItem('chat_nick') || prompt("Adınız:") || "Anonim";
     localStorage.setItem('chat_nick', myNick);
     document.getElementById('nickShow').innerText = myNick;
 
-    // Realtime qoşulma
-    _supabase.channel('public:messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => {
-        appendMsg(p.new);
-    }).subscribe();
+    // VisualViewport API - Klaviaturanı izləmək üçün
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', () => {
+            document.body.style.height = window.visualViewport.height + 'px';
+            window.scrollTo(0, 0);
+            scrollChat();
+        });
+    }
+
+    _supabase.channel('room1').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => appendMsg(p.new)).subscribe();
 
     async function loadMsgs() {
-        const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(30);
-        if (data) data.reverse().forEach(appendMsg);
+        const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(40);
+        if (data) { data.reverse().forEach(appendMsg); scrollChat(); }
     }
 
     function appendMsg(m) {
@@ -109,12 +114,16 @@
         if (content.includes('audio_messages')) {
             content = `<audio src="${content}" controls></audio>`;
         } else if (content.includes('meet.jit.si')) {
-            content = `📞 <b>Zəng otağı açıldı.</b><br><small>Qoşulmaq üçün yuxarıdakı zəng düyməsinə basın.</small>`;
+            content = `📞 <b>Zəng başladı</b><br><small>Qoşulmaq üçün zəng düyməsinə bas.</small>`;
         }
 
         div.innerHTML = `<b>${m.nickname}</b>${content}`;
+        document.getElementById('chat').appendChild(div);
+        scrollChat();
+    }
+
+    function scrollChat() {
         const chat = document.getElementById('chat');
-        chat.appendChild(div);
         chat.scrollTop = chat.scrollHeight;
     }
 
@@ -124,15 +133,13 @@
         if(!val) return;
         await _supabase.from('messages').insert([{ content: val, nickname: myNick, receiver: 'all' }]);
         inp.value = '';
-        // Mesaj yazandan sonra fokusu saxla (mobildə rahatlıq üçün)
         inp.focus();
     }
 
+    // 📞 Jitsi-ni tətbiq reklamı olmadan açmaq
     function startCall() {
-        const room = "MegaRoom_X"; 
-        // Jitsi-ni brauzer daxilində tam güclə açmaq üçün yeni link
-        const url = `https://meet.jit.si/${room}#userInfo.displayName="${myNick}"&config.prejoinPageEnabled=false&config.disableDeepLinking=true&interfaceConfig.MOBILE_APP_PROMO=false`;
-        
+        const room = "Layihe_X_Room";
+        const url = `https://meet.jit.si/${room}#userInfo.displayName="${myNick}"&config.prejoinPageEnabled=false&config.disableDeepLinking=true&interfaceConfig.MOBILE_APP_PROMO=false&config.startWithAudioMuted=false`;
         document.getElementById('callFrame').src = url;
         document.getElementById('callOverlay').style.display = 'block';
     }
@@ -142,26 +149,29 @@
         document.getElementById('callOverlay').style.display = 'none';
     }
 
+    // 🎤 Səs Yazma
     let rec, chunks = [];
     async function toggleMic() {
         const btn = document.getElementById('micBtn');
         if (!rec || rec.state === "inactive") {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            rec = new MediaRecorder(stream);
-            chunks = [];
-            rec.onstart = () => btn.style.background = "red";
-            rec.ondataavailable = e => chunks.push(e.data);
-            rec.onstop = async () => {
-                btn.style.background = "#222";
-                const blob = new Blob(chunks, { type: 'audio/webm' });
-                const fName = `v_${Date.now()}.webm`;
-                const { data } = await _supabase.storage.from('audio_messages').upload(fName, blob);
-                if (data) {
-                    const url = `${supabaseUrl}/storage/v1/object/public/audio_messages/${fName}`;
-                    await _supabase.from('messages').insert([{ content: url, nickname: myNick, receiver: 'all' }]);
-                }
-            };
-            rec.start();
+            try {
+                const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+                rec = new MediaRecorder(s);
+                chunks = [];
+                rec.onstart = () => btn.style.background = "#ff3b30";
+                rec.ondataavailable = e => chunks.push(e.data);
+                rec.onstop = async () => {
+                    btn.style.background = "#222";
+                    const b = new Blob(chunks, { type: 'audio/webm' });
+                    const f = `v_${Date.now()}.webm`;
+                    const { data } = await _supabase.storage.from('audio_messages').upload(f, b);
+                    if (data) {
+                        const url = `${supabaseUrl}/storage/v1/object/public/audio_messages/${f}`;
+                        await _supabase.from('messages').insert([{ content: url, nickname: myNick, receiver: 'all' }]);
+                    }
+                };
+                rec.start();
+            } catch(e) { alert("Mikrofona icazə verilmədi!"); }
         } else { rec.stop(); }
     }
 
