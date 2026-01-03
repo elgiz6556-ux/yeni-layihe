@@ -3,49 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mega Chat Ultra - Fix</title>
+    <title>Mega Chat - Final Voice Fix</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --grad: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab); }
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--grad); background-size: 400% 400%; animation: grad 15s ease infinite; color: white; display: flex; justify-content: center; min-height: 100vh; padding: 10px; }
+        body { margin: 0; font-family: sans-serif; background: var(--grad); background-size: 400% 400%; animation: grad 15s ease infinite; color: white; display: flex; justify-content: center; min-height: 100vh; padding: 10px; }
         @keyframes grad { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         .container { width: 100%; max-width: 420px; }
-        .card { background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 25px; backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 8px 32px rgba(0,0,0,0.2); height: 90vh; display: flex; flex-direction: column; }
-        .top-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 20px; margin-bottom: 10px; }
-        .av-box { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #fff; overflow: hidden; cursor: pointer; }
-        .av-box img { width: 100%; height: 100%; object-fit: cover; }
+        .card { background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 25px; backdrop-filter: blur(15px); height: 90vh; display: flex; flex-direction: column; }
         #chat { flex: 1; overflow-y: auto; background: rgba(0, 0, 0, 0.1); border-radius: 20px; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-        .msg { background: white; color: #333; padding: 10px; border-radius: 18px; align-self: flex-start; max-width: 85%; display: flex; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .msg.my-msg { align-self: flex-end; background: #e3f2fd; border-bottom-right-radius: 2px; }
-        .msg-av { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
-        .voice-box { display: flex; align-items: center; gap: 5px; min-width: 180px; }
-        audio { height: 35px; width: 100%; }
+        .msg { background: white; color: #333; padding: 10px; border-radius: 18px; align-self: flex-start; max-width: 85%; display: flex; gap: 10px; }
+        .msg.my-msg { align-self: flex-end; background: #e3f2fd; }
         .controls { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
-        input[type="text"] { flex: 1; padding: 12px; border-radius: 25px; border: none; outline: none; font-size: 16px; }
-        .btn-act { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
-        .mic-btn { background: #4CAF50; color: white; }
-        .send-btn { background: #2196F3; color: white; }
+        input[type="text"] { flex: 1; padding: 12px; border-radius: 25px; border: none; outline: none; }
+        .btn-act { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        audio { height: 35px; width: 160px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="card">
-        <div class="top-bar">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <input type="file" id="avInp" hidden onchange="uploadAv(this)">
-                <div class="av-box" onclick="document.getElementById('avInp').click()">
-                    <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" id="avatarImg">
-                </div>
-                <b id="nickLabel">...</b>
-            </div>
-            <input type="color" id="userColor">
-        </div>
         <div id="chat">Yüklənir...</div>
         <div class="controls">
-            <button class="btn-act mic-btn" id="micBtn" onclick="toggleVoice()">🎤</button>
-            <input type="text" id="userMsg" placeholder="Mesaj yazın...">
-            <button class="btn-act send-btn" onclick="sendMsg()">🚀</button>
+            <button class="btn-act" id="micBtn" onclick="toggleVoice()" style="background:#4CAF50; color:white;">🎤</button>
+            <input type="text" id="userMsg" placeholder="Yazın...">
+            <button class="btn-act" onclick="sendMsg()" style="background:#2196F3; color:white;">🚀</button>
         </div>
     </div>
 </div>
@@ -56,24 +39,18 @@
     const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
     let myNick = localStorage.getItem('chat_nick') || prompt("Ləqəb:") || "User";
-    localStorage.setItem('chat_nick', myNick);
-    document.getElementById('nickLabel').innerText = myNick;
-    if(localStorage.getItem('chat_avatar')) document.getElementById('avatarImg').src = localStorage.getItem('chat_avatar');
-
     const chatBox = document.getElementById('chat');
-    const colorPicker = document.getElementById('userColor');
 
     async function loadMsgs() {
-        const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(25);
+        const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(20);
         if (data) {
             chatBox.innerHTML = data.reverse().map(m => {
                 const isAud = m.content.includes('audio_messages');
                 return `
-                    <div class="msg ${m.nickname === myNick ? 'my-msg' : ''}" style="color: ${m.user_color}">
-                        <img src="${m.avatar_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="msg-av">
+                    <div class="msg ${m.nickname === myNick ? 'my-msg' : ''}">
                         <div>
                             <small><b>${m.nickname}</b></small><br>
-                            ${isAud ? `<div class="voice-box"><audio controls preload="metadata"><source src="${m.content}#t=0.1" type="audio/mpeg"></audio></div>` : m.content}
+                            ${isAud ? `<audio controls preload="auto"><source src="${m.content}"></audio>` : m.content}
                         </div>
                     </div>
                 `;
@@ -83,60 +60,60 @@
     }
 
     async function sendMsg(vUrl = null) {
-        const input = document.getElementById('userMsg');
-        const val = vUrl || input.value.trim();
+        const val = vUrl || document.getElementById('userMsg').value.trim();
         if(!val) return;
-        await _supabase.from('messages').insert([{ 
-            content: val, nickname: myNick, user_color: colorPicker.value, 
-            receiver: 'all', avatar_url: localStorage.getItem('chat_avatar')
-        }]);
-        input.value = '';
+        await _supabase.from('messages').insert([{ content: val, nickname: myNick, receiver: 'all' }]);
+        document.getElementById('userMsg').value = '';
         loadMsgs();
     }
 
-    // SƏS PROBLEMİNİ HƏLL EDƏN YENİ FUNKSİYA
+    // YENİLƏNMİŞ SƏS YAZMA FUNKSİYASI
     let mediaRecorder, chunks = [];
+
     async function toggleVoice() {
         const btn = document.getElementById('micBtn');
         if (!mediaRecorder || mediaRecorder.state === "inactive") {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            
-            // Format dəstəyi yoxlaması
-            const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
-                             ? 'audio/webm;codecs=opus' : 'audio/ogg;codecs=opus';
-            
-            mediaRecorder = new MediaRecorder(stream, { mimeType });
-            chunks = [];
-            mediaRecorder.ondataavailable = e => { if(e.data.size > 0) chunks.push(e.data); };
-            
-            mediaRecorder.onstop = async () => {
-                const blob = new Blob(chunks, { type: mimeType });
-                if (blob.size < 2000) return; // Boş səsləri göndərmə
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                // Ən stabil format seçimi
+                let options = { mimeType: 'audio/webm' };
+                if (!MediaRecorder.isTypeSupported('audio/webm')) options = { mimeType: 'audio/mp4' };
 
-                const fName = `v_${Date.now()}.mp3`;
-                const { data } = await _supabase.storage.from('audio_messages').upload(fName, blob);
-                if (data) {
-                    const url = `${supabaseUrl}/storage/v1/object/public/audio_messages/${fName}`;
-                    sendMsg(url);
-                }
-            };
+                mediaRecorder = new MediaRecorder(stream, options);
+                chunks = [];
 
-            mediaRecorder.start(200); // Hər 200ms-dən bir datanı topla (itmir)
-            btn.innerText = "🛑"; btn.style.background = "red";
+                mediaRecorder.ondataavailable = e => {
+                    if (e.data && e.data.size > 0) chunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    // Səs bitəndə bütün chunks-ları birləşdiririk
+                    const blob = new Blob(chunks, { type: mediaRecorder.mimeType });
+                    
+                    if (blob.size < 5000) { 
+                        alert("Səs çox qısadır, biraz uzun danışın.");
+                        return;
+                    }
+
+                    const fExt = mediaRecorder.mimeType.includes('mp4') ? 'mp4' : 'webm';
+                    const fName = `v_${Date.now()}.${fExt}`;
+                    
+                    const { data, error } = await _supabase.storage.from('audio_messages').upload(fName, blob);
+                    
+                    if (data) {
+                        const url = `${supabaseUrl}/storage/v1/object/public/audio_messages/${fName}`;
+                        sendMsg(url);
+                    }
+                };
+
+                // start(200) yerinə sadə start() - bu səs kəsilməsini ləğv edir
+                mediaRecorder.start();
+                btn.innerText = "🛑"; btn.style.background = "red";
+            } catch (err) { alert("Mikrofon tapılmadı."); }
         } else {
             mediaRecorder.stop();
             btn.innerText = "🎤"; btn.style.background = "#4CAF50";
-        }
-    }
-
-    async function uploadAv(input) {
-        const file = input.files[0];
-        const fName = `av_${Date.now()}.jpg`;
-        const { data } = await _supabase.storage.from('avatars').upload(fName, file);
-        if (data) {
-            const url = `${supabaseUrl}/storage/v1/object/public/avatars/${fName}`;
-            localStorage.setItem('chat_avatar', url);
-            document.getElementById('avatarImg').src = url;
         }
     }
 
