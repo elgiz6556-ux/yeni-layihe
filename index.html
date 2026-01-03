@@ -3,36 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mega Chat - Ultimate</title>
+    <title>Mega Chat Ultra - Fix</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --grad: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab); }
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--grad); background-size: 400% 400%; animation: grad 15s ease infinite; color: white; display: flex; justify-content: center; min-height: 100vh; padding: 10px; }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--grad); background-size: 400% 400%; animation: grad 15s ease infinite; color: white; display: flex; justify-content: center; min-height: 100vh; padding: 10px; }
         @keyframes grad { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-        
         .container { width: 100%; max-width: 420px; }
-        .card { background: rgba(255, 255, 255, 0.15); padding: 15px; border-radius: 30px; backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 10px 40px rgba(0,0,0,0.2); display: flex; flex-direction: column; height: 90vh; }
-        
-        .top-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); padding: 10px 15px; border-radius: 20px; margin-bottom: 10px; }
-        .av-box { width: 42px; height: 42px; border-radius: 50%; border: 2px solid #fff; overflow: hidden; cursor: pointer; }
+        .card { background: rgba(255, 255, 255, 0.2); padding: 15px; border-radius: 25px; backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 8px 32px rgba(0,0,0,0.2); height: 90vh; display: flex; flex-direction: column; }
+        .top-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 20px; margin-bottom: 10px; }
+        .av-box { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #fff; overflow: hidden; cursor: pointer; }
         .av-box img { width: 100%; height: 100%; object-fit: cover; }
-        
-        #chat { flex: 1; overflow-y: auto; background: rgba(0, 0, 0, 0.05); border-radius: 20px; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-        
-        /* Mesaj Balonları */
-        .msg { background: white; color: #333; padding: 12px; border-radius: 20px; align-self: flex-start; max-width: 85%; display: flex; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; }
-        .msg.my-msg { align-self: flex-end; background: #dcf8c6; border-bottom-right-radius: 5px; }
-        .msg-av { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; margin-top: 2px; }
-        
-        /* Səs Pleyeri Dizaynı */
-        .voice-container { display: flex; align-items: center; gap: 8px; min-width: 160px; }
-        audio { height: 35px; width: 100%; filter: sepia(20%) saturate(70%) grayscale(100%) contrast(90%); }
-        
-        .controls { display: flex; gap: 10px; align-items: center; margin-top: 10px; padding: 5px; }
-        input[type="text"] { flex: 1; padding: 14px 20px; border-radius: 30px; border: none; outline: none; font-size: 16px; background: white; }
-        .btn-round { width: 50px; height: 50px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 22px; transition: 0.3s; }
-        .mic-btn { background: #007bff; color: white; }
-        .send-btn { background: #28a745; color: white; }
+        #chat { flex: 1; overflow-y: auto; background: rgba(0, 0, 0, 0.1); border-radius: 20px; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+        .msg { background: white; color: #333; padding: 10px; border-radius: 18px; align-self: flex-start; max-width: 85%; display: flex; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .msg.my-msg { align-self: flex-end; background: #e3f2fd; border-bottom-right-radius: 2px; }
+        .msg-av { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+        .voice-box { display: flex; align-items: center; gap: 5px; min-width: 180px; }
+        audio { height: 35px; width: 100%; }
+        .controls { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+        input[type="text"] { flex: 1; padding: 12px; border-radius: 25px; border: none; outline: none; font-size: 16px; }
+        .btn-act { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .mic-btn { background: #4CAF50; color: white; }
+        .send-btn { background: #2196F3; color: white; }
     </style>
 </head>
 <body>
@@ -49,13 +41,11 @@
             </div>
             <input type="color" id="userColor">
         </div>
-
         <div id="chat">Yüklənir...</div>
-
         <div class="controls">
-            <button class="btn-round mic-btn" id="micBtn" onclick="toggleVoice()">🎤</button>
+            <button class="btn-act mic-btn" id="micBtn" onclick="toggleVoice()">🎤</button>
             <input type="text" id="userMsg" placeholder="Mesaj yazın...">
-            <button class="btn-round send-btn" onclick="sendMsg()">🚀</button>
+            <button class="btn-act send-btn" onclick="sendMsg()">🚀</button>
         </div>
     </div>
 </div>
@@ -74,7 +64,7 @@
     const colorPicker = document.getElementById('userColor');
 
     async function loadMsgs() {
-        const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(30);
+        const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(25);
         if (data) {
             chatBox.innerHTML = data.reverse().map(m => {
                 const isAud = m.content.includes('audio_messages');
@@ -82,8 +72,8 @@
                     <div class="msg ${m.nickname === myNick ? 'my-msg' : ''}" style="color: ${m.user_color}">
                         <img src="${m.avatar_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="msg-av">
                         <div>
-                            <small style="opacity: 0.7; font-size: 11px;">${m.nickname}</small><br>
-                            ${isAud ? `<div class="voice-container"><audio controls preload="metadata"><source src="${m.content}"></audio></div>` : `<span>${m.content}</span>`}
+                            <small><b>${m.nickname}</b></small><br>
+                            ${isAud ? `<div class="voice-box"><audio controls preload="metadata"><source src="${m.content}#t=0.1" type="audio/mpeg"></audio></div>` : m.content}
                         </div>
                     </div>
                 `;
@@ -104,6 +94,41 @@
         loadMsgs();
     }
 
+    // SƏS PROBLEMİNİ HƏLL EDƏN YENİ FUNKSİYA
+    let mediaRecorder, chunks = [];
+    async function toggleVoice() {
+        const btn = document.getElementById('micBtn');
+        if (!mediaRecorder || mediaRecorder.state === "inactive") {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            // Format dəstəyi yoxlaması
+            const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
+                             ? 'audio/webm;codecs=opus' : 'audio/ogg;codecs=opus';
+            
+            mediaRecorder = new MediaRecorder(stream, { mimeType });
+            chunks = [];
+            mediaRecorder.ondataavailable = e => { if(e.data.size > 0) chunks.push(e.data); };
+            
+            mediaRecorder.onstop = async () => {
+                const blob = new Blob(chunks, { type: mimeType });
+                if (blob.size < 2000) return; // Boş səsləri göndərmə
+
+                const fName = `v_${Date.now()}.mp3`;
+                const { data } = await _supabase.storage.from('audio_messages').upload(fName, blob);
+                if (data) {
+                    const url = `${supabaseUrl}/storage/v1/object/public/audio_messages/${fName}`;
+                    sendMsg(url);
+                }
+            };
+
+            mediaRecorder.start(200); // Hər 200ms-dən bir datanı topla (itmir)
+            btn.innerText = "🛑"; btn.style.background = "red";
+        } else {
+            mediaRecorder.stop();
+            btn.innerText = "🎤"; btn.style.background = "#4CAF50";
+        }
+    }
+
     async function uploadAv(input) {
         const file = input.files[0];
         const fName = `av_${Date.now()}.jpg`;
@@ -112,32 +137,6 @@
             const url = `${supabaseUrl}/storage/v1/object/public/avatars/${fName}`;
             localStorage.setItem('chat_avatar', url);
             document.getElementById('avatarImg').src = url;
-            location.reload(); // Şəkil dəyişəndə səhifəni yeniləyək ki, tətbiq olunsun
-        }
-    }
-
-    let mediaRecorder, chunks = [];
-    async function toggleVoice() {
-        const btn = document.getElementById('micBtn');
-        if (!mediaRecorder || mediaRecorder.state === "inactive") {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                chunks = [];
-                mediaRecorder.ondataavailable = e => chunks.push(e.data);
-                mediaRecorder.onstop = async () => {
-                    const blob = new Blob(chunks, { type: 'audio/mp3' });
-                    if (blob.size < 4000) return;
-                    const fName = `v_${Date.now()}.mp3`;
-                    const { data } = await _supabase.storage.from('audio_messages').upload(fName, blob);
-                    if (data) sendMsg(`${supabaseUrl}/storage/v1/object/public/audio_messages/${fName}`);
-                };
-                mediaRecorder.start();
-                btn.innerText = "🛑"; btn.style.background = "red";
-            } catch (e) { alert("Mikrofon tapılmadı."); }
-        } else {
-            mediaRecorder.stop();
-            btn.innerText = "🎤"; btn.style.background = "#007bff";
         }
     }
 
@@ -146,4 +145,3 @@
 </script>
 </body>
 </html>
- 
