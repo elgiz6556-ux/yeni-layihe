@@ -6,87 +6,70 @@
     <title>X-Chat Ultimate</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --accent: #00d2ff; --neon: #00ff88; --bg: #05070a; --glass: rgba(255, 255, 255, 0.08); }
-        body { margin: 0; font-family: 'Inter', sans-serif; background: radial-gradient(circle at top, #1a1a2e, #05070a); color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
-        
-        /* Header & Online Status */
-        .header { padding: 15px; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); }
-        .avatar { width: 45px; height: 45px; border-radius: 15px; border: 2px solid var(--accent); object-fit: cover; cursor: pointer; transition: 0.3s; box-shadow: 0 0 10px var(--accent); }
-        .avatar:hover { transform: scale(1.1); box-shadow: 0 0 20px var(--accent); }
-
-        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
-        
-        /* Neon Message Bubbles */
-        .msg { max-width: 75%; padding: 12px 16px; border-radius: 20px; background: var(--glass); border: 1px solid rgba(255,255,255,0.1); position: relative; animation: slideUp 0.4s ease-out; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        
-        .msg.my { align-self: flex-end; background: linear-gradient(135deg, var(--accent), #0072ff); color: #000; font-weight: 600; box-shadow: 0 10px 20px rgba(0, 210, 255, 0.3); border: none; }
-        .msg b { display: block; font-size: 11px; opacity: 0.7; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-
-        /* Creative Input Bar */
-        .input-area { padding: 15px 20px; background: transparent; }
-        .input-bar { background: rgba(255,255,255,0.05); backdrop-filter: blur(25px); padding: 8px 15px; border-radius: 35px; border: 1px solid rgba(255,255,255,0.15); display: flex; gap: 12px; align-items: center; box-shadow: 0 -10px 25px rgba(0,0,0,0.3); }
+        :root { --accent: #00d2ff; --bg: #05070a; --glass: rgba(255, 255, 255, 0.08); }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: #05070a; color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        .header { padding: 15px; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .avatar { width: 42px; height: 42px; border-radius: 12px; border: 2px solid var(--accent); object-fit: cover; cursor: pointer; }
+        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .msg { max-width: 75%; padding: 10px 14px; border-radius: 18px; background: var(--glass); border: 1px solid rgba(255,255,255,0.1); position: relative; word-wrap: break-word; }
+        .msg.my { align-self: flex-end; background: linear-gradient(135deg, var(--accent), #0072ff); color: #000; font-weight: 500; }
+        .msg b { display: block; font-size: 10px; opacity: 0.6; margin-bottom: 4px; }
+        .input-bar { padding: 15px; background: transparent; display: flex; gap: 10px; align-items: center; }
+        .input-box { flex: 1; background: var(--glass); backdrop-filter: blur(20px); padding: 5px 15px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; }
         input { flex: 1; background: transparent; border: none; color: #fff; padding: 10px; outline: none; font-size: 16px; }
-        
-        .btn-circle { width: 42px; height: 42px; border-radius: 50%; border: none; background: var(--accent); color: #000; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: 0.3s; box-shadow: 0 0 15px var(--accent); }
-        .btn-circle:active { transform: scale(0.9); }
-        
-        /* Call & Special Features */
-        .call-btn { background: var(--neon); box-shadow: 0 0 15px var(--neon); }
-        #typing { font-size: 11px; color: var(--neon); font-style: italic; margin-left: 10px; height: 15px; }
-        .img-msg { max-width: 100%; border-radius: 12px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.2); }
+        .btn-act { background: none; border: none; color: white; cursor: pointer; font-size: 20px; }
+        .img-msg { max-width: 100%; border-radius: 12px; margin-top: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div style="display:flex; align-items:center;">
-        <img id="myAvatar" class="avatar" src="https://ui-avatars.com/api/?name=X" onclick="changeAvatar()">
-        <div id="typing"></div>
-    </div>
+    <img id="myAvatar" class="avatar" src="https://ui-avatars.com/api/?name=User" onclick="changeAvatar()">
     <div style="text-align:center">
-        <div style="font-weight:bold; letter-spacing:2px; font-size:18px;">X-CHAT <span style="color:var(--neon)">PRO</span></div>
-        <div id="online-info" style="font-size:10px; color:#aaa;">● 0 Onlayn</div>
+        <div style="font-weight:bold;">X-CHAT <span id="online-count" style="color:#4caf50">● 0</span></div>
+        <div id="typing-status" style="font-size:10px; color:var(--accent); height:12px"></div>
     </div>
-    <button class="btn-circle call-btn" onclick="alert('Zəng sistemi başladılır...')">📞</button>
+    <button class="btn-act" onclick="location.reload()">🔄</button>
 </div>
 
 <div id="chat"></div>
 
-<div class="input-area">
-    <div class="input-bar">
-        <input type="file" id="fileInp" hidden onchange="uploadFile(this)">
-        <button class="btn-circle" style="background:rgba(255,255,255,0.1); color:#fff;" onclick="document.getElementById('fileInp').click()">🖼️</button>
-        <button class="btn-circle" id="mic" style="background:rgba(255,255,255,0.1); color:#fff;" onclick="doVoice()">🎤</button>
-        <input type="text" id="msgInp" placeholder="Mesaj yaz..." oninput="isTyping()" onkeypress="if(event.key=='Enter') doSend()">
-        <button class="btn-circle" onclick="doSend()">🚀</button>
+<div class="input-bar">
+    <input type="file" id="fileInp" hidden accept="image/*" onchange="uploadFile(this)">
+    <button class="btn-act" onclick="document.getElementById('fileInp').click()">🖼️</button>
+    <button class="btn-act" id="mic" onclick="doVoice()">🎤</button>
+    <div class="input-box">
+        <input type="text" id="msgInp" placeholder="Mesaj..." oninput="isTyping()" onkeypress="if(event.key=='Enter') doSend()">
+        <button class="btn-act" onclick="doSend()" style="color:var(--accent)">🚀</button>
     </div>
 </div>
 
 <script>
-    const _sb = supabase.createClient('https://pyknspxnwnilhqsazidj.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU');
+    const SB_URL = 'https://pyknspxnwnilhqsazidj.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
+    const _sb = supabase.createClient(SB_URL, SB_KEY);
 
     let user = {
         nick: localStorage.getItem('chat_nick') || prompt("Adın:"),
         avatar: localStorage.getItem('chat_avatar') || `https://ui-avatars.com/api/?name=User`
     };
+    if(!user.nick) user.nick = "User_" + Math.floor(Math.random()*99);
     localStorage.setItem('chat_nick', user.nick);
     document.getElementById('myAvatar').src = user.avatar;
 
-    // Presence & Realtime
-    const chan = _sb.channel('room_pro', { config: { presence: { key: user.nick } } });
+    // Realtime & Presence
+    const chan = _sb.channel('main', { config: { presence: { key: user.nick } } });
     chan.on('presence', { event: 'sync' }, () => {
-        document.getElementById('online-info').innerText = `● ${Object.keys(chan.presenceState()).length} Onlayn`;
+        document.getElementById('online-count').innerText = `● ${Object.keys(chan.presenceState()).length}`;
     }).on('broadcast', { event: 'typing' }, p => {
-        document.getElementById('typing').innerText = p.payload.nick + " yazır...";
-        setTimeout(() => document.getElementById('typing').innerText = "", 2000);
+        document.getElementById('typing-status').innerText = p.payload.nick + " yazır...";
+        setTimeout(() => document.getElementById('typing-status').innerText = "", 2000);
     }).subscribe(async (s) => { if(s === 'SUBSCRIBED') await chan.track({ online_at: new Date() }); });
 
     _sb.channel('db').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, p => {
         if (p.eventType === 'INSERT') {
             render(p.new);
             if(p.new.nickname !== user.nick) {
-                new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3').play();
                 if(Notification.permission === 'granted') new Notification(p.new.nickname, { body: p.new.content });
             }
         }
@@ -96,8 +79,9 @@
     async function doSend() {
         const i = document.getElementById('msgInp');
         if (!i.value.trim()) return;
-        await _sb.from('messages').insert([{ content: i.value, nickname: user.nick, sender_avatar: user.avatar }]);
-        i.value = '';
+        const msg = i.value; i.value = '';
+        await _sb.from('messages').insert([{ content: msg, nickname: user.nick, sender_avatar: user.avatar }]);
+        if (Notification.permission === "default") Notification.requestPermission();
     }
 
     function render(m) {
@@ -106,40 +90,41 @@
         const d = document.createElement('div');
         d.id = 'm-'+m.id; d.className = `msg ${isMy ? 'my' : ''}`;
         
-        let content = m.content;
-        if(content.includes('v_')) content = `<audio src="${content}" controls style="filter:invert(1); height:30px;"></audio>`;
-        else if(content.includes('img_')) content = `<img src="${content}" class="img-msg">`;
+        let body = m.content;
+        if(body.includes('v_')) body = `<audio src="${body}" controls style="width:200px; height:30px; filter:invert(1)"></audio>`;
+        else if(body.includes('img_')) body = `<img src="${body}" class="img-msg" onclick="window.open(this.src)">`;
 
         d.onclick = () => { if((isMy || user.nick === 'Admin') && confirm("Silinsin?")) _sb.from('messages').delete().eq('id', m.id).then(); };
-        d.innerHTML = `<b>${m.nickname}</b>${content}`;
+        d.innerHTML = `<b>${m.nickname}</b>${body}`;
         document.getElementById('chat').appendChild(d);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
     async function uploadFile(el) {
         const file = el.files[0];
+        if(!file) return;
         const fn = `img_${Date.now()}.jpg`;
-        const { data } = await _sb.storage.from('audio_messages').upload(fn, file);
+        const { data, error } = await _sb.storage.from('audio_messages').upload(fn, file);
         if(data) {
-            const url = `https://pyknspxnwnilhqsazidj.supabase.co/storage/v1/object/public/audio_messages/${fn}`;
+            const url = `${SB_URL}/storage/v1/object/public/audio_messages/${fn}`;
             await _sb.from('messages').insert([{ content: url, nickname: user.nick, sender_avatar: user.avatar }]);
-        }
+        } else { alert("Yükləmə xətası! Storage-i yoxla."); }
     }
 
     let rec, ch = [];
     async function doVoice() {
-        const m = document.getElementById('mic');
+        const btn = document.getElementById('mic');
         if (!rec || rec.state === "inactive") {
             const s = await navigator.mediaDevices.getUserMedia({ audio: true });
             rec = new MediaRecorder(s); ch = [];
-            rec.onstart = () => m.style.background = "red";
+            rec.onstart = () => btn.innerText = "🛑";
             rec.onstop = async () => {
-                m.style.background = "rgba(255,255,255,0.1)";
+                btn.innerText = "🎤";
                 const b = new Blob(ch, { type: 'audio/webm' });
                 const fn = `v_${Date.now()}.webm`;
                 const { data } = await _sb.storage.from('audio_messages').upload(fn, b);
                 if(data) {
-                    const url = `https://pyknspxnwnilhqsazidj.supabase.co/storage/v1/object/public/audio_messages/${fn}`;
+                    const url = `${SB_URL}/storage/v1/object/public/audio_messages/${fn}`;
                     await _sb.from('messages').insert([{ content: url, nickname: user.nick, sender_avatar: user.avatar }]);
                 }
             };
@@ -152,7 +137,6 @@
     function changeAvatar() { const a = prompt("Avatar URL:"); if(a) { localStorage.setItem('chat_avatar', a); location.reload(); } }
 
     _sb.from('messages').select('*').order('created_at', { ascending: true }).then(({data}) => data && data.forEach(render));
-    Notification.requestPermission();
 </script>
 </body>
 </html>
