@@ -15,39 +15,30 @@
         #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         
         .msg { max-width: 75%; padding: 10px 14px; border-radius: 18px; background: var(--glass); border: 1px solid rgba(255,255,255,0.1); position: relative; animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes pop { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-        
         .msg.my { align-self: flex-end; background: linear-gradient(135deg, var(--accent), #0072ff); color: #000; font-weight: 500; box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3); }
         .msg b { display: block; font-size: 10px; opacity: 0.6; margin-bottom: 4px; }
 
         .react-bar { display: none; position: absolute; top: -40px; left: 0; background: #222; border-radius: 20px; padding: 5px 10px; gap: 8px; border: 1px solid var(--accent); z-index: 50; }
         .msg:hover .react-bar { display: flex; }
-        .emoji-btn { cursor: pointer; transition: 0.2s; }
 
         .input-bar { padding: 15px; background: transparent; display: flex; gap: 10px; align-items: center; }
         .input-box { flex: 1; background: var(--glass); backdrop-filter: blur(20px); padding: 5px 15px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; }
         input { flex: 1; background: transparent; border: none; color: #fff; padding: 10px; outline: none; }
         
-        .btn-act { background: none; border: none; color: white; cursor: pointer; font-size: 20px; padding: 5px; }
+        .btn-act { background: none; border: none; color: white; cursor: pointer; font-size: 20px; }
         .img-preview { max-width: 100%; border-radius: 10px; margin-top: 5px; }
-        
-        #online-count { font-size: 10px; color: #4caf50; font-weight: bold; }
-
-        /* Notification Prompt */
-        #notif-banner { display: none; background: var(--accent); color: black; padding: 8px; text-align: center; font-size: 12px; font-weight: bold; cursor: pointer; }
+        #room-tag { background: var(--accent); color: #000; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="notif-banner" onclick="requestNotif()">🔔 Mesaj bildirişlərini aktiv etmək üçün bura toxun!</div>
-
 <div class="header">
     <img id="myAvatar" class="avatar" src="https://ui-avatars.com/api/?name=X" onclick="changeAvatar()">
     <div style="text-align:center">
-        <div style="font-weight:bold; letter-spacing:2px">X-CHAT <span id="online-count">● 0 online</span></div>
-        <div id="typing-box" style="font-size:10px; color:var(--accent); height:12px"></div>
+        <div style="font-weight:bold;">X-CHAT <span id="online-count" style="color:#4caf50">● 0</span></div>
+        <div id="room-tag" onclick="switchRoom()">Otaq: General</div>
     </div>
-    <button class="btn-act" onclick="location.reload()">🔄</button>
+    <div id="typing-box" style="font-size:10px; color:var(--accent);"></div>
 </div>
 
 <div id="chat"></div>
@@ -67,67 +58,48 @@
 
     let user = {
         nick: localStorage.getItem('chat_nick') || prompt("Adın:"),
-        avatar: localStorage.getItem('chat_avatar') || `https://ui-avatars.com/api/?name=${Math.random()}`
+        avatar: localStorage.getItem('chat_avatar') || `https://ui-avatars.com/api/?name=User`,
+        room: 'General'
     };
-    localStorage.setItem('chat_nick', user.nick);
-    document.getElementById('myAvatar').src = user.avatar;
 
-    // Bildiriş yoxlanışı
-    if (Notification.permission === "default") {
-        document.getElementById('notif-banner').style.display = "block";
-    }
-
-    async function requestNotif() {
-        const permission = await Notification.requestPermission();
-        if (permission === "granted") {
-            document.getElementById('notif-banner').style.display = "none";
-            new Notification("X-Chat", { body: "Bildirişlər aktiv edildi!" });
-        }
-    }
-
-    // Online sistemi
     const channel = _sb.channel('main', { config: { presence: { key: user.nick } } });
+    
+    // Online sistemi və Typing
     channel.on('presence', { event: 'sync' }, () => {
-        const count = Object.keys(channel.presenceState()).length;
-        document.getElementById('online-count').innerText = `● ${count} online`;
-    })
-    .on('broadcast', { event: 'typing' }, p => {
-        const box = document.getElementById('typing-box');
-        box.innerText = p.payload.nick + " yazır...";
-        setTimeout(() => box.innerText = "", 2000);
-    })
-    .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') await channel.track({ online_at: new Date().toISOString() });
-    });
-
-    _sb.channel('db').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => {
-        render(p.new);
-        // Bildiriş göndər (əgər mən yazmamışamsa)
-        if (p.new.nickname !== user.nick && Notification.permission === "granted") {
-            new Notification(p.new.nickname, {
-                body: p.new.content.includes('v_') ? "🎤 Səsli mesaj" : (p.new.content.includes('img_') ? "🖼️ Şəkil" : p.new.content),
-                icon: p.new.sender_avatar
-            });
+        document.getElementById('online-count').innerText = `● ${Object.keys(channel.presenceState()).length}`;
+    }).on('broadcast', { event: 'typing' }, p => {
+        if(p.payload.room === user.room) {
+            document.getElementById('typing-box').innerText = p.payload.nick + " yazır...";
+            setTimeout(() => document.getElementById('typing-box').innerText = "", 2000);
         }
-    }).on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, p => {
-        document.getElementById('m-'+p.old.id)?.remove();
+    }).subscribe(async (s) => { if (s === 'SUBSCRIBED') await channel.track({ online_at: new Date() }); });
+
+    // Realtime Mesajlar
+    _sb.channel('db').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, p => {
+        if (p.eventType === 'INSERT' && (p.new.group_id === user.room)) {
+            render(p.new);
+            if(p.new.nickname !== user.nick) {
+                new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3').play();
+                if(Notification.permission === "granted") new Notification(p.new.nickname, { body: p.new.content });
+            }
+        }
+        if (p.eventType === 'DELETE') document.getElementById('m-'+p.old.id)?.remove();
     }).subscribe();
 
     async function doSend() {
         const i = document.getElementById('msgInp');
         if (!i.value.trim()) return;
-        await _sb.from('messages').insert([{ content: i.value, nickname: user.nick, sender_avatar: user.avatar }]);
+        await _sb.from('messages').insert([{ content: i.value, nickname: user.nick, sender_avatar: user.avatar, group_id: user.room }]);
         i.value = '';
     }
 
-    async function uploadImg(el) {
-        const file = el.files[0];
-        if (!file) return;
-        const fn = `img_${Date.now()}.jpg`;
-        const { data } = await _sb.storage.from('audio_messages').upload(fn, file);
-        if (data) {
-            const url = `https://pyknspxnwnilhqsazidj.supabase.co/storage/v1/object/public/audio_messages/${fn}`;
-            await _sb.from('messages').insert([{ content: url, nickname: user.nick, sender_avatar: user.avatar }]);
+    function switchRoom() {
+        const r = prompt("Otaq adı daxil et (məs: Ailə, Dostlar):");
+        if(r) {
+            user.room = r;
+            document.getElementById('room-tag').innerText = "Otaq: " + r;
+            document.getElementById('chat').innerHTML = "";
+            loadMessages();
         }
     }
 
@@ -135,59 +107,37 @@
         if(document.getElementById('m-'+m.id)) return;
         const isMy = m.nickname === user.nick;
         const d = document.createElement('div');
-        d.id = 'm-'+m.id;
-        d.className = `msg ${isMy ? 'my' : ''}`;
+        d.id = 'm-'+m.id; d.className = `msg ${isMy ? 'my' : ''}`;
         
         let body = m.content;
         if (body.includes('v_')) body = `<audio src="${body}" controls></audio>`;
         else if (body.includes('img_')) body = `<img src="${body}" class="img-preview">`;
 
-        d.innerHTML = `
-            <div class="react-bar">
-                <span class="emoji-btn" onclick="deleteMsg('${m.id}', ${isMy})">🗑️</span>
-                <span class="emoji-btn" onclick="addReact('${m.id}', '❤️')">❤️</span>
-                <span class="emoji-btn" onclick="addReact('${m.id}', '🔥')">🔥</span>
-            </div>
-            <b>${m.nickname}</b> ${body}
-        `;
+        d.innerHTML = `<div class="react-bar"><span onclick="deleteMsg('${m.id}', ${isMy})">🗑️</span></div><b>${m.nickname}</b> ${body}`;
         document.getElementById('chat').appendChild(d);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
-    async function deleteMsg(id, isMy) {
-        if(isMy && confirm("Silinsin?")) await _sb.from('messages').delete().eq('id', id);
+    async function loadMessages() {
+        const {data} = await _sb.from('messages').select('*').eq('group_id', user.room).order('created_at', { ascending: true });
+        if(data) data.forEach(render);
     }
 
-    function isTyping() { channel.send({ type: 'broadcast', event: 'typing', payload: { nick: user.nick } }); }
-
-    function changeAvatar() {
-        const a = prompt("Avatar URL:");
-        if(a) { localStorage.setItem('chat_avatar', a); location.reload(); }
+    async function uploadImg(el) {
+        const file = el.files[0];
+        const fn = `img_${Date.now()}.jpg`;
+        const { data } = await _sb.storage.from('audio_messages').upload(fn, file);
+        if (data) {
+            const url = `https://pyknspxnwnilhqsazidj.supabase.co/storage/v1/object/public/audio_messages/${fn}`;
+            await _sb.from('messages').insert([{ content: url, nickname: user.nick, group_id: user.room }]);
+        }
     }
 
-    let rec, ch = [];
-    async function doVoice() {
-        const btn = document.getElementById('mic');
-        if (!rec || rec.state === "inactive") {
-            const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-            rec = new MediaRecorder(s); ch = [];
-            rec.onstart = () => btn.innerText = "🛑";
-            rec.onstop = async () => {
-                btn.innerText = "🎤";
-                const b = new Blob(ch, { type: 'audio/webm' });
-                const fn = `v_${Date.now()}.webm`;
-                const { data } = await _sb.storage.from('audio_messages').upload(fn, b);
-                if (data) {
-                    const url = `https://pyknspxnwnilhqsazidj.supabase.co/storage/v1/object/public/audio_messages/${fn}`;
-                    await _sb.from('messages').insert([{ content: url, nickname: user.nick, sender_avatar: user.avatar }]);
-                }
-            };
-            rec.ondataavailable = e => ch.push(e.data);
-            rec.start();
-        } else { rec.stop(); }
-    }
+    async function deleteMsg(id, isMy) { if(isMy && confirm("Silinsin?")) await _sb.from('messages').delete().eq('id', id); }
+    function isTyping() { channel.send({ type: 'broadcast', event: 'typing', payload: { nick: user.nick, room: user.room } }); }
+    function changeAvatar() { const a = prompt("Avatar URL:"); if(a) { localStorage.setItem('chat_avatar', a); location.reload(); } }
 
-    _sb.from('messages').select('*').order('created_at', { ascending: true }).then(({data}) => data && data.forEach(render));
+    loadMessages();
 </script>
 </body>
 </html>
