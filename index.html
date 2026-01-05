@@ -3,107 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Chat Neon</title>
+    <title>X-Chat Ultimate</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --accent: #00d2ff; --bg: #05070a; --glass: rgba(255, 255, 255, 0.07); }
-        body { 
-            margin: 0; font-family: 'Segoe UI', sans-serif; 
-            background: radial-gradient(circle at top, #1a1a2e, #05070a); 
-            color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
-        }
+        :root { --accent: #00d2ff; --bg: #05070a; --glass: rgba(255, 255, 255, 0.08); }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: radial-gradient(circle at top, #121225, #05070a); color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* Glass Header */
-        .header { 
-            padding: 15px; background: var(--glass); backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;
-        }
-        .avatar { width: 45px; height: 45px; border-radius: 15px; border: 2px solid var(--accent); object-fit: cover; cursor: pointer; box-shadow: 0 0 10px var(--accent); }
+        .header { padding: 15px; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 100; }
+        .avatar { width: 42px; height: 42px; border-radius: 12px; border: 2px solid var(--accent); object-fit: cover; cursor: pointer; }
 
         #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         
-        /* Glowing Messages */
-        .msg { 
-            max-width: 75%; padding: 12px 16px; border-radius: 18px; background: var(--glass);
-            backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
-            animation: slideUp 0.3s ease-out; position: relative;
-        }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .msg { max-width: 75%; padding: 10px 14px; border-radius: 18px; background: var(--glass); border: 1px solid rgba(255,255,255,0.1); position: relative; animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         
-        .msg.my { 
-            align-self: flex-end; background: linear-gradient(135deg, var(--accent), #0072ff); 
-            color: #000; font-weight: bold; box-shadow: 0 0 20px rgba(0, 210, 255, 0.4); 
-        }
-        .msg b { display: block; font-size: 10px; opacity: 0.7; margin-bottom: 5px; text-transform: uppercase; }
+        .msg.my { align-self: flex-end; background: linear-gradient(135deg, var(--accent), #0072ff); color: #000; font-weight: 500; box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3); }
+        .msg b { display: block; font-size: 10px; opacity: 0.6; margin-bottom: 4px; }
 
-        /* Floating Input Bar */
-        .input-area { padding: 20px; background: transparent; }
-        .input-bar { 
-            background: rgba(255,255,255,0.1); backdrop-filter: blur(25px); padding: 10px 20px; 
-            border-radius: 40px; border: 1px solid rgba(255,255,255,0.2); display: flex; gap: 12px; align-items: center;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.7);
-        }
-        input { flex: 1; background: transparent; border: none; color: #fff; outline: none; font-size: 16px; }
-        .btn-send { background: var(--accent); border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 20px; box-shadow: 0 0 15px var(--accent); }
+        /* Reaksiya Paneli */
+        .react-bar { display: none; position: absolute; top: -40px; left: 0; background: #222; border-radius: 20px; padding: 5px 10px; gap: 8px; border: 1px solid var(--accent); z-index: 50; }
+        .msg:hover .react-bar { display: flex; }
+        .emoji-btn { cursor: pointer; transition: 0.2s; }
+        .emoji-btn:hover { transform: scale(1.3); }
 
-        #typing { font-size: 12px; color: var(--accent); position: absolute; top: 75px; left: 20px; font-style: italic; }
-        audio { filter: invert(1); width: 220px; height: 40px; }
+        .input-bar { padding: 15px; background: transparent; display: flex; gap: 10px; align-items: center; }
+        .input-box { flex: 1; background: var(--glass); backdrop-filter: blur(20px); padding: 5px 15px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; }
+        input { flex: 1; background: transparent; border: none; color: #fff; padding: 10px; outline: none; }
+        
+        .btn-act { background: none; border: none; color: white; cursor: pointer; font-size: 20px; padding: 5px; }
+        .img-preview { max-width: 100%; border-radius: 10px; margin-top: 5px; }
+        
+        #online-count { font-size: 10px; color: #4caf50; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <img id="myAvatar" class="avatar" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" onclick="changeAvatar()">
-    <div style="text-align: center;">
-        <div style="font-weight: bold; letter-spacing: 3px; font-size: 20px;">X-CHAT</div>
-        <div style="font-size: 10px; color: var(--accent);">PREMIUM EDITION</div>
+    <img id="myAvatar" class="avatar" src="https://ui-avatars.com/api/?name=X" onclick="changeAvatar()">
+    <div style="text-align:center">
+        <div style="font-weight:bold; letter-spacing:2px">X-CHAT <span id="online-count">● 0 online</span></div>
+        <div id="typing-box" style="font-size:10px; color:var(--accent); height:12px"></div>
     </div>
-    <button onclick="location.reload()" style="background:none; border:none; color:white; font-size:22px; cursor:pointer;">🔄</button>
+    <button class="btn-act" onclick="location.reload()">🔄</button>
 </div>
 
-<div id="typing"></div>
 <div id="chat"></div>
 
-<div class="input-area">
-    <div class="input-bar">
-        <button onclick="doVoice()" id="mic" style="background:none; border:none; color:white; font-size:22px; cursor:pointer;">🎤</button>
-        <input type="text" id="msgInp" placeholder="Mesajınızı bura yazın..." oninput="isTyping()" onkeypress="if(event.key=='Enter') doSend()">
-        <button class="btn-send" onclick="doSend()">🚀</button>
+<div class="input-bar">
+    <input type="file" id="imgInp" hidden accept="image/*" onchange="uploadImg(this)">
+    <button class="btn-act" onclick="document.getElementById('imgInp').click()">🖼️</button>
+    <button class="btn-act" onclick="doVoice()" id="mic">🎤</button>
+    <div class="input-box">
+        <input type="text" id="msgInp" placeholder="Mesaj..." oninput="isTyping()" onkeypress="if(event.key=='Enter') doSend()">
+        <button class="btn-act" onclick="doSend()" style="color:var(--accent)">🚀</button>
     </div>
 </div>
 
 <script>
-    const supabaseUrl = 'https://pyknspxnwnilhqsazidj.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
-    const _sb = supabase.createClient(supabaseUrl, supabaseKey);
+    const _sb = supabase.createClient('https://pyknspxnwnilhqsazidj.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU');
 
     let user = {
-        nick: localStorage.getItem('chat_nick') || prompt("Adınız:"),
-        avatar: localStorage.getItem('chat_avatar') || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
+        nick: localStorage.getItem('chat_nick') || prompt("Adın:"),
+        avatar: localStorage.getItem('chat_avatar') || `https://ui-avatars.com/api/?name=${Math.random()}`
     };
     localStorage.setItem('chat_nick', user.nick);
     document.getElementById('myAvatar').src = user.avatar;
 
-    // Presence & Typing
-    const channel = _sb.channel('room1');
-    channel.on('broadcast', { event: 'typing' }, p => {
-        const t = document.getElementById('typing');
-        t.innerText = p.payload.nick + " yazır...";
-        setTimeout(() => t.innerText = "", 2000);
+    // Presence (Online sistemi)
+    const channel = _sb.channel('main', { config: { presence: { key: user.nick } } });
+    channel.on('presence', { event: 'sync' }, () => {
+        const count = Object.keys(channel.presenceState()).length;
+        document.getElementById('online-count').innerText = `● ${count} online`;
+    })
+    .on('broadcast', { event: 'typing' }, p => {
+        const box = document.getElementById('typing-box');
+        box.innerText = p.payload.nick + " yazır...";
+        setTimeout(() => box.innerText = "", 2000);
+    })
+    .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') await channel.track({ online_at: new Date().toISOString() });
+    });
+
+    _sb.channel('db').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, p => {
+        if (p.eventType === 'INSERT') render(p.new);
+        if (p.eventType === 'DELETE') document.getElementById('m-'+p.old.id)?.remove();
     }).subscribe();
 
-    function isTyping() {
-        channel.send({ type: 'broadcast', event: 'typing', payload: { nick: user.nick } });
+    async function doSend() {
+        const i = document.getElementById('msgInp');
+        if (!i.value.trim()) return;
+        await _sb.from('messages').insert([{ content: i.value, nickname: user.nick, sender_avatar: user.avatar }]);
+        i.value = '';
     }
 
-    // Realtime Database
-    _sb.channel('db').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => render(p.new)).subscribe();
-
-    async function doSend() {
-        const inp = document.getElementById('msgInp');
-        if (!inp.value.trim()) return;
-        const val = inp.value; inp.value = '';
-        await _sb.from('messages').insert([{ content: val, nickname: user.nick, sender_avatar: user.avatar }]);
+    async function uploadImg(el) {
+        const file = el.files[0];
+        if (!file) return;
+        const fn = `img_${Date.now()}.jpg`;
+        const { data } = await _sb.storage.from('audio_messages').upload(fn, file);
+        if (data) {
+            const url = `https://pyknspxnwnilhqsazidj.supabase.co/storage/v1/object/public/audio_messages/${fn}`;
+            await _sb.from('messages').insert([{ content: url, nickname: user.nick, sender_avatar: user.avatar }]);
+        }
     }
 
     function render(m) {
@@ -113,52 +114,56 @@
         d.id = 'm-'+m.id;
         d.className = `msg ${isMy ? 'my' : ''}`;
         
-        let content = m.content;
-        if(content.includes('audio_messages')) content = `<audio src="${content}" controls></audio>`;
+        let body = m.content;
+        if (body.includes('v_')) body = `<audio src="${body}" controls></audio>`;
+        else if (body.includes('img_')) body = `<img src="${body}" class="img-preview">`;
 
-        d.innerHTML = `<b>${m.nickname}</b>${content}`;
+        d.innerHTML = `
+            <div class="react-bar">
+                <span class="emoji-btn" onclick="deleteMsg('${m.id}', ${isMy})">🗑️</span>
+                <span class="emoji-btn">❤️</span><span class="emoji-btn">😂</span><span class="emoji-btn">🔥</span>
+            </div>
+            <b>${m.nickname}</b> ${body}
+        `;
         document.getElementById('chat').appendChild(d);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
-    async function load() {
-        const { data } = await _sb.from('messages').select('*').order('created_at', { ascending: true });
-        if(data) data.forEach(render);
+    async function deleteMsg(id, isMy) {
+        if(isMy && confirm("Silinsin?")) await _sb.from('messages').delete().eq('id', id);
     }
+
+    function isTyping() { channel.send({ type: 'broadcast', event: 'typing', payload: { nick: user.nick } }); }
 
     function changeAvatar() {
-        const link = prompt("Avatar URL:");
-        if(link) {
-            user.avatar = link;
-            localStorage.setItem('chat_avatar', link);
-            document.getElementById('myAvatar').src = link;
-        }
+        const a = prompt("Avatar URL:");
+        if(a) { localStorage.setItem('chat_avatar', a); location.reload(); }
     }
 
-    let rec, chunks = [];
+    // Səs sistemi (köhnə kodun stabil versiyası)
+    let rec, ch = [];
     async function doVoice() {
-        const m = document.getElementById('mic');
+        const btn = document.getElementById('mic');
         if (!rec || rec.state === "inactive") {
             const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-            rec = new MediaRecorder(s);
-            chunks = [];
-            rec.onstart = () => m.style.color = "red";
+            rec = new MediaRecorder(s); ch = [];
+            rec.onstart = () => btn.innerText = "🛑";
             rec.onstop = async () => {
-                m.style.color = "white";
-                const b = new Blob(chunks, { type: 'audio/webm' });
+                btn.innerText = "🎤";
+                const b = new Blob(ch, { type: 'audio/webm' });
                 const fn = `v_${Date.now()}.webm`;
                 const { data } = await _sb.storage.from('audio_messages').upload(fn, b);
-                if(data) {
-                    const url = `${supabaseUrl}/storage/v1/object/public/audio_messages/${fn}`;
+                if (data) {
+                    const url = `https://pyknspxnwnilhqsazidj.supabase.co/storage/v1/object/public/audio_messages/${fn}`;
                     await _sb.from('messages').insert([{ content: url, nickname: user.nick, sender_avatar: user.avatar }]);
                 }
             };
-            rec.ondataavailable = e => chunks.push(e.data);
+            rec.ondataavailable = e => ch.push(e.data);
             rec.start();
         } else { rec.stop(); }
     }
 
-    load();
+    _sb.from('messages').select('*').order('created_at', { ascending: true }).then(({data}) => data && data.forEach(render));
 </script>
 </body>
 </html>
