@@ -3,79 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Chat Creative</title>
+    <title>X-Chat Neon</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { 
-            --glass: rgba(255, 255, 255, 0.05);
-            --accent: #00d2ff; 
-            --bg: #05070a;
-        }
+        :root { --accent: #00d2ff; --bg: #05070a; --glass: rgba(255, 255, 255, 0.07); }
         body { 
-            margin: 0; font-family: 'Inter', sans-serif; 
-            background: radial-gradient(circle at top right, #1a1a2e, var(--bg)); 
+            margin: 0; font-family: 'Segoe UI', sans-serif; 
+            background: radial-gradient(circle at top, #1a1a2e, #05070a); 
             color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
         }
         
-        /* Glassmorphism Header */
+        /* Glass Header */
         .header { 
-            padding: 15px; background: var(--glass); backdrop-filter: blur(15px);
+            padding: 15px; background: var(--glass); backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;
         }
-        .avatar { width: 42px; height: 42px; border-radius: 12px; border: 2px solid var(--accent); object-fit: cover; cursor: pointer; transition: 0.3s; }
-        .avatar:hover { transform: scale(1.1) rotate(5deg); }
+        .avatar { width: 45px; height: 45px; border-radius: 15px; border: 2px solid var(--accent); object-fit: cover; cursor: pointer; box-shadow: 0 0 10px var(--accent); }
 
-        #typingStatus { font-size: 11px; color: var(--accent); height: 15px; margin-left: 15px; font-style: italic; }
-
-        /* Chat Area */
-        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
+        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         
+        /* Glowing Messages */
         .msg { 
-            max-width: 75%; padding: 12px 16px; border-radius: 20px; background: var(--glass);
+            max-width: 75%; padding: 12px 16px; border-radius: 18px; background: var(--glass);
             backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
-            position: relative; animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: slideUp 0.3s ease-out; position: relative;
         }
-        @keyframes pop { from { opacity: 0; transform: scale(0.8) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         
-        .msg.my { align-self: flex-end; background: linear-gradient(135deg, var(--accent), #3a7bd5); color: #000; font-weight: 500; }
-        .msg b { display: block; font-size: 11px; margin-bottom: 5px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; }
+        .msg.my { 
+            align-self: flex-end; background: linear-gradient(135deg, var(--accent), #0072ff); 
+            color: #000; font-weight: bold; box-shadow: 0 0 20px rgba(0, 210, 255, 0.4); 
+        }
+        .msg b { display: block; font-size: 10px; opacity: 0.7; margin-bottom: 5px; text-transform: uppercase; }
 
-        /* Floating Input */
-        .input-wrapper { padding: 20px; background: transparent; }
+        /* Floating Input Bar */
+        .input-area { padding: 20px; background: transparent; }
         .input-bar { 
-            background: var(--glass); backdrop-filter: blur(20px); padding: 8px 15px; 
-            border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; align-items: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: rgba(255,255,255,0.1); backdrop-filter: blur(25px); padding: 10px 20px; 
+            border-radius: 40px; border: 1px solid rgba(255,255,255,0.2); display: flex; gap: 12px; align-items: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.7);
         }
-        input { flex: 1; background: transparent; border: none; padding: 10px; color: #fff; outline: none; font-size: 16px; }
-        
-        .btn-circle { 
-            width: 40px; height: 40px; border-radius: 50%; border: none; 
-            background: var(--accent); color: #000; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s;
-        }
-        .btn-circle:hover { transform: rotate(-10deg) scale(1.1); box-shadow: 0 0 15px var(--accent); }
+        input { flex: 1; background: transparent; border: none; color: #fff; outline: none; font-size: 16px; }
+        .btn-send { background: var(--accent); border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 20px; box-shadow: 0 0 15px var(--accent); }
 
-        audio { width: 200px; height: 35px; filter: invert(1); border-radius: 10px; }
+        #typing { font-size: 12px; color: var(--accent); position: absolute; top: 75px; left: 20px; font-style: italic; }
+        audio { filter: invert(1); width: 220px; height: 40px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div style="display:flex; align-items:center;">
-        <img id="myAvatar" class="avatar" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" onclick="changeAvatar()">
-        <div id="typingStatus"></div>
+    <img id="myAvatar" class="avatar" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" onclick="changeAvatar()">
+    <div style="text-align: center;">
+        <div style="font-weight: bold; letter-spacing: 3px; font-size: 20px;">X-CHAT</div>
+        <div style="font-size: 10px; color: var(--accent);">PREMIUM EDITION</div>
     </div>
-    <div style="font-weight:bold; letter-spacing:2px;">X-CHAT <span style="color:var(--accent)">V2</span></div>
-    <button class="btn-circle" style="background:transparent; color:#fff;" onclick="location.reload()">🔄</button>
+    <button onclick="location.reload()" style="background:none; border:none; color:white; font-size:22px; cursor:pointer;">🔄</button>
 </div>
 
+<div id="typing"></div>
 <div id="chat"></div>
 
-<div class="input-wrapper">
+<div class="input-area">
     <div class="input-bar">
-        <button class="btn-circle" id="micBtn" onclick="doVoice()" style="background:rgba(255,255,255,0.1); color:#fff;">🎤</button>
-        <input type="text" id="msgInp" placeholder="Bir şeylər yaz..." oninput="isTyping()" onkeypress="if(event.key=='Enter') doSend()">
-        <button class="btn-circle" onclick="doSend()">🚀</button>
+        <button onclick="doVoice()" id="mic" style="background:none; border:none; color:white; font-size:22px; cursor:pointer;">🎤</button>
+        <input type="text" id="msgInp" placeholder="Mesajınızı bura yazın..." oninput="isTyping()" onkeypress="if(event.key=='Enter') doSend()">
+        <button class="btn-send" onclick="doSend()">🚀</button>
     </div>
 </div>
 
@@ -85,67 +78,57 @@
     const _sb = supabase.createClient(supabaseUrl, supabaseKey);
 
     let user = {
-        nick: localStorage.getItem('chat_nick') || prompt("Adın:"),
+        nick: localStorage.getItem('chat_nick') || prompt("Adınız:"),
         avatar: localStorage.getItem('chat_avatar') || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
     };
     localStorage.setItem('chat_nick', user.nick);
+    document.getElementById('myAvatar').src = user.avatar;
 
-    // 1. TYPING SİSTEMİ
-    const channel = _sb.channel('room_1', { config: { presence: { key: user.nick } } });
-    
-    channel.on('broadcast', { event: 'typing' }, payload => {
-        const status = document.getElementById('typingStatus');
-        status.innerText = payload.payload.nick + " yazır...";
-        setTimeout(() => status.innerText = "", 2000);
+    // Presence & Typing
+    const channel = _sb.channel('room1');
+    channel.on('broadcast', { event: 'typing' }, p => {
+        const t = document.getElementById('typing');
+        t.innerText = p.payload.nick + " yazır...";
+        setTimeout(() => t.innerText = "", 2000);
     }).subscribe();
 
     function isTyping() {
         channel.send({ type: 'broadcast', event: 'typing', payload: { nick: user.nick } });
     }
 
-    // 2. REALTIME MESSAGES
-    _sb.channel('db').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, p => {
-        if (p.eventType === 'INSERT') render(p.new);
-        if (p.eventType === 'DELETE') document.getElementById('m-' + p.old.id)?.remove();
-    }).subscribe();
+    // Realtime Database
+    _sb.channel('db').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => render(p.new)).subscribe();
 
-    async function load() {
-        const { data } = await _sb.from('messages').select('*').order('created_at', { ascending: true });
-        if (data) data.forEach(render);
+    async function doSend() {
+        const inp = document.getElementById('msgInp');
+        if (!inp.value.trim()) return;
+        const val = inp.value; inp.value = '';
+        await _sb.from('messages').insert([{ content: val, nickname: user.nick, sender_avatar: user.avatar }]);
     }
 
     function render(m) {
-        if (document.getElementById('m-' + m.id)) return;
+        if(document.getElementById('m-'+m.id)) return;
         const isMy = m.nickname === user.nick;
-        const div = document.createElement('div');
-        div.id = 'm-' + m.id;
-        div.className = `msg ${isMy ? 'my' : ''}`;
+        const d = document.createElement('div');
+        d.id = 'm-'+m.id;
+        d.className = `msg ${isMy ? 'my' : ''}`;
         
-        div.onclick = () => {
-            if (isMy && confirm("Silinsin?")) _sb.from('messages').delete().eq('id', m.id).then();
-        };
-
         let content = m.content;
-        if (content.includes('audio_messages')) {
-            content = `<audio src="${content}" controls></audio>`;
-        }
+        if(content.includes('audio_messages')) content = `<audio src="${content}" controls></audio>`;
 
-        div.innerHTML = `<b>${m.nickname}</b> <span>${content}</span>`;
-        const chat = document.getElementById('chat');
-        chat.appendChild(div);
-        chat.scrollTop = chat.scrollHeight;
+        d.innerHTML = `<b>${m.nickname}</b>${content}`;
+        document.getElementById('chat').appendChild(d);
+        document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
-    async function doSend() {
-        const i = document.getElementById('msgInp');
-        if (!i.value.trim()) return;
-        const val = i.value; i.value = '';
-        await _sb.from('messages').insert([{ content: val, nickname: user.nick, sender_avatar: user.avatar }]);
+    async function load() {
+        const { data } = await _sb.from('messages').select('*').order('created_at', { ascending: true });
+        if(data) data.forEach(render);
     }
 
     function changeAvatar() {
         const link = prompt("Avatar URL:");
-        if (link) {
+        if(link) {
             user.avatar = link;
             localStorage.setItem('chat_avatar', link);
             document.getElementById('myAvatar').src = link;
@@ -154,20 +137,20 @@
 
     let rec, chunks = [];
     async function doVoice() {
-        const btn = document.getElementById('micBtn');
+        const m = document.getElementById('mic');
         if (!rec || rec.state === "inactive") {
             const s = await navigator.mediaDevices.getUserMedia({ audio: true });
             rec = new MediaRecorder(s);
             chunks = [];
-            rec.onstart = () => btn.style.background = "red";
+            rec.onstart = () => m.style.color = "red";
             rec.onstop = async () => {
-                btn.style.background = "rgba(255,255,255,0.1)";
+                m.style.color = "white";
                 const b = new Blob(chunks, { type: 'audio/webm' });
                 const fn = `v_${Date.now()}.webm`;
                 const { data } = await _sb.storage.from('audio_messages').upload(fn, b);
-                if (data) {
+                if(data) {
                     const url = `${supabaseUrl}/storage/v1/object/public/audio_messages/${fn}`;
-                    await _sb.from('messages').insert([{ content: url, nickname: user.nick, is_voice: true }]);
+                    await _sb.from('messages').insert([{ content: url, nickname: user.nick, sender_avatar: user.avatar }]);
                 }
             };
             rec.ondataavailable = e => chunks.push(e.data);
@@ -176,7 +159,6 @@
     }
 
     load();
-    document.getElementById('myAvatar').src = user.avatar;
 </script>
 </body>
 </html>
