@@ -20,11 +20,9 @@
         .msg.my { align-self: flex-end; background: linear-gradient(135deg, var(--accent), #0072ff); color: #000; font-weight: 500; box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3); }
         .msg b { display: block; font-size: 10px; opacity: 0.6; margin-bottom: 4px; }
 
-        /* Reaksiya Paneli */
         .react-bar { display: none; position: absolute; top: -40px; left: 0; background: #222; border-radius: 20px; padding: 5px 10px; gap: 8px; border: 1px solid var(--accent); z-index: 50; }
         .msg:hover .react-bar { display: flex; }
         .emoji-btn { cursor: pointer; transition: 0.2s; }
-        .emoji-btn:hover { transform: scale(1.3); }
 
         .input-bar { padding: 15px; background: transparent; display: flex; gap: 10px; align-items: center; }
         .input-box { flex: 1; background: var(--glass); backdrop-filter: blur(20px); padding: 5px 15px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; }
@@ -34,9 +32,14 @@
         .img-preview { max-width: 100%; border-radius: 10px; margin-top: 5px; }
         
         #online-count { font-size: 10px; color: #4caf50; font-weight: bold; }
+
+        /* Notification Prompt */
+        #notif-banner { display: none; background: var(--accent); color: black; padding: 8px; text-align: center; font-size: 12px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
+
+<div id="notif-banner" onclick="requestNotif()">🔔 Mesaj bildirişlərini aktiv etmək üçün bura toxun!</div>
 
 <div class="header">
     <img id="myAvatar" class="avatar" src="https://ui-avatars.com/api/?name=X" onclick="changeAvatar()">
@@ -69,7 +72,20 @@
     localStorage.setItem('chat_nick', user.nick);
     document.getElementById('myAvatar').src = user.avatar;
 
-    // Presence (Online sistemi)
+    // Bildiriş yoxlanışı
+    if (Notification.permission === "default") {
+        document.getElementById('notif-banner').style.display = "block";
+    }
+
+    async function requestNotif() {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+            document.getElementById('notif-banner').style.display = "none";
+            new Notification("X-Chat", { body: "Bildirişlər aktiv edildi!" });
+        }
+    }
+
+    // Online sistemi
     const channel = _sb.channel('main', { config: { presence: { key: user.nick } } });
     channel.on('presence', { event: 'sync' }, () => {
         const count = Object.keys(channel.presenceState()).length;
@@ -84,9 +100,17 @@
         if (status === 'SUBSCRIBED') await channel.track({ online_at: new Date().toISOString() });
     });
 
-    _sb.channel('db').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, p => {
-        if (p.eventType === 'INSERT') render(p.new);
-        if (p.eventType === 'DELETE') document.getElementById('m-'+p.old.id)?.remove();
+    _sb.channel('db').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => {
+        render(p.new);
+        // Bildiriş göndər (əgər mən yazmamışamsa)
+        if (p.new.nickname !== user.nick && Notification.permission === "granted") {
+            new Notification(p.new.nickname, {
+                body: p.new.content.includes('v_') ? "🎤 Səsli mesaj" : (p.new.content.includes('img_') ? "🖼️ Şəkil" : p.new.content),
+                icon: p.new.sender_avatar
+            });
+        }
+    }).on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, p => {
+        document.getElementById('m-'+p.old.id)?.remove();
     }).subscribe();
 
     async function doSend() {
@@ -121,7 +145,8 @@
         d.innerHTML = `
             <div class="react-bar">
                 <span class="emoji-btn" onclick="deleteMsg('${m.id}', ${isMy})">🗑️</span>
-                <span class="emoji-btn">❤️</span><span class="emoji-btn">😂</span><span class="emoji-btn">🔥</span>
+                <span class="emoji-btn" onclick="addReact('${m.id}', '❤️')">❤️</span>
+                <span class="emoji-btn" onclick="addReact('${m.id}', '🔥')">🔥</span>
             </div>
             <b>${m.nickname}</b> ${body}
         `;
@@ -140,7 +165,6 @@
         if(a) { localStorage.setItem('chat_avatar', a); location.reload(); }
     }
 
-    // Səs sistemi (köhnə kodun stabil versiyası)
     let rec, ch = [];
     async function doVoice() {
         const btn = document.getElementById('mic');
