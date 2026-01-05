@@ -2,178 +2,85 @@
 <html lang="az">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Chat Ultimate</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-Chat Final</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #090b10; --card: #151921; --accent: #00d2ff; --dm: #a855f7; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; }
-        
-        /* Header & Profile */
-        .header { padding: 10px 15px; background: var(--card); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); cursor: pointer; }
-
-        /* Chat Area */
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-        .msg { max-width: 80%; padding: 12px; border-radius: 15px; background: #1f2430; position: relative; transition: 0.3s; }
+        :root { --bg: #0d1117; --accent: #58a6ff; }
+        body { margin: 0; font-family: sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; }
+        .header { padding: 15px; background: #161b22; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; }
+        .avatar { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--accent); cursor: pointer; object-fit: cover; }
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 80%; padding: 10px; border-radius: 12px; background: #21262d; position: relative; }
         .msg.my { align-self: flex-end; background: var(--accent); color: #000; }
-        
-        /* Reactions */
-        .reacts { position: absolute; bottom: -10px; right: 10px; background: #333; border-radius: 10px; padding: 2px 5px; font-size: 12px; display: flex; gap: 3px; }
-
-        /* Controls */
-        .input-bar { padding: 10px; background: var(--card); display: flex; gap: 8px; align-items: center; }
-        input { flex: 1; background: #090b10; border: 1px solid #333; padding: 12px; border-radius: 20px; color: #fff; outline: none; }
-        .btn { border: none; background: none; color: #fff; font-size: 22px; cursor: pointer; }
-
-        /* Call UI */
-        #callOverlay { display: none; position: fixed; inset: 0; background: #000; z-index: 1000; flex-direction: column; }
-        video { width: 100%; height: 50%; object-fit: cover; }
-        #localVideo { position: absolute; top: 20px; right: 20px; width: 120px; height: 160px; border-radius: 10px; }
+        .input-bar { padding: 15px; background: #161b22; display: flex; gap: 10px; align-items: center; }
+        input { flex: 1; background: #0d1117; border: 1px solid #30363d; padding: 12px; border-radius: 20px; color: #fff; }
     </style>
 </head>
 <body>
 
-<div id="callOverlay">
-    <video id="remoteVideo" autoplay></video>
-    <video id="localVideo" autoplay muted></video>
-    <div style="position:absolute; bottom:30px; width:100%; display:flex; justify-content:center; gap:20px;">
-        <button onclick="endCall()" style="background:red; padding:15px; border-radius:50%; border:none; font-size:25px;">🚫</button>
-    </div>
-</div>
-
 <div class="header">
-    <img id="myAvatar" class="avatar" src="https://ui-avatars.com/api/?name=User" onclick="changeSettings()">
-    <div id="roomTitle">Qrup: General</div>
-    <div style="display:flex; gap:15px;">
-        <button class="btn" onclick="startCall('voice')">📞</button>
-        <button class="btn" onclick="startCall('video')">📹</button>
-    </div>
+    <img id="myAvatar" class="avatar" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" onclick="setupProfile()">
+    <div id="roomInfo">General Qrupu</div>
+    <button onclick="location.reload()" style="background:none; border:none; color:white; font-size:20px;">🔄</button>
 </div>
 
 <div id="chat"></div>
 
 <div class="input-bar">
-    <button class="btn" id="micBtn" onclick="toggleVoice()">🎤</button>
+    <button onclick="toggleVoice()" id="mic" style="font-size:20px; background:none; border:none; color:white;">🎤</button>
     <input type="text" id="msgInp" placeholder="Mesaj..." onkeypress="if(event.key=='Enter') send()">
-    <button class="btn" onclick="send()">🚀</button>
+    <button onclick="send()" style="background:var(--accent); border:none; padding:10px 20px; border-radius:20px; font-weight:bold;">Gönder</button>
 </div>
 
 <script>
-    const supabaseUrl = 'https://pyknspxnwnilhqsazidj.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
-    const _sb = supabase.createClient(supabaseUrl, supabaseKey);
+    const _sb = supabase.createClient('https://pyknspxnwnilhqsazidj.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU');
 
     let user = {
-        nick: localStorage.getItem('nick') || prompt("Adın:"),
-        avatar: localStorage.getItem('avatar') || `https://ui-avatars.com/api/?name=${Math.random()}`
+        nick: localStorage.getItem('chat_nick') || prompt("Adın:"),
+        avatar: localStorage.getItem('chat_avatar') || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
     };
-    localStorage.setItem('nick', user.nick);
+    localStorage.setItem('chat_nick', user.nick);
     document.getElementById('myAvatar').src = user.avatar;
 
-    let currentMode = { type: 'group', target: 'general' }; // group və ya dm
-
-    // 1. REALTIME & NOTIFICATIONS
-    _sb.channel('room1').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, p => {
-        if (p.eventType === 'INSERT') {
-            const m = p.new;
-            if (m.nickname !== user.nick) showNotification(m);
-            renderMessage(m);
-        }
-        if (p.eventType === 'DELETE') document.getElementById('msg-'+p.old.id)?.remove();
+    // REALTIME AKTİVASYON
+    _sb.channel('any').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => {
+        render(p.new);
     }).subscribe();
 
     async function send() {
-        const inp = document.getElementById('msgInp');
-        if (!inp.value.trim()) return;
-        await _sb.from('messages').insert([{
-            content: inp.value,
-            nickname: user.nick,
-            sender_avatar: user.avatar,
-            receiver: currentMode.type === 'dm' ? currentMode.target : 'all',
-            group_id: currentMode.type === 'group' ? currentMode.target : 'dm'
+        const i = document.getElementById('msgInp');
+        if (!i.value.trim()) return;
+        await _sb.from('messages').insert([{ 
+            content: i.value, 
+            nickname: user.nick, 
+            sender_avatar: user.avatar 
         }]);
-        inp.value = '';
+        i.value = '';
     }
 
-    function renderMessage(m) {
-        if(document.getElementById('msg-'+m.id)) return;
+    function render(m) {
+        if(document.getElementById('m-'+m.id)) return;
         const isMy = m.nickname === user.nick;
-        const div = document.createElement('div');
-        div.id = 'msg-' + m.id;
-        div.className = `msg ${isMy ? 'my' : ''}`;
-        
-        // Uzun basanda silmə və reaksiya menyusu
-        div.oncontextmenu = (e) => {
-            e.preventDefault();
-            if(isMy && confirm("Silinsin?")) _sb.from('messages').delete().eq('id', m.id).then();
-            else addReaction(m.id, '❤️');
-        };
-
-        div.innerHTML = `
-            <small style="display:flex; align-items:center; gap:5px;">
-                <img src="${m.sender_avatar}" style="width:15px; height:15px; border-radius:50%"> ${m.nickname}
-            </small>
-            <div>${m.is_voice ? `<audio src="${m.content}" controls style="width:200px; height:30px"></audio>` : m.content}</div>
-        `;
-        document.getElementById('chat').appendChild(div);
+        const d = document.createElement('div');
+        d.id = 'm-'+m.id;
+        d.className = `msg ${isMy ? 'my' : ''}`;
+        d.innerHTML = `<img src="${m.sender_avatar}" style="width:20px; height:20px; border-radius:50%"> <b>${m.nickname}:</b><br>${m.content}`;
+        document.getElementById('chat').appendChild(d);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
-    // 2. SƏS YAZMA
-    let rec, chunks = [];
-    async function toggleVoice() {
-        const btn = document.getElementById('micBtn');
-        if (!rec || rec.state === 'inactive') {
-            const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-            rec = new MediaRecorder(s);
-            chunks = [];
-            rec.onstart = () => btn.innerText = "🛑";
-            rec.onstop = async () => {
-                btn.innerText = "🎤";
-                const b = new Blob(chunks, { type: 'audio/webm' });
-                const name = `voice_${Date.now()}.webm`;
-                const { data } = await _sb.storage.from('audio_messages').upload(name, b);
-                if (data) {
-                    const url = `${supabaseUrl}/storage/v1/object/public/audio_messages/${name}`;
-                    await _sb.from('messages').insert([{ content: url, nickname: user.nick, sender_avatar: user.avatar, is_voice: true }]);
-                }
-            };
-            rec.ondataavailable = e => chunks.push(e.data);
-            rec.start();
-        } else { rec.stop(); }
-    }
-
-    // 3. CALL (P2P Simple)
-    async function startCall(type) {
-        document.getElementById('callOverlay').style.display = 'flex';
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: type === 'video' });
-        document.getElementById('localVideo').srcObject = stream;
-        // Burada WebRTC (Signaling) kodu gəlməlidir, lakin baza olaraq bu hazırdır.
-    }
-
-    function endCall() {
-        location.reload();
-    }
-
-    function showNotification(m) {
-        if (Notification.permission === "granted") {
-            new Notification(m.nickname, { body: m.content, icon: m.sender_avatar });
-        } else {
-            Notification.requestPermission();
+    function setupProfile() {
+        const link = prompt("Profil şəkli üçün bir link yapışdırın (məs: https://sayt.com/sekil.jpg):");
+        if(link) {
+            user.avatar = link;
+            localStorage.setItem('chat_avatar', link);
+            document.getElementById('myAvatar').src = link;
+            alert("Profil şəkli yeniləndi! İndi mesaj yazaraq yoxla.");
         }
     }
 
-    function changeSettings() {
-        const newAvatar = prompt("Profil şəkli URL:");
-        if (newAvatar) {
-            user.avatar = newAvatar;
-            localStorage.setItem('avatar', newAvatar);
-            document.getElementById('myAvatar').src = newAvatar;
-        }
-    }
-
-    _sb.from('messages').select('*').order('created_at', { ascending: true }).then(({data}) => data.forEach(renderMessage));
+    _sb.from('messages').select('*').order('created_at', { ascending: true }).then(({data}) => data && data.forEach(render));
 </script>
 </body>
 </html>
