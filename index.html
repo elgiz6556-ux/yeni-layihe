@@ -3,66 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Chat Ultimate Pro</title>
+    <title>X-Chat Ultimate</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --accent: #00d2ff; --bg: #05070a; --glass: rgba(255, 255, 255, 0.08); --admin: #ff4d4d; }
+        :root { --accent: #00d2ff; --bg: #05070a; --glass: rgba(255, 255, 255, 0.08); }
         body { margin: 0; font-family: 'Inter', sans-serif; background: #05070a; color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* Login Overlay */
-        #login-screen { position: fixed; inset: 0; background: #05070a; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; }
-        .login-box { background: var(--glass); padding: 30px; border-radius: 20px; border: 1px solid var(--accent); text-align: center; }
+        .header { padding: 15px; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .avatar { width: 42px; height: 42px; border-radius: 12px; border: 2px solid var(--accent); object-fit: cover; cursor: pointer; }
 
-        /* Header */
-        .header { padding: 12px 15px; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .avatar { width: 40px; height: 40px; border-radius: 10px; border: 2px solid var(--accent); cursor: pointer; }
-
-        /* Chat */
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         .msg { max-width: 75%; padding: 10px 14px; border-radius: 18px; background: var(--glass); border: 1px solid rgba(255,255,255,0.1); position: relative; }
         .msg.my { align-self: flex-end; background: linear-gradient(135deg, var(--accent), #0072ff); color: #000; font-weight: 500; }
-        .admin-badge { font-size: 8px; background: var(--admin); color: white; padding: 2px 5px; border-radius: 5px; margin-left: 5px; }
+        .msg b { display: block; font-size: 10px; opacity: 0.6; margin-bottom: 4px; }
 
-        /* Call Overlay */
-        #call-screen { display: none; position: fixed; inset: 0; background: #000; z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
-        .call-btn { width: 60px; height: 60px; border-radius: 50%; border: none; cursor: pointer; margin: 20px; font-size: 24px; }
-
-        /* Controls */
-        .input-bar { padding: 10px; display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.5); }
-        .input-box { flex: 1; background: var(--glass); padding: 5px 15px; border-radius: 25px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.1); }
+        .input-bar { padding: 15px; background: transparent; display: flex; gap: 10px; align-items: center; }
+        .input-box { flex: 1; background: var(--glass); backdrop-filter: blur(20px); padding: 5px 15px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; }
         input { flex: 1; background: transparent; border: none; color: #fff; padding: 10px; outline: none; }
-        .btn-act { background: none; border: none; color: white; cursor: pointer; font-size: 18px; }
+        .btn-act { background: none; border: none; color: white; cursor: pointer; font-size: 20px; }
     </style>
 </head>
 <body>
 
-<div id="login-screen">
-    <div class="login-box">
-        <h2>X-Chat Giriş</h2>
-        <input type="text" id="u-nick" placeholder="Adınız" style="margin-bottom:10px; width:80%"><br>
-        <input type="password" id="u-pass" placeholder="Şifrə (Opsional)" style="width:80%"><br><br>
-        <button onclick="login()" style="background:var(--accent); border:none; padding:10px 30px; border-radius:10px; cursor:pointer">Daxil Ol</button>
-    </div>
-</div>
-
-<div id="call-screen">
-    <div id="call-info" style="text-align:center">
-        <img id="call-avatar" src="" style="width:100px; height:100px; border-radius:50%; border:3px solid var(--accent)">
-        <h2 id="call-name">Zəng edilir...</h2>
-    </div>
-    <button onclick="endCall()" class="call-btn" style="background:red">📞</button>
-</div>
-
 <div class="header">
-    <img id="myAvatar" class="avatar" src="" onclick="changeAvatar()">
+    <img id="myAvatar" class="avatar" src="https://ui-avatars.com/api/?name=User" onclick="changeAvatar()">
     <div style="text-align:center">
-        <div style="font-weight:bold; font-size:14px">X-CHAT PRO <span id="online-count" style="color:#4caf50">● 0</span></div>
-        <div id="room-tag" onclick="switchRoom()" style="font-size:10px; cursor:pointer; color:var(--accent)">Otaq: General</div>
+        <div style="font-weight:bold; letter-spacing:1px">X-CHAT <span id="online-count" style="color:#4caf50">● 0 online</span></div>
+        <div id="typing-box" style="font-size:10px; color:var(--accent); height:12px"></div>
     </div>
-    <div style="display:flex; gap:10px">
-        <button class="btn-act" onclick="startCall()">📞</button>
-        <button class="btn-act" onclick="location.reload()">🔄</button>
-    </div>
+    <button class="btn-act" onclick="location.reload()">🔄</button>
 </div>
 
 <div id="chat"></div>
@@ -73,51 +42,54 @@
     <button class="btn-act" onclick="doVoice()" id="mic">🎤</button>
     <div class="input-box">
         <input type="text" id="msgInp" placeholder="Mesaj..." oninput="isTyping()" onkeypress="if(event.key=='Enter') doSend()">
-        <button class="btn-act" onclick="doSend()">🚀</button>
+        <button class="btn-act" onclick="doSend()" style="color:var(--accent)">🚀</button>
     </div>
 </div>
 
 <script>
     const _sb = supabase.createClient('https://pyknspxnwnilhqsazidj.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU');
 
-    let user = { nick: '', avatar: '', room: 'General', isAdmin: false };
+    let user = {
+        nick: localStorage.getItem('chat_nick') || prompt("Adın:"),
+        avatar: localStorage.getItem('chat_avatar') || `https://ui-avatars.com/api/?name=User`
+    };
+    if(!user.nick) user.nick = "Anonim_" + Math.floor(Math.random()*100);
+    localStorage.setItem('chat_nick', user.nick);
+    document.getElementById('myAvatar').src = user.avatar;
 
-    function login() {
-        const n = document.getElementById('u-nick').value;
-        const p = document.getElementById('u-pass').value;
-        if(!n) return alert("Ad yaz!");
-        user.nick = n;
-        user.avatar = `https://ui-avatars.com/api/?name=${n}&background=random`;
-        if(p === "admin123") user.isAdmin = true; // Xüsusi admin şifrəsi
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('myAvatar').src = user.avatar;
-        initChat();
-    }
+    // Realtime Connection
+    const channel = _sb.channel('room1', { config: { presence: { key: user.nick } } });
+    
+    channel.on('presence', { event: 'sync' }, () => {
+        document.getElementById('online-count').innerText = `● ${Object.keys(channel.presenceState()).length} online`;
+    })
+    .on('broadcast', { event: 'typing' }, p => {
+        document.getElementById('typing-box').innerText = p.payload.nick + " yazır...";
+        setTimeout(() => document.getElementById('typing-box').innerText = "", 2000);
+    })
+    .subscribe(async (s) => { if(s === 'SUBSCRIBED') await channel.track({ online_at: new Date() }); });
 
-    function initChat() {
-        const channel = _sb.channel('main', { config: { presence: { key: user.nick } } });
-        channel.on('presence', { event: 'sync' }, () => {
-            document.getElementById('online-count').innerText = `● ${Object.keys(channel.presenceState()).length}`;
-        }).subscribe();
-
-        _sb.channel('db').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, p => {
-            if (p.eventType === 'INSERT' && p.new.group_id === user.room) render(p.new);
-            if (p.eventType === 'DELETE') document.getElementById('m-'+p.old.id)?.remove();
-        }).subscribe();
-
-        loadMessages();
-    }
+    _sb.channel('db').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, p => {
+        if (p.eventType === 'INSERT') {
+            render(p.new);
+            if(p.new.nickname !== user.nick && Notification.permission === "granted") {
+                new Notification(p.new.nickname, { body: p.new.content });
+            }
+        }
+        if (p.eventType === 'DELETE') document.getElementById('m-'+p.old.id)?.remove();
+    }).subscribe();
 
     async function doSend() {
         const i = document.getElementById('msgInp');
         if (!i.value.trim()) return;
-        await _sb.from('messages').insert([{ content: i.value, nickname: user.nick, sender_avatar: user.avatar, group_id: user.room, is_admin: user.isAdmin }]);
+        await _sb.from('messages').insert([{ content: i.value, nickname: user.nick, sender_avatar: user.avatar }]);
         i.value = '';
     }
 
     function render(m) {
         if(document.getElementById('m-'+m.id)) return;
         const isMy = m.nickname === user.nick;
+        const isAdmin = user.nick.toLowerCase() === "admin";
         const d = document.createElement('div');
         d.id = 'm-'+m.id; d.className = `msg ${isMy ? 'my' : ''}`;
         
@@ -126,33 +98,24 @@
         else if (body.includes('img_')) body = `<img src="${body}" style="max-width:100%; border-radius:10px">`;
 
         d.onclick = () => {
-            if((isMy || user.isAdmin) && confirm("Mesajı silmək istəyirsiniz?")) {
-                _sb.from('messages').delete().eq('id', m.id).then();
-            }
+            if((isMy || isAdmin) && confirm("Silinsin?")) _sb.from('messages').delete().eq('id', m.id).then();
         };
 
-        d.innerHTML = `<b>${m.nickname} ${m.is_admin ? '<span class="admin-badge">ADMIN</span>' : ''}</b> ${body}`;
+        d.innerHTML = `<b>${m.nickname}</b> ${body}`;
         document.getElementById('chat').appendChild(d);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
-    function startCall() {
-        document.getElementById('call-screen').style.display = 'flex';
-        document.getElementById('call-avatar').src = user.avatar;
-    }
-    function endCall() { document.getElementById('call-screen').style.display = 'none'; }
-
-    async function loadMessages() {
-        const {data} = await _sb.from('messages').select('*').eq('group_id', user.room).order('created_at', { ascending: true });
-        if(data) data.forEach(render);
-    }
-
-    function switchRoom() {
-        const r = prompt("Otaq adı:");
-        if(r) { user.room = r; document.getElementById('room-tag').innerText = "Otaq: " + r; document.getElementById('chat').innerHTML = ""; loadMessages(); }
+    async function uploadImg(el) {
+        const file = el.files[0];
+        const fn = `img_${Date.now()}.jpg`;
+        const { data } = await _sb.storage.from('audio_messages').upload(fn, file);
+        if (data) {
+            const url = `https://pyknspxnwnilhqsazidj.supabase.co/storage/v1/object/public/audio_messages/${fn}`;
+            await _sb.from('messages').insert([{ content: url, nickname: user.nick, sender_avatar: user.avatar }]);
+        }
     }
 
-    // Səs və Şəkil funksiyaları (stabil saxlanılıb)
     let rec, ch = [];
     async function doVoice() {
         const btn = document.getElementById('mic');
@@ -167,7 +130,7 @@
                 const { data } = await _sb.storage.from('audio_messages').upload(fn, b);
                 if (data) {
                     const url = `https://pyknspxnwnilhqsazidj.supabase.co/storage/v1/object/public/audio_messages/${fn}`;
-                    await _sb.from('messages').insert([{ content: url, nickname: user.nick, group_id: user.room, sender_avatar: user.avatar }]);
+                    await _sb.from('messages').insert([{ content: url, nickname: user.nick, sender_avatar: user.avatar }]);
                 }
             };
             rec.ondataavailable = e => ch.push(e.data);
@@ -175,15 +138,11 @@
         } else { rec.stop(); }
     }
 
-    async function uploadImg(el) {
-        const file = el.files[0];
-        const fn = `img_${Date.now()}.jpg`;
-        const { data } = await _sb.storage.from('audio_messages').upload(fn, file);
-        if (data) {
-            const url = `https://pyknspxnwnilhqsazidj.supabase.co/storage/v1/object/public/audio_messages/${fn}`;
-            await _sb.from('messages').insert([{ content: url, nickname: user.nick, group_id: user.room, sender_avatar: user.avatar }]);
-        }
-    }
+    function isTyping() { channel.send({ type: 'broadcast', event: 'typing', payload: { nick: user.nick } }); }
+    function changeAvatar() { const a = prompt("Avatar URL:"); if(a) { localStorage.setItem('chat_avatar', a); location.reload(); } }
+
+    _sb.from('messages').select('*').order('created_at', { ascending: true }).then(({data}) => data && data.forEach(render));
+    if (Notification.permission === "default") Notification.requestPermission();
 </script>
 </body>
 </html>
