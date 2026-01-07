@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Chat DM Center</title>
+    <title>X-Chat Full Hub</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --accent: #00d2ff; --bg: #0b0f1a; --glass: rgba(255, 255, 255, 0.08); --dm: #a188ff; }
+        :root { --accent: #00d2ff; --bg: #0b0f1a; --glass: rgba(255, 255, 255, 0.08); --dm: #a188ff; --group: #4cd137; }
         body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
         
         /* Login */
@@ -16,27 +16,28 @@
         .login-btn { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--accent); color: #000; font-weight: bold; cursor: pointer; }
 
         /* Header */
-        .header { padding: 10px 15px; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 8px; z-index: 100; }
+        .header { padding: 10px 15px; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 12px; z-index: 100; }
         .search-container { flex: 1; position: relative; }
         .search-container input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 12px; color: #fff; outline: none; font-size: 13px; text-align: center; }
         
+        .nav-icon { font-size: 20px; cursor: pointer; transition: 0.3s; }
+        .nav-icon:active { transform: scale(0.8); }
         .avatar { width: 35px; height: 35px; border-radius: 10px; border: 2px solid var(--accent); cursor: pointer; object-fit: cover; }
-        .dm-toggle { font-size: 22px; cursor: pointer; position: relative; }
 
-        /* DM Sidebar (Qutu) */
-        #dm-sidebar { position: fixed; right: -100%; top: 0; width: 280px; height: 100%; background: #161b22; z-index: 500; transition: 0.4s; box-shadow: -5px 0 20px rgba(0,0,0,0.5); padding: 20px; box-sizing: border-box; }
-        #dm-sidebar.open { right: 0; }
-        .dm-item { padding: 12px; background: var(--glass); border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05); }
-        .dm-item:hover { background: rgba(255,255,255,0.15); }
+        /* Sidebar (DM & Groups) */
+        .sidebar { position: fixed; left: -100%; top: 0; width: 280px; height: 100%; background: #161b22; z-index: 500; transition: 0.4s; box-shadow: 5px 0 20px rgba(0,0,0,0.5); padding: 20px; box-sizing: border-box; }
+        .sidebar.open { left: 0; }
+        .sidebar-item { padding: 12px; background: var(--glass); border-radius: 10px; margin-bottom: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 10px; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.15); }
 
         /* Chat */
         #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         .msg-wrap { display: flex; flex-direction: column; max-width: 80%; }
         .msg-wrap.my { align-self: flex-end; }
         .msg { padding: 10px 14px; border-radius: 18px; background: var(--glass); border: 1px solid rgba(255,255,255,0.1); }
-        .my .msg { background: var(--accent); color: #000; }
+        .my .msg { background: var(--accent); color: #000; font-weight: 500; }
 
-        /* Input Bar */
+        /* Bottom Bar */
         .input-bar { padding: 12px; background: rgba(0,0,0,0.4); display: flex; gap: 8px; align-items: center; }
         .input-box { flex: 1; background: var(--glass); border-radius: 20px; display: flex; align-items: center; padding: 0 10px; border: 1px solid rgba(255,255,255,0.1); }
         .input-box input { flex: 1; background: transparent; border: none; color: #fff; padding: 10px; outline: none; }
@@ -47,36 +48,46 @@
 
 <div id="login-screen">
     <div class="login-card">
-        <h2 style="color: var(--accent);">X-Chat Login</h2>
-        <input type="text" id="logNick" placeholder="İstifadəçi adı">
-        <input type="password" id="logPass" placeholder="Şifrə">
-        <button class="login-btn" onclick="handleAuth()">Daxil Ol</button>
+        <h2 style="color: var(--accent);">X-Chat</h2>
+        <input type="text" id="logNick" placeholder="Adınız">
+        <input type="password" id="logPass" placeholder="Şifrəniz">
+        <button class="login-btn" onclick="handleAuth()">Giriş</button>
     </div>
 </div>
 
 <div class="header">
-    <div class="dm-toggle" onclick="toggleDM()">📩</div>
+    <div class="nav-icon" onclick="toggleSidebar('group-sidebar')" title="Qruplar">👥</div>
+    <div class="nav-icon" onclick="toggleSidebar('dm-sidebar')" title="Mesajlar">📩</div>
     <div class="search-container">
-        <input type="text" id="roomSearch" placeholder="Otaq axtar..." onkeypress="if(event.key=='Enter') executeSearch()">
+        <input type="text" id="roomSearch" placeholder="Axtar və ya @ad..." onkeypress="if(event.key=='Enter') executeSearch()">
     </div>
     <div onclick="document.getElementById('avatarInp').click()">
-        <img id="userAvatar" class="avatar" src="https://ui-avatars.com/api/?name=U">
+        <img id="userAvatar" class="avatar" src="">
         <input type="file" id="avatarInp" hidden accept="image/*" onchange="updateProfilePhoto(this)">
     </div>
 </div>
 
-<div id="dm-sidebar">
-    <h3 style="color: var(--dm); margin-top: 0;">📩 Mesajlar</h3>
-    <div id="dm-list">
-        <p style="font-size: 12px; opacity: 0.5;">Hələ ki, şəxsi mesaj yoxdur. Birini axtarmaq üçün @ad yazın.</p>
-    </div>
-    <button onclick="toggleDM()" style="width: 100%; padding: 10px; background: #ff4757; border: none; color: white; border-radius: 10px; margin-top: 20px;">Bağla</button>
+<div id="group-sidebar" class="sidebar">
+    <h3 style="color: var(--group);">👥 Qruplar</h3>
+    <div class="sidebar-item" onclick="changeRoom('General')">#️⃣ General</div>
+    <div class="sidebar-item" onclick="changeRoom('Oyun')">🎮 Oyun Otağı</div>
+    <div class="sidebar-item" onclick="changeRoom('Texno')">💻 Texnologiya</div>
+    <div class="sidebar-item" onclick="changeRoom('Musiqi')">🎵 Musiqi</div>
+    <hr style="opacity: 0.1;">
+    <p style="font-size: 11px; opacity: 0.5;">Yeni otaq üçün axtarışa adını yazın.</p>
+    <button onclick="toggleSidebar('group-sidebar')" style="width: 100%; padding: 10px; background: #333; border: none; color: white; border-radius: 10px; cursor: pointer;">Bağla</button>
+</div>
+
+<div id="dm-sidebar" class="sidebar">
+    <h3 style="color: var(--dm);">📩 Şəxsi Mesajlar</h3>
+    <div id="dm-list"><p style="font-size: 12px; opacity: 0.5;">Şəxsi söhbət yoxdur.</p></div>
+    <button onclick="toggleSidebar('dm-sidebar')" style="width: 100%; padding: 10px; background: #333; border: none; color: white; border-radius: 10px; cursor: pointer; margin-top: 20px;">Bağla</button>
 </div>
 
 <div id="chat"></div>
 
 <div class="input-bar">
-    <input type="file" id="fileInp" hidden onchange="uploadFile(this)">
+    <input type="file" id="fileInp" hidden accept="image/*" onchange="uploadFile(this)">
     <button class="action-btn" onclick="document.getElementById('fileInp').click()">🖼️</button>
     <button class="action-btn" id="micBtn" onclick="doVoice()">🎤</button>
     <div class="input-box">
@@ -112,7 +123,6 @@
         updateDMList();
         _sb.channel('realtime').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => {
             if (p.new.group_id === currentRoom) render(p.new);
-            // Əgər kimsə sənə şəxsi yazırsa, DM siyahısını yenilə
             if (p.new.group_id.includes(user.nick)) {
                 let other = p.new.group_id.replace(user.nick, '').replace('_dm_', '');
                 if(!myDMs.includes(other)) { myDMs.push(other); localStorage.setItem('my_dms', JSON.stringify(myDMs)); updateDMList(); }
@@ -120,23 +130,33 @@
         }).subscribe();
     }
 
-    function toggleDM() { document.getElementById('dm-sidebar').classList.toggle('open'); }
+    function toggleSidebar(id) {
+        document.querySelectorAll('.sidebar').forEach(s => { if(s.id !== id) s.classList.remove('open'); });
+        document.getElementById(id).classList.toggle('open');
+    }
+
+    function changeRoom(name) {
+        currentRoom = name;
+        document.getElementById('roomSearch').value = name;
+        document.getElementById('chat').innerHTML = "";
+        loadMessages();
+        toggleSidebar('group-sidebar');
+    }
 
     function updateDMList() {
         const list = document.getElementById('dm-list');
         if (myDMs.length > 0) list.innerHTML = "";
         myDMs.forEach(nick => {
             const div = document.createElement('div');
-            div.className = 'dm-item';
-            div.innerHTML = `👤 <b>${nick}</b>`;
-            div.onclick = () => { goToDM(nick); toggleDM(); };
+            div.className = 'sidebar-item';
+            div.innerHTML = `👤 ${nick}`;
+            div.onclick = () => { goToDM(nick); toggleSidebar('dm-sidebar'); };
             list.appendChild(div);
         });
     }
 
     function goToDM(targetNick) {
-        let dmRoom = [user.nick, targetNick].sort().join('_dm_');
-        currentRoom = dmRoom;
+        currentRoom = [user.nick, targetNick].sort().join('_dm_');
         document.getElementById('roomSearch').value = "@" + targetNick;
         document.getElementById('chat').innerHTML = "";
         loadMessages();
@@ -146,10 +166,16 @@
     function executeSearch() {
         let val = document.getElementById('roomSearch').value.trim();
         if(val.startsWith('@')) goToDM(val.substring(1));
-        else { currentRoom = val; document.getElementById('chat').innerHTML = ""; loadMessages(); }
+        else changeRoom(val);
     }
 
-    // Əvvəlki mesaj, səs və şəkil funksiyaları (render, doSend, upload) eyni qalır...
+    async function doSend() {
+        const i = document.getElementById('msgInp');
+        if (!i.value.trim()) return;
+        const txt = i.value; i.value = '';
+        await _sb.from('messages').insert([{ content: txt, nickname: user.nick, group_id: currentRoom }]);
+    }
+
     function render(m) {
         if(document.getElementById('m-'+m.id)) return;
         const isMy = m.nickname === user.nick;
@@ -157,7 +183,7 @@
         d.id = 'm-'+m.id; d.className = `msg-wrap ${isMy ? 'my' : ''}`;
         let body = m.content;
         if(body.includes('v_')) body = `<audio src="${body}" controls style="width:180px; filter:invert(1)"></audio>`;
-        else if(body.includes('img_') || body.includes('ava_')) body = `<img src="${body}" style="max-width:100%; border-radius:12px;">`;
+        else if(body.includes('img_')) body = `<img src="${body}" style="max-width:100%; border-radius:12px;">`;
         d.innerHTML = `<div class="msg"><b>${m.nickname}</b>${body}</div>`;
         document.getElementById('chat').appendChild(d);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
@@ -168,25 +194,40 @@
         if(data) data.forEach(render);
     }
 
-    async function doSend() {
-        const i = document.getElementById('msgInp');
-        if (!i.value.trim()) return;
-        const txt = i.value; i.value = '';
-        await _sb.from('messages').insert([{ content: txt, nickname: user.nick, group_id: currentRoom }]);
-    }
-    
-    // Digər media funksiyaları...
     async function updateProfilePhoto(el) {
         const file = el.files[0]; if(!file) return;
         const fn = `ava_${Date.now()}.jpg`;
         const { data } = await _sb.storage.from('audio_messages').upload(fn, file);
         if (data) {
-            const url = `${SB_URL}/storage/v1/object/public/audio_messages/${fn}`;
-            user.avatar = url; localStorage.setItem('chat_user', JSON.stringify(user));
-            document.getElementById('userAvatar').src = url;
+            user.avatar = `${SB_URL}/storage/v1/object/public/audio_messages/${fn}`;
+            localStorage.setItem('chat_user', JSON.stringify(user));
+            document.getElementById('userAvatar').src = user.avatar;
         }
     }
-    // (uploadFile və doVoice funksiyaları əvvəlki kodla eynidir)
+
+    async function uploadFile(el) {
+        const file = el.files[0]; if(!file) return;
+        const fn = `img_${Date.now()}.jpg`;
+        const { data } = await _sb.storage.from('audio_messages').upload(fn, file);
+        if(data) await _sb.from('messages').insert([{ content: `${SB_URL}/storage/v1/object/public/audio_messages/${fn}`, nickname: user.nick, group_id: currentRoom }]);
+    }
+
+    let mediaRecorder, audioChunks = [];
+    async function doVoice() {
+        const btn = document.getElementById('micBtn');
+        if (!mediaRecorder || mediaRecorder.state === "inactive") {
+            const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(s); audioChunks = [];
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = async () => {
+                const b = new Blob(audioChunks, { type: 'audio/webm' });
+                const fn = `v_${Date.now()}.webm`;
+                const { data } = await _sb.storage.from('audio_messages').upload(fn, b);
+                if (data) await _sb.from('messages').insert([{ content: `${SB_URL}/storage/v1/object/public/audio_messages/${fn}`, nickname: user.nick, group_id: currentRoom }]);
+            };
+            mediaRecorder.start(); btn.style.background = "#ff4757";
+        } else { mediaRecorder.stop(); btn.style.background = "rgba(255,255,255,0.1)"; }
+    }
 </script>
 </body>
 </html>
