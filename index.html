@@ -6,170 +6,286 @@
     <title>X-Chat Elite</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --accent: #00d2ff; --bg: #0b141a; --my-msg: #005c4b; --other-msg: #202c33; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; user-select: none; }
+        :root { --accent: #00d2ff; --bg: #0f172a; --panel: rgba(30, 41, 59, 0.7); --text: #f8fafc; }
         
-        .header { padding: 10px 15px; background: #202c33; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #333; }
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; transition: 0.3s; }
         
-        /* Mesaj Stili */
-        .msg-row { display: flex; flex-direction: column; max-width: 80%; margin-bottom: 5px; }
-        .msg-row.my { align-self: flex-end; align-items: flex-end; }
-        .bubble { padding: 10px 14px; border-radius: 15px; background: var(--other-msg); position: relative; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
-        .my .bubble { background: var(--my-msg); }
-        .bubble:active { transform: scale(0.96); opacity: 0.8; }
-        
-        .react-badge { font-size: 13px; background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 10px; margin-top: 5px; display: inline-block; }
-        .react-badge:empty { display: none; }
+        /* Glass Effect */
+        .glass { background: var(--panel); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
 
-        /* Kontext Menyu (Sil/React) */
-        #context-menu { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .menu-card { background: #2a3942; width: 250px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .menu-btn { width: 100%; padding: 15px; border: none; background: transparent; color: #fff; font-size: 16px; text-align: left; cursor: pointer; border-bottom: 1px solid #333; display: flex; align-items: center; gap: 10px; }
-        .menu-btn:hover { background: rgba(255,255,255,0.05); }
+        /* Header */
+        .header { padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
+        .nav-btns { display: flex; gap: 15px; }
+        .btn-circle { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .btn-circle:hover { background: var(--accent); color: #000; }
 
-        /* Input */
-        .input-bar { padding: 10px; background: #202c33; display: flex; gap: 10px; align-items: center; }
-        input#msgInp { flex: 1; padding: 12px; border-radius: 25px; border: none; background: #2a3942; color: #fff; outline: none; }
+        /* Chat Area */
+        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
         
-        #login { position: fixed; inset: 0; background: var(--bg); z-index: 20000; display: flex; align-items: center; justify-content: center; }
+        .msg-wrapper { display: flex; flex-direction: column; max-width: 80%; gap: 5px; }
+        .msg-wrapper.my { align-self: flex-end; }
+        
+        .reply-info { font-size: 11px; color: var(--accent); margin-bottom: -8px; margin-left: 10px; opacity: 0.8; }
+        
+        .bubble { padding: 12px 16px; border-radius: 20px; position: relative; font-size: 15px; line-height: 1.4; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .my .bubble { background: linear-gradient(135deg, var(--accent), #0081a7); color: #000; border-bottom-right-radius: 2px; }
+        .other .bubble { background: #1e293b; border-bottom-left-radius: 2px; }
+
+        /* Reactions */
+        .react-row { display: flex; gap: 5px; margin-top: 5px; }
+        .react-tag { background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+
+        /* Input Bar */
+        .input-bar { padding: 15px; display: flex; gap: 10px; align-items: center; }
+        .input-box { flex: 1; padding: 12px 20px; border-radius: 30px; border: none; background: #1e293b; color: #fff; outline: none; }
+        
+        /* Panels (Profil, DM, Settings) */
+        .overlay-panel { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        .modal { width: 90%; max-width: 400px; padding: 25px; border-radius: 25px; position: relative; }
+        
+        .reply-bar { display: none; padding: 8px 15px; background: rgba(0,210,255,0.1); border-left: 4px solid var(--accent); justify-content: space-between; }
+
+        input[type="color"] { width: 100%; height: 40px; border: none; border-radius: 10px; cursor: pointer; }
+        
+        .hidden { display: none; }
     </style>
 </head>
-<body>
+<body id="mainBody">
 
-<div id="login">
-    <div style="background:#1c272d; padding:30px; border-radius:20px; text-align:center;">
-        <h2 style="color:var(--accent)">X-Chat</h2>
-        <input type="text" id="nick" placeholder="Adınız..." style="width:100%; padding:10px; border-radius:8px; border:none; background:#2a3942; color:#fff;"><br><br>
-        <button onclick="login()" style="width:100%; padding:10px; border-radius:8px; border:none; background:var(--accent); font-weight:bold;">BAŞLA</button>
+<div id="loginOverlay" class="overlay-panel" style="display: flex;">
+    <div class="modal glass">
+        <h2>X-Elite Giriş</h2>
+        <input type="text" id="nickInp" class="input-box" placeholder="İstifadəçi adı" style="width: 100%; margin-bottom: 10px; box-sizing: border-box;">
+        <input type="password" id="passInp" class="input-box" placeholder="Parol" style="width: 100%; margin-bottom: 20px; box-sizing: border-box;">
+        <button onclick="auth()" style="width: 100%; padding: 15px; border-radius: 15px; border: none; background: var(--accent); font-weight: bold;">DAXİL OL</button>
     </div>
 </div>
 
-<div class="header">
-    <b>General Room</b>
-    <img id="myAva" src="" style="width:35px; height:35px; border-radius:50%; border:2px solid var(--accent)">
+<div class="header glass">
+    <div class="nav-btns">
+        <div class="btn-circle glass" onclick="openPanel('dmPanel')">📩</div>
+        <div class="btn-circle glass" onclick="openPanel('profilePanel')">👤</div>
+    </div>
+    <div id="activeRoom">General</div>
+    <div class="btn-circle glass" onclick="openPanel('settingsPanel')">⚙️</div>
 </div>
 
 <div id="chat"></div>
 
-<div id="context-menu" onclick="closeMenu()">
-    <div class="menu-card" onclick="event.stopPropagation()">
-        <div style="padding: 10px; font-size: 12px; color: #8896a0; text-align: center;">Mesaj Əməliyyatları</div>
-        <button class="menu-btn" onclick="triggerReact()">😀 Reaksiya Bildir</button>
-        <button class="menu-btn" id="delBtn" style="color: #ff4d4d; border: none;" onclick="triggerDelete()">🗑️ Mesajı Sil</button>
+<div id="replyBar" class="reply-bar">
+    <span id="replyTxt" style="font-size: 12px;"></span>
+    <span onclick="cancelReply()" style="cursor: pointer;">✕</span>
+</div>
+
+<div class="input-bar glass">
+    <button class="btn-circle glass" onclick="document.getElementById('fileInp').click()">➕</button>
+    <input type="file" id="fileInp" class="hidden" onchange="handleFile(this)">
+    <input type="text" id="mainInp" class="input-box" placeholder="Mesaj yazın..." onkeypress="if(event.key=='Enter') send()">
+    <button id="voiceBtn" class="btn-circle glass" onclick="toggleVoice()">🎤</button>
+</div>
+
+<div id="profilePanel" class="overlay-panel" onclick="closePanels()">
+    <div class="modal glass" onclick="event.stopPropagation()">
+        <h3>Profil</h3>
+        <div id="userDisplay"></div>
+        <hr>
+        <p>Parolu Dəyiş:</p>
+        <input type="password" id="newPass" class="input-box" style="width: 100%; margin-bottom: 10px; box-sizing: border-box;">
+        <button onclick="updatePass()" style="width: 100%; padding: 10px; background: var(--accent); border: none; border-radius: 10px;">Yadda saxla</button>
     </div>
 </div>
 
-<div class="input-bar">
-    <input type="text" id="msgInp" placeholder="Mesaj..." onkeypress="if(event.key=='Enter') send()">
-    <button onclick="send()" style="background:none; border:none; font-size:24px;">🚀</button>
+<div id="dmPanel" class="overlay-panel" onclick="closePanels()">
+    <div class="modal glass" onclick="event.stopPropagation()">
+        <h3>Şəxsi Mesaj (DM)</h3>
+        <input type="text" id="targetNick" class="input-box" placeholder="İstifadəçi adı" style="width: 100%; margin-bottom: 15px; box-sizing: border-box;">
+        <button onclick="startDM()" style="width: 100%; padding: 10px; background: var(--accent); border: none; border-radius: 10px;">Söhbətə Başla</button>
+    </div>
+</div>
+
+<div id="settingsPanel" class="overlay-panel" onclick="closePanels()">
+    <div class="modal glass" onclick="event.stopPropagation()">
+        <h3>Dizayn Ayarları</h3>
+        <p>Tətbiq Rəngi:</p>
+        <input type="color" id="colorPicker" onchange="changeTheme(this.value)">
+        <p style="margin-top: 20px;">Fon Şəkli URL:</p>
+        <input type="text" id="bgUrlInp" class="input-box" placeholder="https://..." style="width: 100%; box-sizing: border-box;">
+        <button onclick="changeBg()" style="width: 100%; margin-top: 10px; padding: 10px; background: var(--accent); border: none; border-radius: 10px;">Dəyiş</button>
+    </div>
 </div>
 
 <script>
+    // Supabase Konfiqurasiyası
     const URL = 'https://pyknspxnwnilhqsazidj.supabase.co';
     const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(URL, KEY);
 
-    let user = JSON.parse(localStorage.getItem('chat_elite_user'));
-    let selectedMsgId = null;
-    let pressTimer;
+    let me = JSON.parse(localStorage.getItem('elite_user'));
+    let room = 'General';
+    let replyTo = null;
+    let isRecording = false;
 
-    if(user) { document.getElementById('login').style.display='none'; init(); }
+    if(me) { document.getElementById('loginOverlay').style.display = 'none'; init(); }
 
-    function login() {
-        let n = document.getElementById('nick').value.trim();
-        if(!n) return;
-        user = { n, a: `https://ui-avatars.com/api/?name=${n}&background=random` };
-        localStorage.setItem('chat_elite_user', JSON.stringify(user));
+    function auth() {
+        const n = document.getElementById('nickInp').value.trim();
+        const p = document.getElementById('passInp').value;
+        if(!n || !p) return;
+        me = { n, p, a: `https://ui-avatars.com/api/?name=${n}&background=random`, color: '#00d2ff' };
+        localStorage.setItem('elite_user', JSON.stringify(me));
         location.reload();
     }
 
     function init() {
-        document.getElementById('myAva').src = user.a;
-        load();
-        sb.channel('main').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, (p) => {
-            if(p.eventType === 'INSERT') render(p.new);
-            if(p.eventType === 'DELETE') document.getElementById('msg-'+p.old.id)?.remove();
+        loadMsgs();
+        document.getElementById('userDisplay').innerText = "Xoş gəldin, " + me.n;
+        if(me.color) changeTheme(me.color);
+
+        sb.channel('elite').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, (p) => {
+            if(p.eventType === 'INSERT' && p.new.group_id === room) render(p.new);
+            if(p.eventType === 'DELETE') document.getElementById('row-'+p.old.id)?.remove();
             if(p.eventType === 'UPDATE') {
-                const b = document.querySelector(`#msg-${p.new.id} .react-badge`);
-                if(b) b.innerText = (typeof p.new.reactions === 'string' && !p.new.reactions.includes('[object')) ? p.new.reactions : "";
+                const rBox = document.querySelector(`#row-${p.new.id} .react-row`);
+                if(rBox) rBox.innerHTML = p.new.reactions || "";
             }
         }).subscribe();
     }
 
-    async function load() {
-        const {data} = await sb.from('messages').select('*').order('created_at');
+    async function loadMsgs() {
+        document.getElementById('chat').innerHTML = "";
+        const {data} = await sb.from('messages').select('*').eq('group_id', room).order('created_at');
         if(data) data.forEach(render);
     }
 
     function render(m) {
-        if(document.getElementById('msg-'+m.id)) return;
-        const isMy = m.nickname === user.n;
-        const d = document.createElement('div');
-        d.id = 'msg-'+m.id; d.className = `msg-row ${isMy?'my':''}`;
+        if(document.getElementById('row-'+m.id)) return;
+        const isMy = m.nickname === me.n;
+        const div = document.createElement('div');
+        div.id = 'row-'+m.id;
+        div.className = `msg-wrapper ${isMy ? 'my' : 'other'}`;
         
-        let r = (typeof m.reactions === 'string' && !m.reactions.includes('[object')) ? m.reactions : "";
+        let content = m.content;
+        if(content.startsWith('http')) {
+            if(content.includes('.mp3') || content.includes('audio')) {
+                content = `<audio src="${content}" controls style="width: 200px;"></audio>`;
+            } else {
+                content = `<img src="${content}" style="max-width: 250px; border-radius: 15px;">`;
+            }
+        }
 
-        d.innerHTML = `
-            <span style="font-size:10px; opacity:0.6; margin-bottom:2px;">${m.nickname}</span>
-            <div class="bubble" 
-                 onmousedown="startPress(${m.id}, ${isMy})" 
-                 ontouchstart="startPress(${m.id}, ${isMy})"
-                 onmouseup="endPress()" 
-                 ontouchend="endPress()">
-                <div>${m.content}</div>
-                <div class="react-badge">${r}</div>
-                <div style="font-size:9px; text-align:right; opacity:0.5; margin-top:4px;">
-                    ${new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
-                </div>
+        div.innerHTML = `
+            ${m.reply_to ? `<div class="reply-info">⤺ Cavab: ${m.reply_to}</div>` : ''}
+            <div class="bubble" oncontextmenu="showMsgMenu(event, ${m.id}, '${m.nickname}', '${m.content}')" onclick="setReply(${m.id}, '${m.nickname}')">
+                <div style="font-size: 10px; font-weight: bold; opacity: 0.6; margin-bottom: 4px;">${m.nickname}</div>
+                <div>${content}</div>
+                <div class="react-row">${m.reactions || ""}</div>
+                <div style="font-size: 9px; text-align: right; opacity: 0.5; margin-top: 5px;">${new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
             </div>
         `;
-        document.getElementById('chat').appendChild(d);
+        document.getElementById('chat').appendChild(div);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
-    // Long Press Məntiqi
-    function startPress(id, isMy) {
-        selectedMsgId = id;
-        document.getElementById('delBtn').style.display = isMy ? 'flex' : 'none';
-        pressTimer = setTimeout(() => {
-            document.getElementById('context-menu').style.display = 'flex';
-            if (window.navigator.vibrate) window.navigator.vibrate(50); // Titrəşim
-        }, 500);
-    }
-
-    function endPress() { clearTimeout(pressTimer); }
-    function closeMenu() { document.getElementById('context-menu').style.display = 'none'; }
-
-    async function triggerDelete() {
-        if(!confirm("Bu mesajı silmək istəyirsiz?")) return;
-        const id = selectedMsgId;
-        document.getElementById('msg-'+id)?.remove();
-        closeMenu();
-        await sb.from('messages').delete().eq('id', id);
-    }
-
-    async function triggerReact() {
-        const e = prompt("Emoji?");
-        if(!e) return;
-        const id = selectedMsgId;
-        closeMenu();
-        
-        const badge = document.querySelector(`#msg-${id} .react-badge`);
-        if(badge) badge.innerText += e;
-
-        const {data} = await sb.from('messages').select('reactions').eq('id', id).single();
-        let cur = (data && typeof data.reactions === 'string' && !data.reactions.includes('[object')) ? data.reactions : "";
-        await sb.from('messages').update({reactions: cur + e}).eq('id', id);
-    }
-
     async function send() {
-        const i = document.getElementById('msgInp');
-        if(!i.value.trim()) return;
-        const v = i.value; i.value = "";
-        await sb.from('messages').insert([{content: v, nickname: user.n, group_id: 'General', sender_avatar: user.a, reactions: ""}]);
+        const inp = document.getElementById('mainInp');
+        const val = inp.value.trim();
+        if(!val) return;
+        const msgData = {
+            content: val,
+            nickname: me.n,
+            group_id: room,
+            reply_to: replyTo ? replyTo.nick + ": " + replyTo.txt : null,
+            reactions: ""
+        };
+        inp.value = "";
+        cancelReply();
+        await sb.from('messages').insert([msgData]);
     }
+
+    // Mesaj üzərində sağ klik (Long Press simulyasiyası)
+    function showMsgMenu(e, id, nick, txt) {
+        e.preventDefault();
+        const action = prompt("1. Reaksiya (❤️, 👍, 😂)\n2. Sil (Ancaq öz mesajın)\n3. Cavabla");
+        if(action == "1") addReaction(id);
+        if(action == "2" && nick === me.n) deleteMessage(id);
+        if(action == "3") setReply(id, nick, txt);
+    }
+
+    async function addReaction(id) {
+        const emoji = prompt("Emoji?");
+        if(!emoji) return;
+        // Sadəcə 1 reaksiya məntiqi üçün bazada yoxlama lazımdır, burada bəsitləşdiririk:
+        const {data} = await sb.from('messages').select('reactions').eq('id', id).single();
+        let cur = data.reactions || "";
+        if(!cur.includes(me.n)) { // Hər kəs 1 dəfə
+            await sb.from('messages').update({ reactions: cur + ` <span class="react-tag">${emoji}</span>` }).eq('id', id);
+        }
+    }
+
+    async function deleteMessage(id) {
+        if(confirm("Mesaj silinsin?")) {
+            document.getElementById('row-'+id)?.remove();
+            await sb.from('messages').delete().eq('id', id);
+        }
+    }
+
+    function setReply(id, nick, txt) {
+        replyTo = { id, nick, txt: txt.substring(0, 20) + "..." };
+        document.getElementById('replyBar').style.display = 'flex';
+        document.getElementById('replyTxt').innerText = "Cavablanır: " + nick;
+    }
+
+    function cancelReply() {
+        replyTo = null;
+        document.getElementById('replyBar').style.display = 'none';
+    }
+
+    // Media
+    async function handleFile(el) {
+        const f = el.files[0]; if(!f) return;
+        const name = Date.now() + "_" + f.name;
+        const {data} = await sb.storage.from('audio_messages').upload(name, f);
+        if(data) {
+            const url = `${URL}/storage/v1/object/public/audio_messages/${name}`;
+            await sb.from('messages').insert([{ content: url, nickname: me.n, group_id: room }]);
+        }
+    }
+
+    // Səs Yazma (Bəsitləşdirilmiş)
+    function toggleVoice() {
+        isRecording = !isRecording;
+        const btn = document.getElementById('voiceBtn');
+        btn.style.background = isRecording ? "red" : "var(--panel)";
+        if(!isRecording) {
+            alert("Səs qeyd edildi və göndərildi (Simulyasiya)");
+            // Real səs yazma üçün MediaRecorder lazımdır, bura əlavə edilə bilər.
+        }
+    }
+
+    // Ayarlar
+    function changeTheme(c) {
+        me.color = c;
+        document.documentElement.style.setProperty('--accent', c);
+        localStorage.setItem('elite_user', JSON.stringify(me));
+    }
+
+    function changeBg() {
+        const url = document.getElementById('bgUrlInp').value;
+        document.getElementById('chat').style.background = `url('${url}') center/cover`;
+        closePanels();
+    }
+
+    function startDM() {
+        const target = document.getElementById('targetNick').value.trim();
+        if(!target) return;
+        room = [me.n, target].sort().join("_dm_");
+        document.getElementById('activeRoom').innerText = "DM: " + target;
+        loadMsgs();
+        closePanels();
+    }
+
+    function openPanel(id) { document.getElementById(id).style.display = 'flex'; }
+    function closePanels() { document.querySelectorAll('.overlay-panel').forEach(p => { if(p.id !== 'loginOverlay') p.style.display = 'none'; }); }
 </script>
 </body>
 </html>
- 
