@@ -3,39 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Chat Ultimate</title>
+    <title>X-Chat Ultimate Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --accent: #00d2ff; --bg: #0b0f1a; --glass: rgba(255, 255, 255, 0.08); --dm: #a188ff; }
         body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
         
+        /* Login Screen */
         #login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
         .login-card { background: var(--glass); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); width: 300px; text-align: center; }
         .login-card input { width: 90%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: #fff; outline: none; }
         .login-btn { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--accent); color: #000; font-weight: bold; cursor: pointer; }
 
+        /* Header */
         .header { padding: 10px 15px; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 12px; z-index: 100; }
         .search-container { flex: 1; }
         .search-container input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 12px; color: #fff; outline: none; font-size: 13px; text-align: center; }
-        
         .nav-icon { font-size: 22px; cursor: pointer; }
         .avatar { width: 35px; height: 35px; border-radius: 10px; border: 2px solid var(--accent); cursor: pointer; object-fit: cover; }
 
-        /* Sidebarlar */
+        /* Sidebars */
         .sidebar { position: fixed; left: -100%; top: 0; width: 80%; max-width: 300px; height: 100%; background: #161b22; z-index: 5000; transition: 0.4s ease; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; box-shadow: 5px 0 20px rgba(0,0,0,0.5); }
         .sidebar.open { left: 0; }
-        .sidebar-item { padding: 15px; background: var(--glass); border-radius: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); text-align: center; font-weight: bold; }
-        
+        .sidebar-item { padding: 15px; background: var(--glass); border-radius: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); text-align: center; font-weight: bold; transition: 0.2s; }
+        .sidebar-item:active { background: var(--accent); color: #000; }
+
+        /* Chat Area */
         #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .msg-wrap { display: flex; flex-direction: column; max-width: 80%; }
-        .msg-wrap.my { align-self: flex-end; }
-        .msg { padding: 10px 14px; border-radius: 18px; background: var(--glass); border: 1px solid rgba(255,255,255,0.1); }
+        
+        /* Message with Avatar Style */
+        .msg-container { display: flex; align-items: flex-end; gap: 8px; margin-bottom: 5px; }
+        .msg-container.my { flex-direction: row-reverse; }
+        .msg-avatar { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--accent); object-fit: cover; flex-shrink: 0; }
+        .msg-wrap { max-width: 80%; }
+        .msg { padding: 10px 14px; border-radius: 18px; background: var(--glass); border: 1px solid rgba(255,255,255,0.1); position: relative; }
         .my .msg { background: var(--accent); color: #000; font-weight: 500; }
 
+        /* Input Bar */
         .input-bar { padding: 12px; background: rgba(0,0,0,0.4); display: flex; gap: 8px; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); }
         .input-box { flex: 1; background: var(--glass); border-radius: 20px; display: flex; align-items: center; padding: 0 10px; border: 1px solid rgba(255,255,255,0.1); }
         .input-box input { flex: 1; background: transparent; border: none; color: #fff; padding: 10px; outline: none; }
-        .action-btn { background: rgba(255,255,255,0.1); border: none; width: 38px; height: 38px; border-radius: 50%; color: #fff; cursor: pointer; font-size: 18px; }
+        .action-btn { background: rgba(255,255,255,0.1); border: none; width: 38px; height: 38px; border-radius: 50%; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
@@ -63,7 +71,7 @@
 
 <div id="group-sidebar" class="sidebar">
     <h3 style="text-align: center;">Qruplar</h3>
-    <div onclick="createNewGroup()" style="text-align:center; font-size:45px; color:var(--accent); cursor:pointer; margin-bottom:10px;">+</div>
+    <div onclick="createNewGroup()" style="text-align:center; font-size:45px; color:var(--accent); cursor:pointer;">+</div>
     <p style="text-align:center; font-size:12px; opacity:0.6; margin-bottom:20px;">Yeni otaq yarat</p>
     <div id="my-groups-list" style="overflow-y: auto; flex: 1;"></div>
     <button onclick="closeAllSidebars()" style="width: 100%; padding: 15px; background: #333; border: none; color: white; border-radius: 12px; font-weight: bold; margin-top:10px;">Bağla</button>
@@ -83,7 +91,7 @@
     <button class="action-btn" id="micBtn" onclick="doVoice()">🎤</button>
     <div class="input-box">
         <input type="text" id="msgInp" placeholder="Mesaj..." onkeypress="if(event.key=='Enter') doSend()">
-        <button style="background:none; border:none; color:var(--accent); font-size:20px; cursor:pointer;" onclick="doSend()">🚀</button>
+        <button style="background:none; border:none; color:var(--accent); font-size:22px; cursor:pointer;" onclick="doSend()">🚀</button>
     </div>
 </div>
 
@@ -97,16 +105,13 @@
     let myDMs = JSON.parse(localStorage.getItem('my_dms')) || [];
     let myGroups = JSON.parse(localStorage.getItem('my_groups')) || ['General'];
 
-    if (user) {
-        document.getElementById('login-screen').style.display = 'none';
-        setupChat();
-    }
+    if (user) { document.getElementById('login-screen').style.display = 'none'; setupChat(); }
 
     async function handleAuth() {
         const nick = document.getElementById('logNick').value.trim();
         const pass = document.getElementById('logPass').value.trim();
         if (!nick || !pass) return;
-        user = { nick, pass, avatar: `https://ui-avatars.com/api/?name=${nick}` };
+        user = { nick, pass, avatar: `https://ui-avatars.com/api/?name=${nick}&background=random` };
         localStorage.setItem('chat_user', JSON.stringify(user));
         document.getElementById('login-screen').style.display = 'none';
         setupChat();
@@ -114,10 +119,8 @@
 
     function setupChat() {
         document.getElementById('userAvatar').src = user.avatar;
-        loadMessages();
-        updateDMList();
-        updateGroupList();
-        _sb.channel('db-changes').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => {
+        loadMessages(); updateDMList(); updateGroupList();
+        _sb.channel('realtime').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => {
             if (p.new.group_id === currentRoom) render(p.new);
         }).subscribe();
     }
@@ -136,82 +139,72 @@
     function createNewGroup() {
         let name = prompt("Qrup adını yazın:");
         if(name) {
-            if(!myGroups.includes(name)) {
-                myGroups.push(name);
-                localStorage.setItem('my_groups', JSON.stringify(myGroups));
-                updateGroupList();
-            }
-            changeRoom(name);
-            closeAllSidebars();
+            if(!myGroups.includes(name)) { myGroups.push(name); localStorage.setItem('my_groups', JSON.stringify(myGroups)); updateGroupList(); }
+            changeRoom(name); closeAllSidebars();
         }
     }
 
     function updateGroupList() {
-        const list = document.getElementById('my-groups-list');
-        list.innerHTML = "";
+        const list = document.getElementById('my-groups-list'); list.innerHTML = "";
         myGroups.forEach(name => {
-            const d = document.createElement('div');
-            d.className = 'sidebar-item';
-            d.innerText = "# " + name;
-            d.onclick = () => { changeRoom(name); closeAllSidebars(); };
-            list.appendChild(d);
+            const d = document.createElement('div'); d.className = 'sidebar-item'; d.innerText = "# " + name;
+            d.onclick = () => { changeRoom(name); closeAllSidebars(); }; list.appendChild(d);
         });
     }
 
     function updateDMList() {
-        const list = document.getElementById('dm-list');
-        list.innerHTML = "";
+        const list = document.getElementById('dm-list'); list.innerHTML = "";
         myDMs.forEach(nick => {
-            const d = document.createElement('div');
-            d.className = 'sidebar-item';
-            d.innerText = "👤 " + nick;
-            d.onclick = () => { goToDM(nick); closeAllSidebars(); };
-            list.appendChild(d);
+            const d = document.createElement('div'); d.className = 'sidebar-item'; d.innerText = "👤 " + nick;
+            d.onclick = () => { goToDM(nick); closeAllSidebars(); }; list.appendChild(d);
         });
     }
 
     function changeRoom(name) {
-        currentRoom = name;
-        document.getElementById('roomSearch').value = name;
-        document.getElementById('chat').innerHTML = "";
-        loadMessages();
+        currentRoom = name; document.getElementById('roomSearch').value = name;
+        document.getElementById('chat').innerHTML = ""; loadMessages();
     }
 
     function goToDM(targetNick) {
         currentRoom = [user.nick, targetNick].sort().join('_dm_');
         document.getElementById('roomSearch').value = "@" + targetNick;
-        document.getElementById('chat').innerHTML = "";
-        loadMessages();
-        if(!myDMs.includes(targetNick)) {
-            myDMs.push(targetNick);
-            localStorage.setItem('my_dms', JSON.stringify(myDMs));
-            updateDMList();
-        }
+        document.getElementById('chat').innerHTML = ""; loadMessages();
+        if(!myDMs.includes(targetNick)) { myDMs.push(targetNick); localStorage.setItem('my_dms', JSON.stringify(myDMs)); updateDMList(); }
     }
 
     function executeSearch() {
         let val = document.getElementById('roomSearch').value.trim();
-        if(val.startsWith('@')) goToDM(val.substring(1));
-        else changeRoom(val);
+        if(val.startsWith('@')) goToDM(val.substring(1)); else changeRoom(val);
     }
 
     async function doSend() {
-        const i = document.getElementById('msgInp');
-        if (!i.value.trim()) return;
+        const i = document.getElementById('msgInp'); if (!i.value.trim()) return;
         const txt = i.value; i.value = '';
-        await _sb.from('messages').insert([{ content: txt, nickname: user.nick, group_id: currentRoom }]);
+        await _sb.from('messages').insert([{ content: txt, nickname: user.nick, group_id: currentRoom, sender_avatar: user.avatar }]);
     }
 
     function render(m) {
+        if(document.getElementById('m-'+m.id)) return;
         const isMy = m.nickname === user.nick;
-        const d = document.createElement('div');
-        d.className = `msg-wrap ${isMy ? 'my' : ''}`;
+        const chatBox = document.getElementById('chat');
+        const container = document.createElement('div');
+        container.id = 'm-'+m.id; container.className = `msg-container ${isMy ? 'my' : ''}`;
+
+        const avaUrl = m.sender_avatar || `https://ui-avatars.com/api/?name=${m.nickname}&background=random`;
         let body = m.content;
-        if(body.includes('v_')) body = `<audio src="${body}" controls style="width:180px; filter:invert(1)"></audio>`;
-        else if(body.includes('img_') || body.includes('ava_')) body = `<img src="${body}" style="max-width:100%; border-radius:12px;">`;
-        d.innerHTML = `<div class="msg"><b>${m.nickname}</b>${body}</div>`;
-        document.getElementById('chat').appendChild(d);
-        document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+        if(body.includes('v_')) body = `<audio src="${body}" controls style="width:180px; height:35px; filter:invert(1)"></audio>`;
+        else if(body.includes('img_')) body = `<img src="${body}" style="max-width:100%; border-radius:12px; display:block; margin-top:5px;">`;
+
+        container.innerHTML = `
+            <img src="${avaUrl}" class="msg-avatar">
+            <div class="msg-wrap">
+                <div class="msg">
+                    <b style="font-size:10px; display:block; margin-bottom:3px; opacity:0.7;">${m.nickname}</b>
+                    ${body}
+                </div>
+            </div>
+        `;
+        chatBox.appendChild(container); chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     async function loadMessages() {
@@ -234,29 +227,32 @@
         const file = el.files[0]; if(!file) return;
         const fn = `img_${Date.now()}.jpg`;
         const { data } = await _sb.storage.from('audio_messages').upload(fn, file);
-        if(data) await _sb.from('messages').insert([{ content: `${SB_URL}/storage/v1/object/public/audio_messages/${fn}`, nickname: user.nick, group_id: currentRoom }]);
+        if(data) {
+            const url = `${SB_URL}/storage/v1/object/public/audio_messages/${fn}`;
+            await _sb.from('messages').insert([{ content: url, nickname: user.nick, group_id: currentRoom, sender_avatar: user.avatar }]);
+        }
     }
 
     let mediaRecorder, audioChunks = [];
     async function doVoice() {
         const btn = document.getElementById('micBtn');
         if (!mediaRecorder || mediaRecorder.state === "inactive") {
-            try {
-                const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(s); audioChunks = [];
-                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                mediaRecorder.onstop = async () => {
-                    const b = new Blob(audioChunks, { type: 'audio/webm' });
-                    const fn = `v_${Date.now()}.webm`;
-                    const { data } = await _sb.storage.from('audio_messages').upload(fn, b);
-                    if (data) await _sb.from('messages').insert([{ content: `${SB_URL}/storage/v1/object/public/audio_messages/${fn}`, nickname: user.nick, group_id: currentRoom }]);
-                };
-                mediaRecorder.start(); btn.style.background = "#ff4757";
-            } catch (err) { alert("Mikrofon tapılmadı!"); }
-        } else {
-            mediaRecorder.stop(); btn.style.background = "rgba(255,255,255,0.1)";
-        }
+            const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(s); audioChunks = [];
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = async () => {
+                const b = new Blob(audioChunks, { type: 'audio/webm' });
+                const fn = `v_${Date.now()}.webm`;
+                const { data } = await _sb.storage.from('audio_messages').upload(fn, b);
+                if (data) {
+                    const url = `${SB_URL}/storage/v1/object/public/audio_messages/${fn}`;
+                    await _sb.from('messages').insert([{ content: url, nickname: user.nick, group_id: currentRoom, sender_avatar: user.avatar }]);
+                }
+            };
+            mediaRecorder.start(); btn.style.background = "#ff4757";
+        } else { mediaRecorder.stop(); btn.style.background = "rgba(255,255,255,0.1)"; }
     }
 </script>
 </body>
 </html>
+ 
