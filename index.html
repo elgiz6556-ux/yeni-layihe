@@ -3,44 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Chat Ultimate</title>
+    <title>X-Chat Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --accent: #00d2ff; --bg: #05070a; --glass: rgba(255, 255, 255, 0.08); }
-        body { margin: 0; font-family: 'Inter', sans-serif; background: #05070a; color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
-        .header { padding: 15px; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .avatar { width: 42px; height: 42px; border-radius: 12px; border: 2px solid var(--accent); object-fit: cover; cursor: pointer; }
-        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .msg { max-width: 75%; padding: 10px 14px; border-radius: 18px; background: var(--glass); border: 1px solid rgba(255,255,255,0.1); position: relative; word-wrap: break-word; }
-        .msg.my { align-self: flex-end; background: linear-gradient(135deg, var(--accent), #0072ff); color: #000; font-weight: 500; }
-        .msg b { display: block; font-size: 10px; opacity: 0.6; margin-bottom: 4px; }
-        .input-bar { padding: 15px; background: transparent; display: flex; gap: 10px; align-items: center; }
-        .input-box { flex: 1; background: var(--glass); backdrop-filter: blur(20px); padding: 5px 15px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; }
-        input { flex: 1; background: transparent; border: none; color: #fff; padding: 10px; outline: none; font-size: 16px; }
-        .btn-act { background: none; border: none; color: white; cursor: pointer; font-size: 20px; }
-        .img-msg { max-width: 100%; border-radius: 12px; margin-top: 5px; cursor: pointer; }
+        :root { --accent: #00d2ff; --bg: #0f172a; --txt: #ffffff; --glass: rgba(255, 255, 255, 0.1); }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--txt); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* Header */
+        .header { padding: 12px 15px; background: var(--glass); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(128,128,128,0.2); display: flex; justify-content: space-between; align-items: center; }
+        .avatar { width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--accent); cursor: pointer; object-fit: cover; }
+        
+        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .msg { max-width: 80%; padding: 10px 15px; border-radius: 15px; background: var(--glass); border: 1px solid rgba(128,128,128,0.1); position: relative; }
+        .msg.my { align-self: flex-end; background: var(--accent); color: #000; font-weight: 500; box-shadow: 0 4px 15px rgba(0, 210, 255, 0.2); }
+        .msg b { display: block; font-size: 10px; opacity: 0.6; margin-bottom: 3px; }
+
+        /* Plus Button Style */
+        .btn-plus { background: var(--accent); color: #000; border: none; width: 35px; height: 35px; border-radius: 10px; font-size: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .btn-plus:active { transform: scale(0.9); }
+
+        /* Controls */
+        .controls { padding: 15px; display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,0.2); }
+        .input-box { flex: 1; background: var(--glass); padding: 5px 15px; border-radius: 25px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.1); }
+        input { flex: 1; background: transparent; border: none; color: inherit; outline: none; padding: 10px; font-size: 16px; }
+        
+        .btn-act { background: none; border: none; cursor: pointer; font-size: 22px; color: var(--txt); opacity: 0.8; }
+        .btn-act:hover { opacity: 1; }
+        .room-info { font-size: 11px; color: var(--accent); font-weight: bold; text-transform: uppercase; margin-top: 2px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <img id="myAvatar" class="avatar" src="https://ui-avatars.com/api/?name=User" onclick="changeAvatar()">
-    <div style="text-align:center">
-        <div style="font-weight:bold;">X-CHAT <span id="online-count" style="color:#4caf50">● 0</span></div>
-        <div id="typing-status" style="font-size:10px; color:var(--accent); height:12px"></div>
+    <button class="btn-plus" onclick="switchRoom()">+</button>
+    <div style="text-align: center;">
+        <div style="font-weight: bold; font-size: 16px; letter-spacing: 1px;">X-CHAT</div>
+        <div id="room-display" class="room-info">Otaq: General</div>
     </div>
-    <button class="btn-act" onclick="location.reload()">🔄</button>
+    <img id="myAvatar" class="avatar" src="" onclick="changeAvatar()" title="Avatarı dəyiş">
 </div>
 
 <div id="chat"></div>
 
-<div class="input-bar">
-    <input type="file" id="fileInp" hidden accept="image/*" onchange="uploadFile(this)">
+<div id="typing" style="height: 15px; font-size: 10px; padding: 0 20px; color: var(--accent); font-style: italic;"></div>
+
+<div class="controls">
+    <input type="file" id="fileInp" hidden onchange="uploadFile(this)">
     <button class="btn-act" onclick="document.getElementById('fileInp').click()">🖼️</button>
     <button class="btn-act" id="mic" onclick="doVoice()">🎤</button>
     <div class="input-box">
         <input type="text" id="msgInp" placeholder="Mesaj..." oninput="isTyping()" onkeypress="if(event.key=='Enter') doSend()">
-        <button class="btn-act" onclick="doSend()" style="color:var(--accent)">🚀</button>
+        <button class="btn-act" onclick="doSend()" style="color: var(--accent);">🚀</button>
     </div>
 </div>
 
@@ -51,37 +64,24 @@
 
     let user = {
         nick: localStorage.getItem('chat_nick') || prompt("Adın:"),
-        avatar: localStorage.getItem('chat_avatar') || `https://ui-avatars.com/api/?name=User`
+        avatar: localStorage.getItem('chat_avatar') || `https://ui-avatars.com/api/?name=User`,
+        room: 'General'
     };
-    if(!user.nick) user.nick = "User_" + Math.floor(Math.random()*99);
+    if(!user.nick) user.nick = "İstifadəçi" + Math.floor(Math.random()*100);
     localStorage.setItem('chat_nick', user.nick);
     document.getElementById('myAvatar').src = user.avatar;
 
-    // Realtime & Presence
-    const chan = _sb.channel('main', { config: { presence: { key: user.nick } } });
-    chan.on('presence', { event: 'sync' }, () => {
-        document.getElementById('online-count').innerText = `● ${Object.keys(chan.presenceState()).length}`;
-    }).on('broadcast', { event: 'typing' }, p => {
-        document.getElementById('typing-status').innerText = p.payload.nick + " yazır...";
-        setTimeout(() => document.getElementById('typing-status').innerText = "", 2000);
-    }).subscribe(async (s) => { if(s === 'SUBSCRIBED') await chan.track({ online_at: new Date() }); });
-
+    // Realtime Dinləmə
     _sb.channel('db').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, p => {
-        if (p.eventType === 'INSERT') {
-            render(p.new);
-            if(p.new.nickname !== user.nick) {
-                if(Notification.permission === 'granted') new Notification(p.new.nickname, { body: p.new.content });
-            }
-        }
+        if (p.eventType === 'INSERT' && p.new.group_id === user.room) render(p.new);
         if (p.eventType === 'DELETE') document.getElementById('m-'+p.old.id)?.remove();
     }).subscribe();
 
     async function doSend() {
         const i = document.getElementById('msgInp');
         if (!i.value.trim()) return;
-        const msg = i.value; i.value = '';
-        await _sb.from('messages').insert([{ content: msg, nickname: user.nick, sender_avatar: user.avatar }]);
-        if (Notification.permission === "default") Notification.requestPermission();
+        const txt = i.value; i.value = '';
+        await _sb.from('messages').insert([{ content: txt, nickname: user.nick, group_id: user.room, sender_avatar: user.avatar }]);
     }
 
     function render(m) {
@@ -91,24 +91,39 @@
         d.id = 'm-'+m.id; d.className = `msg ${isMy ? 'my' : ''}`;
         
         let body = m.content;
-        if(body.includes('v_')) body = `<audio src="${body}" controls style="width:200px; height:30px; filter:invert(1)"></audio>`;
-        else if(body.includes('img_')) body = `<img src="${body}" class="img-msg" onclick="window.open(this.src)">`;
+        if(body.includes('v_')) body = `<audio src="${body}" controls style="width:180px; height:30px; filter:invert(1)"></audio>`;
+        else if(body.includes('img_')) body = `<img src="${body}" style="max-width:100%; border-radius:10px; margin-top:5px;">`;
 
-        d.onclick = () => { if((isMy || user.nick === 'Admin') && confirm("Silinsin?")) _sb.from('messages').delete().eq('id', m.id).then(); };
+        d.onclick = () => { if(isMy && confirm("Bu mesaj silinsin?")) _sb.from('messages').delete().eq('id', m.id).then(); };
         d.innerHTML = `<b>${m.nickname}</b>${body}`;
         document.getElementById('chat').appendChild(d);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+    }
+
+    function switchRoom() {
+        const r = prompt("Qoşulmaq istədiyiniz otaq adı (məs: Gizli, Dostlar, Oyun):", user.room);
+        if(r && r !== user.room) {
+            user.room = r;
+            document.getElementById('room-display').innerText = "Otaq: " + r;
+            document.getElementById('chat').innerHTML = ""; 
+            loadMessages();
+        }
+    }
+
+    async function loadMessages() {
+        const {data} = await _sb.from('messages').select('*').eq('group_id', user.room).order('created_at', { ascending: true });
+        if(data) data.forEach(render);
     }
 
     async function uploadFile(el) {
         const file = el.files[0];
         if(!file) return;
         const fn = `img_${Date.now()}.jpg`;
-        const { data, error } = await _sb.storage.from('audio_messages').upload(fn, file);
+        const { data } = await _sb.storage.from('audio_messages').upload(fn, file);
         if(data) {
             const url = `${SB_URL}/storage/v1/object/public/audio_messages/${fn}`;
-            await _sb.from('messages').insert([{ content: url, nickname: user.nick, sender_avatar: user.avatar }]);
-        } else { alert("Yükləmə xətası! Storage-i yoxla."); }
+            await _sb.from('messages').insert([{ content: url, nickname: user.nick, group_id: user.room }]);
+        }
     }
 
     let rec, ch = [];
@@ -125,7 +140,7 @@
                 const { data } = await _sb.storage.from('audio_messages').upload(fn, b);
                 if(data) {
                     const url = `${SB_URL}/storage/v1/object/public/audio_messages/${fn}`;
-                    await _sb.from('messages').insert([{ content: url, nickname: user.nick, sender_avatar: user.avatar }]);
+                    await _sb.from('messages').insert([{ content: url, nickname: user.nick, group_id: user.room }]);
                 }
             };
             rec.ondataavailable = e => ch.push(e.data);
@@ -133,10 +148,16 @@
         } else { rec.stop(); }
     }
 
-    function isTyping() { chan.send({ type: 'broadcast', event: 'typing', payload: { nick: user.nick } }); }
-    function changeAvatar() { const a = prompt("Avatar URL:"); if(a) { localStorage.setItem('chat_avatar', a); location.reload(); } }
+    function isTyping() { 
+        // Typing funksiyası üçün broadcast sistemi buraya əlavə oluna bilər
+    }
 
-    _sb.from('messages').select('*').order('created_at', { ascending: true }).then(({data}) => data && data.forEach(render));
+    function changeAvatar() { 
+        const a = prompt("Yeni avatar üçün şəkil linki (URL):"); 
+        if(a) { localStorage.setItem('chat_avatar', a); location.reload(); } 
+    }
+
+    loadMessages();
 </script>
 </body>
 </html>
