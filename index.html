@@ -3,24 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Chat Ultimate Fix</title>
+    <title>X-Chat Pro Final Fix</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --accent: #00d2ff; --bg: #0b141a; --glass: rgba(255, 255, 255, 0.08); --online: #4cd137; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
         
+        /* Header */
         .header { padding: 10px 15px; background: var(--glass); display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); z-index: 100; }
         .room-info { flex: 1; text-align: center; }
+        .room-info h4 { margin: 0; font-size: 16px; }
         .nav-icon { font-size: 22px; cursor: pointer; }
 
+        /* Login */
         #login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
         .login-card { background: var(--glass); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); width: 300px; text-align: center; }
         .login-btn { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--accent); color: #000; font-weight: bold; cursor: pointer; }
 
+        /* Sidebar */
         .sidebar { position: fixed; left: -100%; top: 0; width: 85%; max-width: 320px; height: 100%; background: #111b21; z-index: 9000; transition: 0.3s ease; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; }
         .sidebar.open { left: 0; }
         .list-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--glass); border-radius: 12px; margin-bottom: 8px; cursor: pointer; }
 
+        /* Chat */
         #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: #0b141a; }
         .msg-row { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; }
         .msg-row.my { align-self: flex-end; flex-direction: row-reverse; }
@@ -30,10 +35,10 @@
         .msg-text { font-size: 14px; word-break: break-word; }
         .msg-meta { font-size: 10px; opacity: 0.7; display: flex; justify-content: flex-end; gap: 5px; margin-top: 4px; }
         
-        /* REAKSİYA ELEMENTİ - Object yazısını gizlətmək üçün */
-        .reaction-box { font-size: 13px; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 10px; margin-top: 4px; display: inline-block; empty-cells: hide; }
+        .reaction-box { font-size: 13px; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 10px; margin-top: 4px; display: inline-block; }
         .reaction-box:empty { display: none; }
 
+        /* Input */
         .input-bar { padding: 10px; background: #202c33; display: flex; align-items: center; gap: 8px; }
         .input-box { flex: 1; background: #2a3942; border-radius: 25px; padding: 5px 15px; display: flex; align-items: center; }
         .input-box input { flex: 1; background: transparent; border: none; color: #fff; padding: 10px; outline: none; }
@@ -55,12 +60,16 @@
 <div class="header">
     <div class="nav-icon" onclick="toggleSidebar('group-sidebar')">👥</div>
     <div class="nav-icon" onclick="toggleSidebar('dm-sidebar')">📩</div>
-    <div class="room-info"><h4 id="roomTitle">General</h4></div>
+    <div class="room-info">
+        <h4 id="roomTitle">General</h4>
+        <div id="onlineCount" style="font-size:10px; color:var(--online)">Online: 1 nəfər</div>
+    </div>
     <img id="myAva" class="msg-ava" src="" onclick="toggleSidebar('settings-sidebar')">
 </div>
 
 <div id="settings-sidebar" class="sidebar">
     <h3>Ayarlar</h3>
+    <p>Tema rəngi:</p>
     <div style="display:flex; gap:10px; justify-content:center; margin-bottom:20px;">
         <div style="width:30px; height:30px; border-radius:50%; background:#00d2ff; cursor:pointer;" onclick="setTheme('#00d2ff')"></div>
         <div style="width:30px; height:30px; border-radius:50%; background:#4cd137; cursor:pointer;" onclick="setTheme('#4cd137')"></div>
@@ -74,7 +83,7 @@
 <div id="group-sidebar" class="sidebar">
     <h3>Qruplar</h3>
     <input type="text" id="newGroupInp" placeholder="Qrup adı..." style="width:100%; padding:10px; border-radius:8px; border:none; background:#2a3942; color:#fff;">
-    <button onclick="addGroup()" style="width:100%; padding:10px; background:var(--accent); border:none; margin-top:10px; border-radius:8px; color:#000; font-weight:bold;">Yarat / Qoşul</button>
+    <button onclick="addGroup()" style="width:100%; padding:10px; background:var(--accent); border:none; margin-top:10px; border-radius:8px; color:#000; font-weight:bold;">Qoşul</button>
     <div class="list-container" id="group-list"></div>
     <button onclick="closeSidebars()" style="padding:10px; background:#333; color:#fff; border:none; border-radius:10px;">Bağla</button>
 </div>
@@ -82,7 +91,7 @@
 <div id="dm-sidebar" class="sidebar">
     <h3>Mesajlar</h3>
     <input type="text" id="dmSearch" placeholder="@ad..." style="width:100%; padding:10px; border-radius:8px; border:none; background:#2a3942; color:#fff;">
-    <button onclick="startDM()" style="width:100%; padding:10px; background:var(--accent); border:none; margin-top:10px; border-radius:8px; color:#000; font-weight:bold;">Mesaj Yaz</button>
+    <button onclick="startDM()" style="width:100%; padding:10px; background:var(--accent); border:none; margin-top:10px; border-radius:8px; color:#000; font-weight:bold;">Söhbətə başla</button>
     <div class="list-container" id="dm-list"></div>
     <button onclick="closeSidebars()" style="padding:10px; background:#333; color:#fff; border:none; border-radius:10px;">Bağla</button>
 </div>
@@ -127,15 +136,22 @@
         loadMessages();
         updateGroupList();
         updateDMList();
+        updateOnlineStatus();
         
         _sb.channel('realtime').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, p => {
             if (p.eventType === 'INSERT' && p.new.group_id === currentRoom) render(p.new);
             if (p.eventType === 'DELETE') document.getElementById('m-'+p.old.id)?.remove();
             if (p.eventType === 'UPDATE' && p.new.group_id === currentRoom) {
                 const b = document.querySelector(`#m-${p.new.id} .reaction-box`);
-                if(b) b.innerText = (typeof p.new.reactions === 'string') ? p.new.reactions : "";
+                if(b) b.innerText = (typeof p.new.reactions === 'string' && p.new.reactions !== "[object Object]") ? p.new.reactions : "";
             }
         }).subscribe();
+    }
+
+    function updateOnlineStatus() {
+        // Simulyasiya: Real onlayn sayı üçün Presence lazımdır, lakin hazırda 1-5 arası random göstəririk
+        const count = Math.floor(Math.random() * 4) + 1;
+        document.getElementById('onlineCount').innerText = `Online: ${count} nəfər`;
     }
 
     async function doSend() {
@@ -156,9 +172,7 @@
         if(body.includes('img_')) body = `<img src="${body}" style="max-width:200px; border-radius:12px; display:block;">`;
         if(body.includes('v_')) body = `<audio src="${body}" controls style="width:180px; filter:invert(1)"></audio>`;
 
-        // ƏSAS HƏLL: Reaksiyanı yoxlayırıq, əgər obyekt gəlibsə onu boş string edirik
-        let reactionText = (typeof m.reactions === 'string') ? m.reactions : "";
-        if(reactionText === "[object Object]") reactionText = "";
+        let reactionText = (typeof m.reactions === 'string' && m.reactions !== "[object Object]") ? m.reactions : "";
 
         row.innerHTML = `
             <img src="${m.sender_avatar}" class="msg-ava">
@@ -186,8 +200,7 @@
         const e = prompt("Emoji (👍, ❤️, 😂):");
         if(e) {
             const {data} = await _sb.from('messages').select('reactions').eq('id', id).single();
-            let current = (typeof data.reactions === 'string') ? data.reactions : "";
-            if(current === "[object Object]") current = "";
+            let current = (typeof data.reactions === 'string' && data.reactions !== "[object Object]") ? data.reactions : "";
             await _sb.from('messages').update({ reactions: current + e }).eq('id', id);
         }
     }
