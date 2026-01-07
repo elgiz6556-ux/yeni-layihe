@@ -3,45 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Elite Midnight</title>
+    <title>X-Elite Midnight Fix</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg: #0f172a; --panel: #1e293b; --accent: #38bdf8; --text: #f1f5f9; --msg-me: #0284c7; --msg-other: #334155; }
-        
-        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; font-family: 'Inter', system-ui, sans-serif; }
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; font-family: 'Inter', system-ui, sans-serif; transition: 0.2s; }
         body { margin: 0; background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Login Screen */
         .auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .auth-card { width: 90%; max-width: 340px; background: var(--panel); padding: 30px; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); text-align: center; }
+        .auth-card { width: 90%; max-width: 340px; background: var(--panel); padding: 30px; border-radius: 24px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
         .auth-input { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 14px; color: #fff; margin-bottom: 12px; outline: none; }
         .auth-btn { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 12px; padding: 14px; font-weight: 700; cursor: pointer; }
 
-        /* Header */
-        .header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .room-name { font-weight: 700; font-size: 18px; color: var(--accent); }
+        .header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.05); z-index: 10; }
+        .room-name { font-weight: 700; font-size: 18px; color: var(--accent); letter-spacing: 0.5px; }
         .icon-btn { width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.05); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-        /* Chat Timeline */
         #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
-        .msg-wrapper { display: flex; flex-direction: column; max-width: 80%; }
+        .msg-wrapper { display: flex; flex-direction: column; max-width: 80%; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .msg-wrapper.my { align-self: flex-end; }
-        
-        .sender { font-size: 11px; opacity: 0.5; margin: 0 10px 4px; }
+        .sender { font-size: 10px; font-weight: bold; opacity: 0.5; margin: 0 10px 4px; color: var(--accent); }
         .my .sender { text-align: right; }
 
-        .bubble { padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.5; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); position: relative; }
-        .my .bubble { background: var(--msg-me); border-bottom-right-radius: 4px; }
-        .other .bubble { background: var(--msg-other); border-bottom-left-radius: 4px; }
+        .bubble { padding: 12px 18px; border-radius: 20px; font-size: 15px; line-height: 1.5; box-shadow: 0 4px 10px rgba(0,0,0,0.2); position: relative; word-wrap: break-word; }
+        .my .bubble { background: var(--msg-me); border-bottom-right-radius: 4px; color: #fff; }
+        .other .bubble { background: var(--msg-other); border-bottom-left-radius: 4px; color: #fff; }
 
-        .rep-info { font-size: 11px; color: var(--accent); background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 8px; margin-bottom: 4px; }
+        .rep-info { font-size: 11px; color: #fff; background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 10px; margin-bottom: 4px; border-left: 3px solid var(--accent); }
 
-        /* Input Area */
         .input-area { padding: 15px 20px; background: var(--panel); display: flex; align-items: center; gap: 10px; border-top: 1px solid rgba(255,255,255,0.05); }
-        #mainInp { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 25px; padding: 12px 18px; color: #fff; outline: none; font-size: 15px; }
-        .send-btn { width: 45px; height: 45px; border-radius: 50%; background: var(--accent); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        #mainInp { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 25px; padding: 12px 20px; color: #fff; outline: none; font-size: 15px; }
+        #mainInp:focus { border-color: var(--accent); }
+        .send-btn { width: 48px; height: 48px; border-radius: 50%; background: var(--accent); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(56, 189, 248, 0.3); }
 
-        /* Hide Scrollbar */
         #chat::-webkit-scrollbar { width: 0px; }
     </style>
 </head>
@@ -49,28 +44,28 @@
 
 <div id="authBox" class="auth-overlay">
     <div class="auth-card">
-        <h1 style="margin-top:0">X-Elite</h1>
+        <h1 style="margin-bottom: 25px; letter-spacing: -1px;">X-ELITE</h1>
         <input type="text" id="uN" class="auth-input" placeholder="Ləqəb">
         <input type="password" id="uP" class="auth-input" placeholder="Parol">
-        <button onclick="login()" class="auth-btn">Daxil Ol</button>
+        <button onclick="login()" class="auth-btn">GİRİŞ</button>
     </div>
 </div>
 
 <div class="header">
     <button class="icon-btn" onclick="openDM()">📩</button>
-    <div class="room-name" id="rn">General</div>
+    <div class="room-name" id="rn">General Chat</div>
     <button class="icon-btn" onclick="logout()">✕</button>
 </div>
 
 <div id="chat"></div>
 
-<div id="repBar" style="display:none; padding:10px 20px; background: #1e293b; border-bottom: 1px solid var(--accent); font-size: 12px; display: flex; justify-content: space-between;">
-    <span id="repTxt" style="color: var(--accent)"></span>
-    <span onclick="cancelR()" style="cursor:pointer">✕</span>
+<div id="repBar" style="display:none; padding:12px 20px; background: #1e293b; border-bottom: 2px solid var(--accent); font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
+    <span id="repTxt" style="color: var(--accent); font-weight: 500;"></span>
+    <span onclick="cancelR()" style="cursor:pointer; opacity: 0.7;">✕</span>
 </div>
 
 <div class="input-area">
-    <input type="text" id="mainInp" placeholder="Mesaj yazın..." onkeypress="if(event.key=='Enter') send()">
+    <input type="text" id="mainInp" placeholder="Mesajınızı yazın..." onkeypress="if(event.key=='Enter') send()">
     <button class="send-btn" onclick="send()">🚀</button>
 </div>
 
@@ -79,7 +74,7 @@
     const S_K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(S_U, S_K);
 
-    let me = JSON.parse(localStorage.getItem('x_mid_user'));
+    let me = JSON.parse(localStorage.getItem('x_final_user'));
     let room = 'General';
     let rData = null;
 
@@ -90,13 +85,13 @@
         const p = document.getElementById('uP').value.trim();
         if(!n || !p) return;
         me = { n, p };
-        localStorage.setItem('x_mid_user', JSON.stringify(me));
+        localStorage.setItem('x_final_user', JSON.stringify(me));
         location.reload();
     }
 
     function init() {
         load();
-        sb.channel('mid_chat').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, p => {
+        sb.channel('final_fix').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, p => {
             if(p.eventType === 'INSERT' && p.new.group_id === room) render(p.new);
             if(p.eventType === 'DELETE') document.getElementById('msg-'+p.old.id)?.remove();
         }).subscribe();
@@ -104,8 +99,8 @@
 
     async function load() {
         const chat = document.getElementById('chat');
-        chat.innerHTML = "<p style='text-align:center; opacity:0.5;'>Yüklənir...</p>";
-        const {data, error} = await sb.from('messages').select('*').eq('group_id', room).order('created_at');
+        chat.innerHTML = "<p style='text-align:center; opacity:0.3;'>Söhbət yüklənir...</p>";
+        const {data} = await sb.from('messages').select('*').eq('group_id', room).order('created_at');
         chat.innerHTML = "";
         if(data) data.forEach(render);
     }
@@ -133,33 +128,37 @@
         const txt = i.value.trim();
         if(!txt) return;
         
-        i.value = ""; // İnputu dərhal təmizlə ki, sürətli hiss olunsun
-        const r = rData ? `${rData.n}: ${rData.t}` : null;
+        i.value = ""; 
+        const r = rData ? `${rData.n}: ${rData.t}` : ""; // Boşluq yerinə boş string istifadə edirik
         cancelR();
 
-        const { error } = await sb.from('messages').insert([{ 
-            content: txt, 
-            nickname: me.n, 
-            group_id: room, 
-            reply_to: r 
-        }]);
+        // Daha etibarlı göndərmə metodu
+        const { error } = await sb.from('messages').insert([
+            { 
+                content: txt, 
+                nickname: me.n, 
+                group_id: room, 
+                reply_to: r,
+                reactions: "" // Hər ehtimala qarşı boş reaksiya sütunu göndəririk
+            }
+        ]);
 
         if(error) {
-            console.error(error);
-            alert("Xəta: Mesaj göndərilmədi.");
-            i.value = txt; // Xəta olsa mesajı geri qaytar
+            console.error("Xəta detalları:", error);
+            i.value = txt; // Xəta olsa mesajı silmirik, geri qaytarırıq
+            alert("Göndərilmədi! İnterneti və ya ləqəbi yoxlayın.");
         }
     }
 
     function setR(id, n, t) {
-        rData = { id, n, t: t.substring(0,20) };
+        rData = { id, n, t: t.substring(0,30) };
         document.getElementById('repBar').style.display = 'flex';
-        document.getElementById('repTxt').innerText = "Cavab: " + n;
+        document.getElementById('repTxt').innerText = "Cavablandırılır: " + n;
     }
     function cancelR() { rData = null; document.getElementById('repBar').style.display = 'none'; }
 
     function openDM() {
-        const t = prompt("Kiminlə danışmaq istəyirsiniz? (Ləqəb)");
+        const t = prompt("Kiminlə söhbət etmək istəyirsiniz?");
         if(!t) return;
         room = [me.n, t].sort().join("_dm_");
         document.getElementById('rn').innerText = "@" + t;
@@ -168,12 +167,12 @@
 
     async function del(e, id, n) {
         e.preventDefault();
-        if(n === me.n && confirm("Mesaj silinsin?")) {
+        if(n === me.n && confirm("Bu mesajı silmək istəyirsiniz?")) {
             await sb.from('messages').delete().eq('id', id);
         }
     }
 
-    function logout() { localStorage.clear(); location.reload(); }
+    function logout() { if(confirm("Çıxış edilsin?")) { localStorage.clear(); location.reload(); } }
 </script>
 </body>
 </html>
