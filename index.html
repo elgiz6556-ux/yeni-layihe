@@ -3,159 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Chat Pro Final</title>
+    <title>X-Chat Fix</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --accent: #00d2ff; --bg: #0b141a; }
-        body { margin: 0; font-family: sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; }
-        .header { padding: 15px; background: rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .msg-row { display: flex; flex-direction: column; max-width: 85%; }
+        body { margin: 0; font-family: sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* Login Ekranı */
+        #login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .login-card { background: #1c272d; padding: 40px; border-radius: 20px; text-align: center; width: 80%; max-width: 300px; }
+        .login-card input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 10px; border: none; background: #2a3942; color: #fff; box-sizing: border-box; }
+        .login-btn { width: 100%; padding: 12px; background: var(--accent); border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+
+        /* Chat */
+        .header { padding: 15px; background: #202c33; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+        .msg-row { display: flex; flex-direction: column; max-width: 80%; margin-bottom: 5px; }
         .msg-row.my { align-self: flex-end; align-items: flex-end; }
-        .msg-bubble { padding: 10px; border-radius: 12px; background: #202c33; position: relative; cursor: pointer; }
-        .my .msg-bubble { background: var(--accent); color: #000; }
-        .react-area { font-size: 12px; margin-top: 5px; background: rgba(0,0,0,0.2); display: inline-block; padding: 2px 5px; border-radius: 5px; }
-        .msg-meta { font-size: 10px; opacity: 0.5; margin-top: 3px; }
-        .input-bar { padding: 10px; background: #111b21; display: flex; gap: 8px; }
-        input { flex: 1; padding: 12px; border-radius: 20px; border: none; background: #2a3942; color: #fff; outline: none; }
-        .sidebar { position: fixed; left: -100%; top: 0; width: 80%; height: 100%; background: #111b21; transition: 0.3s; z-index: 1000; padding: 20px; }
+        .msg-bubble { padding: 10px 14px; border-radius: 15px; background: #202c33; position: relative; cursor: pointer; }
+        .my .msg-bubble { background: #005c4b; color: #fff; }
+        
+        .react-box { font-size: 13px; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 10px; margin-top: 5px; display: inline-block; }
+        .react-box:empty { display: none; }
+        
+        .msg-meta { font-size: 10px; opacity: 0.6; margin-top: 4px; display: flex; gap: 8px; }
+        .input-bar { padding: 10px; background: #202c33; display: flex; gap: 10px; }
+        .input-bar input { flex: 1; padding: 12px; border-radius: 25px; border: none; background: #2a3942; color: #fff; outline: none; }
+        
+        .sidebar { position: fixed; left: -100%; top: 0; width: 80%; height: 100%; background: #111b21; transition: 0.3s; z-index: 1000; padding: 20px; box-sizing: border-box; }
         .sidebar.open { left: 0; }
     </style>
 </head>
 <body>
 
-<div id="login" style="position:fixed; inset:0; background:var(--bg); z-index:2000; display:flex; align-items:center; justify-content:center;">
-    <div style="background:#202c33; padding:30px; border-radius:15px; text-align:center;">
-        <h2>X-Chat</h2>
-        <input type="text" id="nick" placeholder="Adınız..."><br><br>
-        <button onclick="auth()" style="width:100%; padding:10px; background:var(--accent); border:none; border-radius:10px; font-weight:bold;">Giriş</button>
+<div id="login-screen">
+    <div class="login-card">
+        <h1>X-Chat</h1>
+        <input type="text" id="userNick" placeholder="Adınız...">
+        <button class="login-btn" onclick="performLogin()">Giriş</button>
     </div>
 </div>
 
 <div class="header">
-    <button onclick="document.getElementById('side').classList.toggle('open')" style="background:none; border:none; color:#fff; font-size:20px;">☰</button>
+    <button onclick="document.getElementById('side').classList.toggle('open')" style="background:none; border:none; color:#fff; font-size:24px;">☰</button>
     <div style="text-align:center;">
         <b id="roomName">General</b>
-        <div id="online" style="font-size:10px; color:#4cd137;">Online: 1</div>
+        <div id="status" style="font-size:10px; color:#4cd137;">Online: 1 nəfər</div>
     </div>
     <div style="width:30px;"></div>
 </div>
 
 <div id="side" class="sidebar">
-    <h3>Otaqlar</h3>
-    <div onclick="changeRoom('General')" style="padding:10px; background:#2a3942; border-radius:5px; cursor:pointer;"># General</div>
-    <div onclick="let n=prompt('Otaq adı:'); if(n) changeRoom(n)" style="padding:10px; margin-top:10px; border:1px dashed #555; border-radius:5px; cursor:pointer;">+ Yeni Otaq</div>
-    <button onclick="document.getElementById('side').classList.remove('open')" style="margin-top:30px; width:100%; padding:10px; background:red; border:none; color:#fff; border-radius:5px;">Bağla</button>
+    <h3>Qruplar</h3>
+    <div onclick="switchRoom('General')" style="padding:12px; background:#2a3942; border-radius:10px; cursor:pointer; margin-bottom:10px;"># General</div>
+    <div onclick="let n=prompt('Otaq adı:'); if(n) switchRoom(n)" style="padding:12px; border:1px dashed #555; border-radius:10px; cursor:pointer; text-align:center;">+ Yeni Otaq</div>
+    <button onclick="document.getElementById('side').classList.remove('open')" style="margin-top:40px; width:100%; padding:12px; background:#ff4757; border:none; color:#fff; border-radius:10px;">Bağla</button>
 </div>
 
 <div id="chat"></div>
 
 <div class="input-bar">
-    <button onclick="document.getElementById('f').click()" style="background:none; border:none; font-size:20px;">🖼️</button>
-    <input type="file" id="f" hidden onchange="up(this)">
-    <input type="text" id="m" placeholder="Mesaj..." onkeypress="if(event.key=='Enter') send()">
-    <button onclick="send()" style="background:none; border:none; font-size:20px;">🚀</button>
+    <input type="text" id="msgInput" placeholder="Mesaj yazın..." onkeypress="if(event.key=='Enter') sendMessage()">
+    <button onclick="sendMessage()" style="background:none; border:none; font-size:24px;">🚀</button>
 </div>
 
 <script>
-    const URL = 'https://pyknspxnwnilhqsazidj.supabase.co';
-    const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
-    const sb = supabase.createClient(URL, KEY);
+    const S_URL = 'https://pyknspxnwnilhqsazidj.supabase.co';
+    const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
+    const sb = supabase.createClient(S_URL, S_KEY);
 
-    let me = JSON.parse(localStorage.getItem('user'));
-    let room = 'General';
+    let currentUser = JSON.parse(localStorage.getItem('chat_user_session'));
+    let currentRoom = 'General';
 
-    if(me) { document.getElementById('login').style.display='none'; init(); }
-
-    function auth() {
-        let n = document.getElementById('nick').value.trim();
-        if(!n) return;
-        me = { n, a: `https://ui-avatars.com/api/?name=${n}&background=random` };
-        localStorage.setItem('user', JSON.stringify(me));
-        location.reload();
+    if(currentUser) {
+        document.getElementById('login-screen').style.display = 'none';
+        startApp();
     }
 
-    function init() {
-        load();
-        sb.channel('chat').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, (p) => {
-            if(p.eventType === 'INSERT' && p.new.group_id === room) render(p.new);
-            if(p.eventType === 'DELETE') document.getElementById('msg-'+p.old.id)?.remove();
-            if(p.eventType === 'UPDATE') {
-                const b = document.querySelector(`#msg-${p.new.id} .react-area`);
-                if(b) b.innerText = (p.new.reactions && !String(p.new.reactions).includes('[object')) ? p.new.reactions : "";
+    function performLogin() {
+        const nick = document.getElementById('userNick').value.trim();
+        if(!nick) return;
+        currentUser = { nick, ava: `https://ui-avatars.com/api/?name=${nick}&background=random` };
+        localStorage.setItem('chat_user_session', JSON.stringify(currentUser));
+        document.getElementById('login-screen').style.display = 'none';
+        startApp();
+    }
+
+    function startApp() {
+        loadMessages();
+        sb.channel('main_chat').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, (payload) => {
+            if(payload.eventType === 'INSERT' && payload.new.group_id === currentRoom) {
+                renderMsg(payload.new);
+            }
+            if(payload.eventType === 'DELETE') {
+                document.getElementById('m-'+payload.old.id)?.remove();
+            }
+            if(payload.eventType === 'UPDATE') {
+                const rBox = document.querySelector(`#m-${payload.new.id} .react-box`);
+                if(rBox) {
+                    let rx = String(payload.new.reactions || "");
+                    rBox.innerText = rx.includes('[object') ? "" : rx;
+                }
             }
         }).subscribe();
-        setInterval(() => { document.getElementById('online').innerText = "Online: " + (Math.floor(Math.random()*3)+1); }, 5000);
     }
 
-    async function load() {
+    async function loadMessages() {
         document.getElementById('chat').innerHTML = "";
-        const {data} = await sb.from('messages').select('*').eq('group_id', room).order('created_at');
-        if(data) data.forEach(render);
+        const {data} = await sb.from('messages').select('*').eq('group_id', currentRoom).order('created_at', {ascending:true});
+        if(data) data.forEach(renderMsg);
     }
 
-    function render(m) {
-        if(document.getElementById('msg-'+m.id)) return;
-        const isMy = m.nickname === me.n;
-        const d = document.createElement('div');
-        d.id = 'msg-'+m.id; d.className = `msg-row ${isMy?'my':''}`;
+    function renderMsg(m) {
+        if(document.getElementById('m-'+m.id)) return;
+        const isMe = m.nickname === currentUser.nick;
+        const div = document.createElement('div');
+        div.id = 'm-'+m.id;
+        div.className = `msg-row ${isMe ? 'my' : ''}`;
         
-        let body = m.content;
-        if(body.startsWith('http')) body = `<img src="${body}" style="max-width:200px; border-radius:10px;">`;
+        let rx = String(m.reactions || "");
+        let cleanReacts = rx.includes('[object') ? "" : rx;
 
-        let r = (m.reactions && !String(m.reactions).includes('[object')) ? m.reactions : "";
-
-        d.innerHTML = `
-            <span style="font-size:10px; opacity:0.6; margin-bottom:2px;">${m.nickname}</span>
-            <div class="msg-bubble" onclick="react(${m.id})">
-                <div>${body}</div>
-                <div class="react-area">${r}</div>
+        div.innerHTML = `
+            <span style="font-size:11px; opacity:0.7; margin-bottom:3px; color:var(--accent)">${m.nickname}</span>
+            <div class="msg-bubble" onclick="addReaction(${m.id})">
+                <div>${m.content}</div>
+                <div class="react-box">${cleanReacts}</div>
             </div>
             <div class="msg-meta">
                 ${new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
-                ${isMy ? `<span onclick="del(event, ${m.id})" style="color:red; margin-left:10px;">Sil</span>` : ''}
+                ${isMe ? `<b onclick="deleteMsg(event, ${m.id})" style="color:#ff4757; cursor:pointer;">Sil</b>` : ''}
             </div>
         `;
-        document.getElementById('chat').appendChild(d);
-        document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+        const chat = document.getElementById('chat');
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
     }
 
-    async function send() {
-        const i = document.getElementById('m');
-        const v = i.value.trim(); if(!v) return;
-        i.value = "";
-        await sb.from('messages').insert([{content:v, nickname:me.n, group_id:room, sender_avatar:me.a, reactions:""}]);
+    async function sendMessage() {
+        const inp = document.getElementById('msgInput');
+        const val = inp.value.trim();
+        if(!val) return;
+        inp.value = "";
+        await sb.from('messages').insert([{ content: val, nickname: currentUser.nick, group_id: currentRoom, sender_avatar: currentUser.ava, reactions: "" }]);
     }
 
-    async function del(e, id) {
+    async function deleteMsg(e, id) {
         e.stopPropagation();
-        if(!confirm("Silinsin?")) return;
-        document.getElementById('msg-'+id)?.remove();
-        await sb.from('messages').delete().eq('id', id);
-    }
-
-    async function react(id) {
-        const e = prompt("Emoji?");
-        if(!e) return;
-        const {data} = await sb.from('messages').select('reactions').eq('id', id).single();
-        let cur = (data.reactions && !String(data.reactions).includes('[object')) ? data.reactions : "";
-        await sb.from('messages').update({reactions: cur + e}).eq('id', id);
-    }
-
-    async function up(el) {
-        const f = el.files[0]; if(!f) return;
-        const n = Date.now()+f.name;
-        const {data} = await sb.storage.from('audio_messages').upload(n, f);
-        if(data) {
-            const u = URL + "/storage/v1/object/public/audio_messages/" + n;
-            await sb.from('messages').insert([{content:u, nickname:me.n, group_id:room, sender_avatar:me.a, reactions:""}]);
+        if(confirm("Silinsin?")) {
+            document.getElementById('m-'+id)?.remove();
+            await sb.from('messages').delete().eq('id', id);
         }
     }
 
-    function changeRoom(n) {
-        room = n; document.getElementById('roomName').innerText = n;
+    async function addReaction(id) {
+        const emo = prompt("Emoji?");
+        if(!emo) return;
+        
+        const {data} = await sb.from('messages').select('reactions').eq('id', id).single();
+        let currentR = String(data.reactions || "");
+        if(currentR.includes('[object')) currentR = "";
+        
+        const finalR = currentR + emo;
+        // Ekranda dərhal göstər
+        const rBox = document.querySelector(`#m-${id} .react-box`);
+        if(rBox) rBox.innerText = finalR;
+
+        await sb.from('messages').update({ reactions: finalR }).eq('id', id);
+    }
+
+    function switchRoom(name) {
+        currentRoom = name;
+        document.getElementById('roomName').innerText = name;
         document.getElementById('side').classList.remove('open');
-        load();
+        loadMessages();
     }
 </script>
 </body>
