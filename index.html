@@ -3,307 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Chat Elite Master</title>
+    <title>X-Chat PRO</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --accent: #00d2ff; --bg: #050a10; --panel: rgba(20, 30, 45, 0.95); --msg-me: #00d2ff; --msg-other: #1c2733; --text: #e2e8f0; }
-        
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
-
-        /* Neumorphic & Glass Design */
-        .glass { background: var(--panel); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); }
-
-        /* Custom Scroll */
-        #chat::-webkit-scrollbar { width: 4px; }
-        #chat::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
-
-        /* Header */
-        .header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); z-index: 100; }
-        .room-name { font-weight: 800; letter-spacing: 1px; color: var(--accent); text-transform: uppercase; }
-
-        /* Chat Area */
-        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; background: radial-gradient(circle at center, #0a1420 0%, #050a10 100%); }
-        
-        /* Message Styling */
-        .msg-container { display: flex; flex-direction: column; max-width: 85%; gap: 4px; position: relative; animation: fadeIn 0.3s ease; }
-        .msg-container.my { align-self: flex-end; }
-        
-        .reply-preview-in-msg { font-size: 11px; background: rgba(0,0,0,0.2); padding: 5px 10px; border-left: 3px solid var(--accent); border-radius: 5px; margin-bottom: -5px; opacity: 0.8; }
-
-        .bubble { padding: 12px 16px; border-radius: 20px; font-size: 15px; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.2); transition: 0.2s; cursor: pointer; }
-        .my .bubble { background: var(--msg-me); color: #000; border-bottom-right-radius: 4px; font-weight: 500; }
-        .other .bubble { background: var(--msg-other); border-bottom-left-radius: 4px; }
-        .bubble:active { transform: scale(0.98); }
-
-        .nickname { font-size: 11px; font-weight: bold; margin-bottom: 2px; display: block; opacity: 0.7; }
-        .my .nickname { text-align: right; }
-
-        /* Reactions */
-        .reaction-bar { display: flex; gap: 4px; margin-top: 5px; flex-wrap: wrap; }
-        .react-item { background: rgba(255,255,255,0.1); padding: 2px 7px; border-radius: 12px; font-size: 12px; border: 1px solid rgba(255,255,255,0.05); }
-
-        /* Bottom Controls */
-        .reply-bar { display: none; padding: 10px 20px; background: #16212e; border-top: 2px solid var(--accent); justify-content: space-between; align-items: center; }
-        
-        .input-area { padding: 15px 20px; display: flex; gap: 12px; align-items: center; background: #0a1420; }
-        .input-wrapper { flex: 1; background: #1c2733; border-radius: 25px; padding: 5px 15px; display: flex; align-items: center; }
-        input#mainInp { flex: 1; background: transparent; border: none; color: #fff; padding: 10px; outline: none; font-size: 15px; }
-        
-        .action-btn { width: 42px; height: 42px; border-radius: 50%; border: none; background: #1c2733; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.3s; }
-        .action-btn.send { background: var(--accent); color: #000; }
-        .action-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,210,255,0.3); }
-
-        /* Panels & Modals */
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal { background: #16212e; width: 100%; max-width: 400px; border-radius: 30px; padding: 30px; border: 1px solid rgba(255,255,255,0.1); position: relative; }
-        .modal h2 { margin-top: 0; color: var(--accent); }
-        .form-input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 15px; border: 1px solid #2d3a4d; background: #0a1420; color: #fff; outline: none; }
-        .form-btn { width: 100%; padding: 15px; border-radius: 15px; border: none; background: var(--accent); color: #000; font-weight: 800; cursor: pointer; text-transform: uppercase; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        :root { --accent: #00d2ff; --bg: #050a10; --panel: #16212e; }
+        body { margin: 0; font-family: sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        .overlay { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .modal { background: var(--panel); width: 100%; max-width: 350px; padding: 30px; border-radius: 25px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        .form-input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #2d3a4d; background: #0a1420; color: #fff; outline: none; box-sizing: border-box; }
+        .form-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--accent); color: #000; font-weight: bold; cursor: pointer; }
+        .header { padding: 15px; background: var(--panel); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d3a4d; }
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; }
+        .msg-box { display: flex; flex-direction: column; max-width: 80%; gap: 3px; }
+        .msg-box.my { align-self: flex-end; align-items: flex-end; }
+        .bubble { padding: 12px 16px; border-radius: 18px; position: relative; font-size: 15px; }
+        .my .bubble { background: var(--accent); color: #000; border-bottom-right-radius: 2px; }
+        .other .bubble { background: var(--panel); border-bottom-left-radius: 2px; }
+        .reply-tag { font-size: 11px; opacity: 0.6; padding-left: 5px; }
+        .input-area { padding: 15px; background: var(--panel); display: flex; gap: 10px; align-items: center; }
+        #mainInp { flex: 1; padding: 12px; border-radius: 20px; border: none; background: #0a1420; color: #fff; outline: none; }
+        .btn-circle { width: 40px; height: 40px; border-radius: 50%; border: none; background: #2d3a4d; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .reply-preview { display: none; padding: 10px; background: #1c2733; border-left: 4px solid var(--accent); justify-content: space-between; }
     </style>
 </head>
 <body>
 
-<div id="authPanel" class="overlay" style="display: flex;">
+<div id="authBox" class="overlay">
     <div class="modal">
-        <h2 id="authTitle">X-Elite Pro</h2>
-        <div id="loginForm">
-            <input type="text" id="uNick" class="form-input" placeholder="Ləqəb">
-            <input type="password" id="uPass" class="form-input" placeholder="Parol">
-            <button onclick="handleAuth()" class="form-btn">Daxil Ol / Qeydiyyat</button>
-        </div>
+        <h2 style="color:var(--accent)">X-Chat PRO</h2>
+        <input type="text" id="uN" class="form-input" placeholder="Ləqəb">
+        <input type="password" id="uP" class="form-input" placeholder="Parol">
+        <button onclick="login()" class="form-btn">DAXİL OL</button>
     </div>
 </div>
 
-<div class="header glass">
-    <div style="display: flex; gap: 15px;">
-        <button class="action-btn" onclick="openModal('dmModal')">📩</button>
-        <button class="action-btn" onclick="openModal('profileModal')">👤</button>
-    </div>
-    <div class="room-name" id="currentRoomDisplay">General</div>
-    <button class="action-btn" onclick="openModal('settingsModal')">⚙️</button>
+<div class="header">
+    <button class="btn-circle" onclick="showM('dmM')">📩</button>
+    <b id="roomTitle">General</b>
+    <button class="btn-circle" onclick="showM('setM')">⚙️</button>
 </div>
 
 <div id="chat"></div>
 
-<div id="replyBar" class="reply-bar">
-    <div style="border-left: 3px solid var(--accent); padding-left: 10px;">
-        <div id="replyUser" style="font-size: 11px; font-weight: bold; color: var(--accent);"></div>
-        <div id="replyContent" style="font-size: 13px; opacity: 0.7;"></div>
-    </div>
-    <button onclick="cancelReply()" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer;">✕</button>
+<div id="replyBar" class="reply-preview">
+    <div id="replyTxt" style="font-size: 12px;"></div>
+    <button onclick="cancelR()" style="background:none; border:none; color:#fff;">✕</button>
 </div>
 
-<div class="input-area glass">
-    <button class="action-btn" onclick="document.getElementById('fileInp').click()">📎</button>
-    <input type="file" id="fileInp" style="display:none" onchange="uploadMedia(this)">
-    <div class="input-wrapper">
-        <input type="text" id="mainInp" placeholder="Mesajınızı yazın..." onkeypress="if(event.key=='Enter') sendMessage()">
-    </div>
-    <button id="voiceBtn" class="action-btn" onmousedown="startVoice()" onmouseup="endVoice()" ontouchstart="startVoice()" ontouchend="endVoice()">🎤</button>
-    <button class="action-btn send" onclick="sendMessage()">🚀</button>
+<div class="input-area">
+    <button class="btn-circle" onclick="document.getElementById('fInp').click()">➕</button>
+    <input type="file" id="fInp" style="display:none" onchange="up(this)">
+    <input type="text" id="mainInp" placeholder="Mesaj..." onkeypress="if(event.key=='Enter') send()">
+    <button class="btn-circle" onclick="send()" style="background:var(--accent); color:#000;">🚀</button>
 </div>
 
-<div id="dmModal" class="overlay" onclick="closeModals()">
+<div id="dmM" class="overlay" style="display:none" onclick="this.style.display='none'">
     <div class="modal" onclick="event.stopPropagation()">
-        <h2>DM Başlat</h2>
-        <input type="text" id="dmTarget" class="form-input" placeholder="İstifadəçi adı...">
-        <button onclick="startPrivate()" class="form-btn">Söhbətə Başla</button>
+        <h3>Şəxsi Mesaj</h3>
+        <input type="text" id="targetU" class="form-input" placeholder="İstifadəçi adı">
+        <button onclick="startDM()" class="form-btn">BAŞLA</button>
     </div>
 </div>
 
-<div id="profileModal" class="overlay" onclick="closeModals()">
+<div id="setM" class="overlay" style="display:none" onclick="this.style.display='none'">
     <div class="modal" onclick="event.stopPropagation()">
-        <h2>Profilim</h2>
-        <p id="profileUserDisplay" style="font-weight: bold; font-size: 18px;"></p>
-        <hr style="opacity: 0.1; margin: 20px 0;">
-        <label>Yeni Parol:</label>
-        <input type="password" id="changePassInp" class="form-input" placeholder="Yeni parol...">
-        <button onclick="updatePassword()" class="form-btn">Yadda Saxla</button>
-        <button onclick="logout()" style="margin-top: 15px; background: #333; color: #fff;" class="form-btn">Çıxış Et</button>
-    </div>
-</div>
-
-<div id="settingsModal" class="overlay" onclick="closeModals()">
-    <div class="modal" onclick="event.stopPropagation()">
-        <h2>Dizayn</h2>
-        <label>Tətbiq Rəngi:</label>
-        <input type="color" id="themeColor" class="form-input" style="height: 50px;" onchange="updateTheme(this.value)">
-        <label>Fon Şəkli (URL):</label>
-        <input type="text" id="bgUrl" class="form-input" placeholder="https://...">
-        <button onclick="updateBackground()" class="form-btn">Tətbiq Et</button>
+        <h3>Ayarlar</h3>
+        <label>Rəng Dəyiş:</label>
+        <input type="color" onchange="document.documentElement.style.setProperty('--accent', this.value)" style="width:100%; height:40px; margin:10px 0;">
+        <button onclick="localStorage.clear(); location.reload();" class="form-btn" style="background:#ff4d4d">ÇIXIŞ ET</button>
     </div>
 </div>
 
 <script>
-    const SB_URL = 'https://pyknspxnwnilhqsazidj.supabase.co';
-    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
-    const sb = supabase.createClient(SB_URL, SB_KEY);
+    const S_U = 'https://pyknspxnwnilhqsazidj.supabase.co';
+    const S_K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
+    const sb = supabase.createClient(S_U, S_K);
 
-    let me = JSON.parse(localStorage.getItem('elite_master_user'));
-    let currentRoom = 'General';
-    let replyData = null;
+    let me = JSON.parse(localStorage.getItem('pro_user_v1'));
+    let room = 'General';
+    let rData = null;
 
-    if(me) { document.getElementById('authPanel').style.display='none'; init(); }
+    if(me) { document.getElementById('authBox').style.display='none'; init(); }
 
-    function handleAuth() {
-        const n = document.getElementById('uNick').value.trim();
-        const p = document.getElementById('uPass').value.trim();
-        if(!n || !p) return alert("Bütün xanaları doldurun!");
-        me = { n, p, a: `https://ui-avatars.com/api/?name=${n}&background=random` };
-        localStorage.setItem('elite_master_user', JSON.stringify(me));
+    function login() {
+        const n = document.getElementById('uN').value.trim();
+        const p = document.getElementById('uP').value.trim();
+        if(!n || !p) return;
+        me = { n, p };
+        localStorage.setItem('pro_user_v1', JSON.stringify(me));
         location.reload();
     }
 
     function init() {
-        document.getElementById('profileUserDisplay').innerText = "Ləqəb: " + me.n;
-        loadMessages();
-        
-        sb.channel('realtime').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, p => {
-            if(p.eventType === 'INSERT' && p.new.group_id === currentRoom) renderMessage(p.new);
+        load();
+        sb.channel('chat').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, p => {
+            if(p.eventType === 'INSERT' && p.new.group_id === room) render(p.new);
             if(p.eventType === 'DELETE') document.getElementById('msg-'+p.old.id)?.remove();
-            if(p.eventType === 'UPDATE') updateMessageUI(p.new);
         }).subscribe();
     }
 
-    async function loadMessages() {
+    async function load() {
         document.getElementById('chat').innerHTML = "";
-        const {data} = await sb.from('messages').select('*').eq('group_id', currentRoom).order('created_at');
-        if(data) data.forEach(renderMessage);
+        const {data} = await sb.from('messages').select('*').eq('group_id', room).order('created_at');
+        if(data) data.forEach(render);
     }
 
-    function renderMessage(m) {
+    function render(m) {
         if(document.getElementById('msg-'+m.id)) return;
         const isMy = m.nickname === me.n;
-        const wrapper = document.createElement('div');
-        wrapper.id = 'msg-'+m.id;
-        wrapper.className = `msg-container ${isMy ? 'my' : 'other'}`;
+        const div = document.createElement('div');
+        div.id = 'msg-'+m.id; div.className = `msg-box ${isMy?'my':''}`;
         
         let body = m.content;
-        if(body.startsWith('http')) {
-            if(body.includes('.mp3')) body = `<audio src="${body}" controls style="max-width:200px"></audio>`;
-            else body = `<img src="${body}" style="max-width:100%; border-radius:15px; border: 1px solid rgba(255,255,255,0.1);">`;
-        }
+        if(body.startsWith('http')) body = `<img src="${body}" style="max-width:200px; border-radius:10px;">`;
 
-        wrapper.innerHTML = `
-            <span class="nickname">${m.nickname}</span>
-            ${m.reply_to ? `<div class="reply-preview-in-msg">⤺ ${m.reply_to}</div>` : ''}
-            <div class="bubble" oncontextmenu="openMsgMenu(event, ${m.id}, '${m.nickname}', '${m.content}')" onclick="handleQuickReply(${m.id}, '${m.nickname}', '${m.content}')">
+        div.innerHTML = `
+            <span style="font-size:10px; color:var(--accent);">${m.nickname}</span>
+            ${m.reply_to ? `<div class="reply-tag">⤺ ${m.reply_to}</div>` : ''}
+            <div class="bubble" onclick="setR(${m.id},'${m.nickname}','${m.content}')" oncontextmenu="del(event, ${m.id},'${m.nickname}')">
                 ${body}
-                <div style="font-size:9px; opacity:0.5; text-align:right; margin-top:5px;">${new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
             </div>
-            <div class="reaction-bar" id="reacts-${m.id}">${parseReacts(m.reactions)}</div>
         `;
-        const chat = document.getElementById('chat');
-        chat.appendChild(wrapper);
-        chat.scrollTop = chat.scrollHeight;
+        document.getElementById('chat').appendChild(div);
+        document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
-    function parseReacts(json) {
-        try {
-            const r = JSON.parse(json || '{}');
-            return Object.entries(r).map(([emoji, count]) => `<span class="react-item">${emoji} ${count}</span>`).join('');
-        } catch(e) { return ''; }
+    async function send() {
+        const i = document.getElementById('mainInp');
+        if(!i.value.trim()) return;
+        const txt = i.value; i.value = "";
+        const reply = rData ? `${rData.n}: ${rData.t}` : null;
+        cancelR();
+        await sb.from('messages').insert([{ content: txt, nickname: me.n, group_id: room, reply_to: reply }]);
     }
 
-    async function sendMessage() {
-        const inp = document.getElementById('mainInp');
-        const txt = inp.value.trim();
-        if(!txt) return;
-        const sendData = {
-            content: txt,
-            nickname: me.n,
-            group_id: currentRoom,
-            reply_to: replyData ? `${replyData.n}: ${replyData.t}` : null,
-            reactions: "{}"
-        };
-        inp.value = "";
-        cancelReply();
-        await sb.from('messages').insert([sendData]);
-    }
-
-    // Advanced Reaction & Delete Menu
-    function openMsgMenu(e, id, nick, txt) {
-        e.preventDefault();
-        const emo = prompt("Reaksiya (və ya 'SİL' yazın):", "❤️");
-        if(!emo) return;
-        if(emo.toUpperCase() === 'SİL') {
-            if(nick === me.n) deleteMsg(id);
-            else alert("Ancaq öz mesajınızı silə bilərsiniz!");
-        } else {
-            addReaction(id, emo);
-        }
-    }
-
-    async function addReaction(id, emoji) {
-        const {data} = await sb.from('messages').select('reactions').eq('id', id).single();
-        let r = JSON.parse(data.reactions || '{}');
-        // Bir nəfər 1 reaksiya məntiqi (bəsitləşdirilmiş)
-        r[emoji] = (r[emoji] || 0) + 1;
-        await sb.from('messages').update({ reactions: JSON.stringify(r) }).eq('id', id);
-    }
-
-    async function deleteMsg(id) {
-        if(confirm("Bu mesajı həmişəlik silmək istəyirsiniz?")) {
-            await sb.from('messages').delete().eq('id', id);
-        }
-    }
-
-    function handleQuickReply(id, nick, txt) {
-        replyData = { id, n: nick, t: txt.substring(0, 30) };
+    function setR(id, n, t) {
+        rData = { id, n, t: t.substring(0,20) };
         document.getElementById('replyBar').style.display = 'flex';
-        document.getElementById('replyUser').innerText = nick;
-        document.getElementById('replyContent').innerText = txt;
+        document.getElementById('replyTxt').innerText = "Cavab: " + n;
+    }
+    function cancelR() { rData = null; document.getElementById('replyBar').style.display = 'none'; }
+
+    function showM(id) { document.getElementById(id).style.display = 'flex'; }
+    function startDM() {
+        const t = document.getElementById('targetU').value.trim();
+        if(!t) return;
+        room = [me.n, t].sort().join("_dm_");
+        document.getElementById('roomTitle').innerText = "@"+t;
+        document.getElementById('dmM').style.display = 'none';
+        load();
     }
 
-    function cancelReply() { replyData = null; document.getElementById('replyBar').style.display = 'none'; }
-
-    // Private Messaging
-    function startPrivate() {
-        const target = document.getElementById('dmTarget').value.trim();
-        if(!target) return;
-        currentRoom = [me.n, target].sort().join("_dm_");
-        document.getElementById('currentRoomDisplay').innerText = "@" + target;
-        closeModals();
-        loadMessages();
+    async function del(e, id, n) {
+        e.preventDefault();
+        if(n === me.n && confirm("Silinsin?")) await sb.from('messages').delete().eq('id', id);
     }
 
-    // Media
-    async function uploadMedia(el) {
+    async function up(el) {
         const f = el.files[0]; if(!f) return;
         const fn = Date.now() + "_" + f.name;
         const {data} = await sb.storage.from('audio_messages').upload(fn, f);
         if(data) {
-            const url = `${SB_URL}/storage/v1/object/public/audio_messages/${fn}`;
-            await sb.from('messages').insert([{ content: url, nickname: me.n, group_id: currentRoom }]);
+            const url = `${S_U}/storage/v1/object/public/audio_messages/${fn}`;
+            await sb.from('messages').insert([{ content: url, nickname: me.n, group_id: room }]);
         }
     }
-
-    // Voice Simulation
-    function startVoice() { document.getElementById('voiceBtn').style.background = 'red'; }
-    function endVoice() { 
-        document.getElementById('voiceBtn').style.background = '#1c2733';
-        alert("Səsli mesaj qeydə alındı (Real göndəriş üçün storage aktiv edilməlidir)"); 
-    }
-
-    // Profile & Theme
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModals() { document.querySelectorAll('.overlay').forEach(o => { if(o.id !== 'authPanel') o.style.display='none'; }); }
-
-    function updateTheme(c) {
-        document.documentElement.style.setProperty('--accent', c);
-        document.documentElement.style.setProperty('--msg-me', c);
-    }
-
-    function updateBackground() {
-        const url = document.getElementById('bgUrl').value;
-        document.getElementById('chat').style.background = `url('${url}') center/cover`;
-        closeModals();
-    }
-
-    function logout() { localStorage.clear(); location.reload(); }
 </script>
 </body>
 </html>
+ 
