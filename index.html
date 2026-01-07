@@ -3,62 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Elite Obsidian</title>
+    <title>X-Elite Midnight</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #000000; --panel: #111111; --accent: #ffffff; --text: #f5f5f7; --msg-me: #2c2c2e; --msg-other: #1c1c1e; }
+        :root { --bg: #0f172a; --panel: #1e293b; --accent: #38bdf8; --text: #f1f5f9; --msg-me: #0284c7; --msg-other: #334155; }
         
-        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; font-family: 'Inter', system-ui, sans-serif; }
         body { margin: 0; background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Smooth Entry Animation */
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Premium Auth Screen */
+        /* Login Screen */
         .auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .auth-card { width: 85%; max-width: 320px; animation: slideUp 0.6s ease-out; }
-        .auth-card h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; margin-bottom: 40px; text-align: center; }
-        .auth-input { width: 100%; background: var(--panel); border: 1px solid #222; border-radius: 12px; padding: 16px; color: #fff; margin-bottom: 12px; outline: none; font-size: 16px; }
-        .auth-input:focus { border-color: #444; }
-        .auth-btn { width: 100%; background: var(--accent); color: #000; border: none; border-radius: 12px; padding: 16px; font-weight: 600; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .auth-card { width: 90%; max-width: 340px; background: var(--panel); padding: 30px; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); text-align: center; }
+        .auth-input { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 14px; color: #fff; margin-bottom: 12px; outline: none; }
+        .auth-btn { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 12px; padding: 14px; font-weight: 700; cursor: pointer; }
 
-        /* Clean Header */
-        .header { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 0.5px solid #222; background: rgba(0,0,0,0.8); backdrop-filter: saturate(180%) blur(20px); z-index: 100; }
-        .room-info { display: flex; flex-direction: column; }
-        .room-name { font-weight: 600; font-size: 17px; }
-        .room-status { font-size: 12px; color: #86868b; }
-
-        /* Navigation Circle Buttons */
-        .nav-btn { width: 38px; height: 38px; border-radius: 50%; background: #1c1c1e; border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
-        .nav-btn:active { transform: scale(0.9); background: #2c2c2e; }
+        /* Header */
+        .header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .room-name { font-weight: 700; font-size: 18px; color: var(--accent); }
+        .icon-btn { width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.05); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
         /* Chat Timeline */
-        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
-        .msg-group { display: flex; flex-direction: column; max-width: 80%; position: relative; animation: slideUp 0.3s ease-out; }
-        .msg-group.my { align-self: flex-end; }
-
-        .sender-name { font-size: 11px; color: #86868b; margin-bottom: 4px; margin-left: 12px; }
-        .my .sender-name { text-align: right; margin-right: 12px; }
-
-        .bubble { padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; letter-spacing: -0.2px; }
-        .my .bubble { background: var(--msg-me); color: #fff; border-bottom-right-radius: 4px; }
-        .other .bubble { background: var(--msg-other); color: #fff; border-bottom-left-radius: 4px; }
-
-        .rep-info { font-size: 11px; background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 8px; margin-bottom: 4px; opacity: 0.6; }
-
-        /* Premium Input Area */
-        .input-container { padding: 15px 20px 35px 20px; background: var(--bg); border-top: 0.5px solid #222; }
-        .input-wrapper { background: #1c1c1e; border-radius: 24px; padding: 4px 8px 4px 16px; display: flex; align-items: center; gap: 10px; }
-        #mainInp { flex: 1; background: transparent; border: none; color: #fff; padding: 12px 0; outline: none; font-size: 16px; }
+        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
+        .msg-wrapper { display: flex; flex-direction: column; max-width: 80%; }
+        .msg-wrapper.my { align-self: flex-end; }
         
-        .send-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #000; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .sender { font-size: 11px; opacity: 0.5; margin: 0 10px 4px; }
+        .my .sender { text-align: right; }
 
-        /* Modals */
-        .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: none; align-items: flex-end; }
-        .sheet { width: 100%; background: #1c1c1e; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 30px 20px; animation: slideUp 0.3s ease-out; }
-        .sheet h2 { margin-top: 0; font-size: 20px; margin-bottom: 20px; }
+        .bubble { padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.5; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); position: relative; }
+        .my .bubble { background: var(--msg-me); border-bottom-right-radius: 4px; }
+        .other .bubble { background: var(--msg-other); border-bottom-left-radius: 4px; }
 
-        /* Custom Scrollbar */
+        .rep-info { font-size: 11px; color: var(--accent); background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 8px; margin-bottom: 4px; }
+
+        /* Input Area */
+        .input-area { padding: 15px 20px; background: var(--panel); display: flex; align-items: center; gap: 10px; border-top: 1px solid rgba(255,255,255,0.05); }
+        #mainInp { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 25px; padding: 12px 18px; color: #fff; outline: none; font-size: 15px; }
+        .send-btn { width: 45px; height: 45px; border-radius: 50%; background: var(--accent); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+        /* Hide Scrollbar */
         #chat::-webkit-scrollbar { width: 0px; }
     </style>
 </head>
@@ -66,54 +49,29 @@
 
 <div id="authBox" class="auth-overlay">
     <div class="auth-card">
-        <h1>X-Elite</h1>
+        <h1 style="margin-top:0">X-Elite</h1>
         <input type="text" id="uN" class="auth-input" placeholder="Ləqəb">
         <input type="password" id="uP" class="auth-input" placeholder="Parol">
-        <button onclick="login()" class="auth-btn">Davam Et</button>
-        <p style="color: #444; text-align: center; font-size: 12px; margin-top: 20px;">Premium & Təhlükəsiz Ünsiyyət</p>
+        <button onclick="login()" class="auth-btn">Daxil Ol</button>
     </div>
 </div>
 
 <div class="header">
-    <button class="nav-btn" onclick="openSheet('dmSheet')">📩</button>
-    <div class="room-info" onclick="location.reload()">
-        <span class="room-name" id="rn">General Chat</span>
-        <span class="room-status" id="onlineCount">Şifrələnmiş əlaqə</span>
-    </div>
-    <button class="nav-btn" onclick="openSheet('profileSheet')">👤</button>
+    <button class="icon-btn" onclick="openDM()">📩</button>
+    <div class="room-name" id="rn">General</div>
+    <button class="icon-btn" onclick="logout()">✕</button>
 </div>
 
 <div id="chat"></div>
 
-<div id="replyBar" style="display:none; padding:8px 25px; background: #000; border-bottom: 0.5px solid #222; font-size: 12px; color: #86868b; display: flex; justify-content: space-between;">
-    <span id="replyTo"></span>
-    <span onclick="cancelReply()">✕</span>
+<div id="repBar" style="display:none; padding:10px 20px; background: #1e293b; border-bottom: 1px solid var(--accent); font-size: 12px; display: flex; justify-content: space-between;">
+    <span id="repTxt" style="color: var(--accent)"></span>
+    <span onclick="cancelR()" style="cursor:pointer">✕</span>
 </div>
 
-<div class="input-container">
-    <div class="input-wrapper">
-        <button style="background:none; border:none; color:#86868b; font-size:20px;" onclick="document.getElementById('fInp').click()">+</button>
-        <input type="file" id="fInp" style="display:none" onchange="upload(this)">
-        <input type="text" id="mainInp" placeholder="Mesaj" onkeypress="if(event.key=='Enter') send()">
-        <button class="send-icon" onclick="send()">↑</button>
-    </div>
-</div>
-
-<div id="dmSheet" class="sheet-overlay" onclick="closeSheet()">
-    <div class="sheet" onclick="event.stopPropagation()">
-        <h2>Yeni Söhbət</h2>
-        <input type="text" id="targetU" class="auth-input" placeholder="İstifadəçinin ləqəbi">
-        <button onclick="startDM()" class="auth-btn">Söhbəti Başlat</button>
-    </div>
-</div>
-
-<div id="profileSheet" class="sheet-overlay" onclick="closeSheet()">
-    <div class="sheet" onclick="event.stopPropagation()">
-        <h2>Profil</h2>
-        <p id="myU" style="margin-bottom: 20px; font-weight: bold;"></p>
-        <button onclick="logout()" class="auth-btn" style="background: #ff3b30; color: #fff;">Hesabdan Çıx</button>
-        <button onclick="closeSheet()" class="auth-btn" style="background: transparent; color: #fff; margin-top: 10px;">Bağla</button>
-    </div>
+<div class="input-area">
+    <input type="text" id="mainInp" placeholder="Mesaj yazın..." onkeypress="if(event.key=='Enter') send()">
+    <button class="send-btn" onclick="send()">🚀</button>
 </div>
 
 <script>
@@ -121,9 +79,9 @@
     const S_K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(S_U, S_K);
 
-    let me = JSON.parse(localStorage.getItem('x_obsidian_user'));
-    let currentRoom = 'General';
-    let replyData = null;
+    let me = JSON.parse(localStorage.getItem('x_mid_user'));
+    let room = 'General';
+    let rData = null;
 
     if(me) { document.getElementById('authBox').style.display='none'; init(); }
 
@@ -132,85 +90,86 @@
         const p = document.getElementById('uP').value.trim();
         if(!n || !p) return;
         me = { n, p };
-        localStorage.setItem('x_obsidian_user', JSON.stringify(me));
+        localStorage.setItem('x_mid_user', JSON.stringify(me));
         location.reload();
     }
 
     function init() {
-        document.getElementById('myU').innerText = "@" + me.n;
         load();
-        sb.channel('obsidian').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, p => {
-            if(p.eventType === 'INSERT' && p.new.group_id === currentRoom) render(p.new);
+        sb.channel('mid_chat').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, p => {
+            if(p.eventType === 'INSERT' && p.new.group_id === room) render(p.new);
             if(p.eventType === 'DELETE') document.getElementById('msg-'+p.old.id)?.remove();
         }).subscribe();
     }
 
     async function load() {
-        document.getElementById('chat').innerHTML = "";
-        const {data} = await sb.from('messages').select('*').eq('group_id', currentRoom).order('created_at');
+        const chat = document.getElementById('chat');
+        chat.innerHTML = "<p style='text-align:center; opacity:0.5;'>Yüklənir...</p>";
+        const {data, error} = await sb.from('messages').select('*').eq('group_id', room).order('created_at');
+        chat.innerHTML = "";
         if(data) data.forEach(render);
     }
 
     function render(m) {
         if(document.getElementById('msg-'+m.id)) return;
         const isMy = m.nickname === me.n;
-        const group = document.createElement('div');
-        group.id = 'msg-'+m.id;
-        group.className = `msg-group ${isMy ? 'my' : 'other'}`;
+        const div = document.createElement('div');
+        div.id = 'msg-'+m.id;
+        div.className = `msg-wrapper ${isMy ? 'my' : 'other'}`;
         
-        let body = m.content;
-        if(body.startsWith('http')) body = `<img src="${body}" style="max-width:100%; border-radius:12px; margin-top:5px;">`;
-
-        group.innerHTML = `
-            <span class="sender-name">${m.nickname}</span>
+        div.innerHTML = `
+            <span class="sender">${m.nickname}</span>
             ${m.reply_to ? `<div class="rep-info">⤺ ${m.reply_to}</div>` : ''}
-            <div class="bubble" onclick="setReply(${m.id},'${m.nickname}','${m.content}')" oncontextmenu="del(event, ${m.id}, '${m.nickname}')">
-                ${body}
+            <div class="bubble" onclick="setR(${m.id},'${m.nickname}','${m.content}')" oncontextmenu="del(event, ${m.id},'${m.nickname}')">
+                ${m.content}
             </div>
         `;
-        document.getElementById('chat').appendChild(group);
+        document.getElementById('chat').appendChild(div);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
     async function send() {
         const i = document.getElementById('mainInp');
-        if(!i.value.trim()) return;
-        const txt = i.value; i.value = "";
-        const r = replyData ? `${replyData.n}: ${replyData.t}` : null;
-        cancelReply();
-        await sb.from('messages').insert([{ content: txt, nickname: me.n, group_id: currentRoom, reply_to: r }]);
+        const txt = i.value.trim();
+        if(!txt) return;
+        
+        i.value = ""; // İnputu dərhal təmizlə ki, sürətli hiss olunsun
+        const r = rData ? `${rData.n}: ${rData.t}` : null;
+        cancelR();
+
+        const { error } = await sb.from('messages').insert([{ 
+            content: txt, 
+            nickname: me.n, 
+            group_id: room, 
+            reply_to: r 
+        }]);
+
+        if(error) {
+            console.error(error);
+            alert("Xəta: Mesaj göndərilmədi.");
+            i.value = txt; // Xəta olsa mesajı geri qaytar
+        }
     }
 
-    function setReply(id, n, t) {
-        replyData = { id, n, t: t.substring(0,25) };
-        document.getElementById('replyBar').style.display = 'flex';
-        document.getElementById('replyTo').innerText = "Cavablanır: " + n;
+    function setR(id, n, t) {
+        rData = { id, n, t: t.substring(0,20) };
+        document.getElementById('repBar').style.display = 'flex';
+        document.getElementById('repTxt').innerText = "Cavab: " + n;
     }
-    function cancelReply() { replyData = null; document.getElementById('replyBar').style.display = 'none'; }
+    function cancelR() { rData = null; document.getElementById('repBar').style.display = 'none'; }
 
-    function openSheet(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeSheet() { document.querySelectorAll('.sheet-overlay').forEach(s => s.style.display='none'); }
-
-    function startDM() {
-        const t = document.getElementById('targetU').value.trim();
+    function openDM() {
+        const t = prompt("Kiminlə danışmaq istəyirsiniz? (Ləqəb)");
         if(!t) return;
-        currentRoom = [me.n, t].sort().join("_dm_");
+        room = [me.n, t].sort().join("_dm_");
         document.getElementById('rn').innerText = "@" + t;
-        closeSheet(); load();
+        load();
     }
 
     async function del(e, id, n) {
         e.preventDefault();
-        if(n === me.n && confirm("Silinsin?")) await sb.from('messages').delete().eq('id', id);
-    }
-
-    async function upload(el) {
-        const f = el.files[0]; if(!f) return;
-        const fn = Date.now() + "_" + f.name;
-        const {data} = await sb.storage.from('audio_messages').upload(fn, f);
-        if(data) {
-            const url = `${S_U}/storage/v1/object/public/audio_messages/${fn}`;
-            await sb.from('messages').insert([{ content: url, nickname: me.n, group_id: currentRoom }]);
+        if(n === me.n && confirm("Mesaj silinsin?")) {
+            await sb.from('messages').delete().eq('id', id);
         }
     }
 
@@ -218,4 +177,3 @@
 </script>
 </body>
 </html>
- 
