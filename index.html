@@ -3,130 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Chat Pro</title>
+    <title>X-Chat PRO Stable</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --accent: #00d2ff; --bg: #0b141a; }
-        body { margin: 0; font-family: sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
-        .header { padding: 15px; background: #202c33; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; }
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .msg-row { display: flex; flex-direction: column; max-width: 85%; }
-        .msg-row.my { align-self: flex-end; align-items: flex-end; }
-        .msg-bubble { padding: 12px; border-radius: 15px; background: #202c33; cursor: pointer; position: relative; }
-        .my .msg-bubble { background: #005c4b; }
-        .react-box { font-size: 13px; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 10px; margin-top: 5px; display: inline-block; }
-        .msg-meta { font-size: 10px; opacity: 0.6; margin-top: 5px; display: flex; gap: 10px; }
-        .input-bar { padding: 12px; background: #111b21; display: flex; gap: 10px; }
-        input { flex: 1; padding: 12px; border-radius: 25px; border: none; background: #2a3942; color: #fff; outline: none; }
-        #login { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        :root { --accent: #00d2ff; --bg: #0b141a; --my-msg: #005c4b; --other-msg: #202c33; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* Login */
+        #login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: #1c272d; padding: 30px; border-radius: 20px; text-align: center; width: 280px; }
+        .login-box input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 10px; border: none; background: #2a3942; color: #fff; outline: none; box-sizing: border-box; }
+        .login-box button { width: 100%; padding: 12px; background: var(--accent); border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+
+        /* App Layout */
+        .header { padding: 15px; background: #202c33; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-attachment: fixed; }
+        
+        /* Messages */
+        .msg { display: flex; flex-direction: column; max-width: 85%; position: relative; }
+        .msg.my { align-self: flex-end; align-items: flex-end; }
+        .bubble { padding: 10px; border-radius: 12px; position: relative; min-width: 80px; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .my .bubble { background: var(--my-msg); border-top-right-radius: 2px; }
+        .other .bubble { background: var(--other-msg); border-top-left-radius: 2px; }
+        
+        .msg-text { word-wrap: break-word; font-size: 15px; margin-bottom: 4px; }
+        .msg-info { display: flex; justify-content: flex-end; gap: 8px; font-size: 10px; opacity: 0.7; }
+        
+        .react-area { font-size: 13px; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 10px; margin-top: 5px; display: inline-block; cursor: pointer; }
+        .react-area:empty { display: none; }
+
+        /* Input Area */
+        .input-bar { padding: 10px; background: #202c33; display: flex; align-items: center; gap: 10px; }
+        .input-container { flex: 1; background: #2a3942; border-radius: 25px; display: flex; align-items: center; padding: 2px 15px; }
+        .input-container input { flex: 1; background: transparent; border: none; color: #fff; padding: 10px; outline: none; }
+        .icon-btn { background: none; border: none; color: #8696a0; font-size: 22px; cursor: pointer; padding: 5px; }
+        .send-btn { color: var(--accent); }
     </style>
 </head>
 <body>
 
-<div id="login">
-    <div style="text-align:center; background:#1c272d; padding:40px; border-radius:20px; width:280px;">
+<div id="login-screen">
+    <div class="login-box">
         <h2 style="color:var(--accent)">X-Chat</h2>
-        <input type="text" id="nick" placeholder="Adınız...">
-        <button onclick="auth()" style="width:100%; padding:12px; background:var(--accent); border:none; border-radius:10px; font-weight:bold; margin-top:10px;">Giriş</button>
+        <input type="text" id="nickInput" placeholder="Adınız...">
+        <button onclick="login()">Daxil Ol</button>
     </div>
 </div>
 
 <div class="header">
-    <b id="roomName">General Room</b>
-    <div id="online" style="font-size:10px; color:#4cd137;">Online: 1</div>
+    <div style="font-weight: bold;">General Room</div>
+    <div id="online-tag" style="font-size: 12px; color: #4cd137;">Online: 1</div>
 </div>
 
 <div id="chat"></div>
 
 <div class="input-bar">
-    <input type="text" id="m" placeholder="Mesaj..." onkeypress="if(event.key=='Enter') send()">
-    <button onclick="send()" style="background:none; border:none; font-size:24px;">🚀</button>
+    <button class="icon-btn" onclick="document.getElementById('fileInp').click()">📎</button>
+    <input type="file" id="fileInp" hidden onchange="uploadFile(this)">
+    <div class="input-container">
+        <input type="text" id="msgInput" placeholder="Mesaj yazın..." onkeypress="if(event.key=='Enter') send()">
+    </div>
+    <button class="icon-btn send-btn" onclick="send()">🚀</button>
 </div>
 
 <script>
-    const URL = 'https://pyknspxnwnilhqsazidj.supabase.co';
-    const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
-    const sb = supabase.createClient(URL, KEY);
+    const SB_URL = 'https://pyknspxnwnilhqsazidj.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
+    const _sb = supabase.createClient(SB_URL, SB_KEY);
 
-    let user = JSON.parse(localStorage.getItem('chat_v4_user'));
-    if(user) { document.getElementById('login').style.display='none'; init(); }
+    let user = JSON.parse(localStorage.getItem('chat_v5_session'));
+    let room = 'General';
 
-    function auth() {
-        let n = document.getElementById('nick').value.trim();
+    if(user) { document.getElementById('login-screen').style.display = 'none'; startApp(); }
+
+    function login() {
+        const n = document.getElementById('nickInput').value.trim();
         if(!n) return;
-        user = { n };
-        localStorage.setItem('chat_v4_user', JSON.stringify(user));
+        user = { n, a: `https://ui-avatars.com/api/?name=${n}&background=random` };
+        localStorage.setItem('chat_v5_session', JSON.stringify(user));
         location.reload();
     }
 
-    function init() {
+    function startApp() {
         load();
-        sb.channel('global').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, (p) => {
-            if(p.eventType === 'INSERT') render(p.new);
-            if(p.eventType === 'DELETE') document.getElementById('msg-'+p.old.id)?.remove();
+        _sb.channel('global').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, (p) => {
+            if(p.eventType === 'INSERT' && p.new.group_id === room) render(p.new);
+            if(p.eventType === 'DELETE') document.getElementById('m-'+p.old.id)?.remove();
             if(p.eventType === 'UPDATE') {
-                const b = document.querySelector(`#msg-${p.new.id} .react-box`);
-                if(b) b.innerText = (typeof p.new.reactions === 'string' && !p.new.reactions.includes('[object')) ? p.new.reactions : "";
+                const area = document.querySelector(`#m-${p.new.id} .react-area`);
+                if(area) area.innerText = (typeof p.new.reactions === 'string' && !p.new.reactions.includes('[object')) ? p.new.reactions : "";
             }
         }).subscribe();
     }
 
     async function load() {
-        const {data} = await sb.from('messages').select('*').order('created_at');
+        const { data } = await _sb.from('messages').select('*').eq('group_id', room).order('created_at');
         if(data) data.forEach(render);
     }
 
     function render(m) {
-        if(document.getElementById('msg-'+m.id)) return;
+        if(document.getElementById('m-'+m.id)) return;
         const isMy = m.nickname === user.n;
-        const d = document.createElement('div');
-        d.id = 'msg-'+m.id; d.className = `msg-row ${isMy?'my':''}`;
+        const div = document.createElement('div');
+        div.id = 'm-'+m.id;
+        div.className = `msg ${isMy ? 'my' : 'other'}`;
         
-        let r = (typeof m.reactions === 'string' && !m.reactions.includes('[object')) ? m.reactions : "";
+        let body = m.content;
+        if(body.startsWith('http')) {
+            body = `<img src="${body}" style="max-width:100%; border-radius:10px; margin-top:5px;">`;
+        }
 
-        d.innerHTML = `
-            <span style="font-size:10px; opacity:0.6; margin-bottom:2px;">${m.nickname}</span>
-            <div class="msg-bubble" onclick="react(${m.id})">
-                <div>${m.content}</div>
-                <div class="react-box">${r}</div>
-            </div>
-            <div class="msg-meta">
-                ${isMy ? `<span onclick="del(event, ${m.id})" style="color:#ff4d4d; font-weight:bold; cursor:pointer;">SİL</span>` : ''}
+        let reactions = (typeof m.reactions === 'string' && !m.reactions.includes('[object')) ? m.reactions : "";
+
+        div.innerHTML = `
+            <div style="font-size:11px; color:var(--accent); margin: 0 5px 2px 5px;">${m.nickname}</div>
+            <div class="bubble" onclick="addReact(${m.id})">
+                <div class="msg-text">${body}</div>
+                <div class="react-area">${reactions}</div>
+                <div class="msg-info">
+                    ${new Date(m.created_at).getHours().toString().padStart(2,'0')}:${new Date(m.created_at).getMinutes().toString().padStart(2,'0')}
+                    ${isMy ? `<span onclick="del(event, ${m.id})" style="color:#ff4d4d; font-weight:bold; margin-left:5px;">SİL</span>` : ''}
+                </div>
             </div>
         `;
-        document.getElementById('chat').appendChild(d);
+        document.getElementById('chat').appendChild(div);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
     async function send() {
-        const i = document.getElementById('m');
-        if(!i.value.trim()) return;
-        const val = i.value; i.value = "";
-        await sb.from('messages').insert([{content: val, nickname: user.n, group_id: 'General', reactions: ""}]);
+        const inp = document.getElementById('msgInput');
+        const txt = inp.value.trim();
+        if(!txt) return;
+        inp.value = "";
+        await _sb.from('messages').insert([{ content: txt, nickname: user.n, group_id: room, sender_avatar: user.a, reactions: "" }]);
     }
 
     async function del(e, id) {
         e.stopPropagation();
-        if(!confirm("Silinsin?")) return;
+        if(!confirm("Mesaj silinsin?")) return;
         
-        // GECİKMƏSİZ SİLMƏ: Bazadan cavab gözləmədən ekrandan silirik
-        const el = document.getElementById('msg-'+id);
-        if(el) el.style.display = 'none'; 
+        // INSTANT DELETE (Gecikməsiz)
+        const el = document.getElementById('m-'+id);
+        if(el) el.remove();
         
-        await sb.from('messages').delete().eq('id', id);
+        await _sb.from('messages').delete().eq('id', id);
     }
 
-    async function react(id) {
-        const e = prompt("Emoji?");
-        if(!e) return;
-        
-        // GECİKMƏSİZ REAKSİYA: Ekranda dərhal göstəririk
-        const box = document.querySelector(`#msg-${id} .react-box`);
-        if(box) box.innerText += e;
+    async function addReact(id) {
+        const emo = prompt("Emoji?");
+        if(!emo) return;
 
-        const {data} = await sb.from('messages').select('reactions').eq('id', id).single();
+        // INSTANT REACTION
+        const area = document.querySelector(`#m-${id} .react-area`);
+        if(area) area.innerText += emo;
+
+        const { data } = await _sb.from('messages').select('reactions').eq('id', id).single();
         let cur = (data && typeof data.reactions === 'string' && !data.reactions.includes('[object')) ? data.reactions : "";
-        await sb.from('messages').update({reactions: cur + e}).eq('id', id);
+        await _sb.from('messages').update({ reactions: cur + emo }).eq('id', id);
+    }
+
+    async function uploadFile(el) {
+        const file = el.files[0]; if(!file) return;
+        const name = Date.now() + "_" + file.name;
+        const { data } = await _sb.storage.from('audio_messages').upload(name, file);
+        if(data) {
+            const url = `${SB_URL}/storage/v1/object/public/audio_messages/${name}`;
+            await _sb.from('messages').insert([{ content: url, nickname: user.n, group_id: room, sender_avatar: user.a, reactions: "" }]);
+        }
     }
 </script>
 </body>
