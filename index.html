@@ -3,92 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Chat Ultimate Stable</title>
+    <title>X-Chat Stable Fix</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --accent: #00d2ff; --bg: #0b141a; --glass: rgba(255, 255, 255, 0.08); --online: #4cd137; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
-        
-        .header { padding: 10px 15px; background: var(--glass); display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .room-info { flex: 1; text-align: center; }
-        .nav-icon { font-size: 22px; cursor: pointer; }
-
-        #login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
-        .login-card { background: var(--glass); padding: 30px; border-radius: 20px; width: 300px; text-align: center; }
-
-        .sidebar { position: fixed; left: -100%; top: 0; width: 85%; max-width: 320px; height: 100%; background: #111b21; z-index: 9000; transition: 0.3s ease; padding: 20px; box-sizing: border-box; }
-        .sidebar.open { left: 0; }
-
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-        .msg-row { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; }
-        .msg-row.my { align-self: flex-end; flex-direction: row-reverse; }
-        .msg-ava { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); }
-        
-        .msg-bubble { padding: 8px 12px; border-radius: 18px; background: #202c33; position: relative; cursor: pointer; }
+        :root { --accent: #00d2ff; --bg: #0b141a; --glass: rgba(255, 255, 255, 0.08); }
+        body { margin: 0; font-family: sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        .header { padding: 15px; background: var(--glass); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .msg-row { display: flex; flex-direction: column; max-width: 80%; }
+        .msg-row.my { align-self: flex-end; align-items: flex-end; }
+        .msg-bubble { padding: 10px; border-radius: 12px; background: #202c33; position: relative; min-width: 60px; }
         .my .msg-bubble { background: var(--accent); color: #000; }
-        
-        .reaction-box { font-size: 13px; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 10px; margin-top: 4px; display: inline-block; min-height: 18px; }
-        .reaction-box:empty { display: none; }
-        
-        .msg-meta { font-size: 10px; opacity: 0.7; display: flex; justify-content: flex-end; gap: 5px; margin-top: 4px; }
-
-        .input-bar { padding: 10px; background: #202c33; display: flex; align-items: center; gap: 8px; }
-        .input-box { flex: 1; background: #2a3942; border-radius: 25px; padding: 5px 15px; display: flex; }
-        .input-box input { flex: 1; background: transparent; border: none; color: #fff; padding: 10px; outline: none; }
-        .circle-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: transparent; color: #fff; cursor: pointer; font-size: 20px; }
+        .reaction-box { font-size: 12px; background: rgba(0,0,0,0.2); padding: 2px 5px; border-radius: 8px; margin-top: 5px; display: inline-block; }
+        .msg-meta { font-size: 10px; margin-top: 4px; opacity: 0.6; display: flex; gap: 10px; }
+        .input-bar { padding: 10px; background: #111b21; display: flex; gap: 10px; }
+        input#msgInp { flex: 1; padding: 10px; border-radius: 20px; border: none; outline: none; background: #2a3942; color: #fff; }
+        button { cursor: pointer; border: none; background: none; color: #fff; font-size: 18px; }
+        .sidebar { position: fixed; left: -100%; top: 0; width: 80%; height: 100%; background: #111b21; transition: 0.3s; z-index: 1000; padding: 20px; box-sizing: border-box; }
+        .sidebar.open { left: 0; }
     </style>
 </head>
 <body>
 
-<div id="login-screen">
-    <div class="login-card">
-        <h2 style="color: var(--accent);">X-Chat</h2>
-        <input type="text" id="logNick" placeholder="Adınız..." style="width:90%; padding:12px; margin-bottom:15px; border-radius:10px; border:none; background:#1a242c; color:#fff;">
-        <button onclick="handleAuth()" style="width:100%; padding:12px; border-radius:10px; border:none; background:var(--accent); font-weight:bold;">Giriş</button>
+<div id="login-screen" style="position:fixed; inset:0; background:var(--bg); z-index:2000; display:flex; align-items:center; justify-content:center;">
+    <div style="text-align:center; background:var(--glass); padding:30px; border-radius:15px;">
+        <h2>X-Chat</h2>
+        <input type="text" id="logNick" placeholder="Adınız..." style="padding:10px; border-radius:5px; border:none;"><br><br>
+        <button onclick="handleAuth()" style="background:var(--accent); color:#000; padding:10px 20px; border-radius:5px; font-weight:bold;">Giriş Et</button>
     </div>
 </div>
 
 <div class="header">
-    <div class="nav-icon" onclick="toggleSidebar('group-sidebar')">👥</div>
-    <div class="nav-icon" onclick="toggleSidebar('dm-sidebar')">📩</div>
-    <div class="room-info">
-        <h4 id="roomTitle">General</h4>
-        <div id="onlineCount" style="font-size:10px; color:var(--online)">Onlayn: 1 nəfər</div>
-    </div>
-    <img id="myAva" class="msg-ava" src="" onclick="toggleSidebar('settings-sidebar')">
-</div>
-
-<div id="settings-sidebar" class="sidebar">
-    <h3>Ayarlar</h3>
-    <button onclick="document.getElementById('avaInp').click()" style="width:100%; padding:12px; background:var(--accent); border:none; border-radius:10px; font-weight:bold;">Profil Şəklini Dəyiş</button>
-    <input type="file" id="avaInp" hidden onchange="updateProfilePhoto(this)">
-    <button onclick="closeSidebars()" style="width:100%; margin-top:20px; padding:10px; background:#333; color:#fff; border:none; border-radius:10px;">Bağla</button>
+    <button onclick="document.getElementById('group-sidebar').classList.toggle('open')">👥 Qruplar</button>
+    <div id="roomTitle">General</div>
+    <div id="onlineCount" style="font-size: 12px; color: #4cd137;">Online: 1</div>
 </div>
 
 <div id="group-sidebar" class="sidebar">
     <h3>Qruplar</h3>
-    <input type="text" id="newGroupInp" placeholder="Qrup adı..." style="width:100%; padding:10px; border-radius:8px; border:none; background:#2a3942; color:#fff;">
-    <button onclick="addGroup()" style="width:100%; padding:10px; background:var(--accent); border:none; margin-top:10px; border-radius:8px; font-weight:bold;">Qoşul</button>
-    <div id="group-list" style="margin-top:20px;"></div>
-</div>
-
-<div id="dm-sidebar" class="sidebar">
-    <h3>Mesajlar</h3>
-    <input type="text" id="dmSearch" placeholder="@ad..." style="width:100%; padding:10px; border-radius:8px; border:none; background:#2a3942; color:#fff;">
-    <button onclick="startDM()" style="width:100%; padding:10px; background:var(--accent); border:none; margin-top:10px; border-radius:8px; font-weight:bold;">Yaz</button>
-    <div id="dm-list" style="margin-top:20px;"></div>
+    <input type="text" id="newGroup" placeholder="Yeni qrup...">
+    <button onclick="joinGroup()">Qoşul</button>
+    <div id="groupList" style="margin-top:20px;"></div>
+    <button onclick="this.parentElement.classList.remove('open')" style="margin-top:20px; color:red;">Bağla</button>
 </div>
 
 <div id="chat"></div>
 
 <div class="input-bar">
-    <button class="circle-btn" onclick="document.getElementById('fileInp').click()">🖼️</button>
+    <button onclick="document.getElementById('fileInp').click()">🖼️</button>
     <input type="file" id="fileInp" hidden onchange="uploadFile(this)">
-    <button class="circle-btn" id="micBtn" onclick="handleVoice()">🎤</button>
-    <div class="input-box">
-        <input type="text" id="msgInp" placeholder="Mesaj..." onkeypress="if(event.key=='Enter') doSend()">
-        <button onclick="doSend()" style="background:none; border:none; font-size:22px;">🚀</button>
-    </div>
+    <input type="text" id="msgInp" placeholder="Mesaj..." onkeypress="if(event.key=='Enter') doSend()">
+    <button onclick="doSend()">🚀</button>
 </div>
 
 <script>
@@ -98,10 +63,8 @@
 
     let user = JSON.parse(localStorage.getItem('chat_user'));
     let currentRoom = 'General';
-    let myGroups = JSON.parse(localStorage.getItem('my_groups')) || ['General'];
-    let myDMs = JSON.parse(localStorage.getItem('my_dms')) || [];
 
-    if (user) { document.getElementById('login-screen').style.display = 'none'; initApp(); }
+    if(user) { document.getElementById('login-screen').style.display='none'; initApp(); }
 
     function handleAuth() {
         const nick = document.getElementById('logNick').value.trim();
@@ -112,81 +75,15 @@
     }
 
     function initApp() {
-        document.getElementById('myAva').src = user.avatar;
         loadMessages();
-        updateGroupList();
-        updateDMList();
-        
-        _sb.channel('db-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, p => {
+        _sb.channel('any').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (p) => {
             if (p.eventType === 'INSERT' && p.new.group_id === currentRoom) render(p.new);
-            if (p.eventType === 'DELETE') document.getElementById('m-'+p.old.id)?.remove();
+            if (p.eventType === 'DELETE') document.getElementById('msg-' + p.old.id)?.remove();
             if (p.eventType === 'UPDATE') {
-                const box = document.querySelector(`#m-${p.new.id} .reaction-box`);
-                if(box) {
-                    let r = p.new.reactions;
-                    box.innerText = (typeof r === 'string' && !r.includes('[object')) ? r : "";
-                }
+                const el = document.querySelector(`#msg-${p.new.id} .reaction-box`);
+                if(el) el.innerText = String(p.new.reactions || "").replace("[object Object]", "");
             }
         }).subscribe();
-    }
-
-    async function doSend() {
-        const i = document.getElementById('msgInp');
-        const txt = i.value.trim();
-        if(!txt) return;
-        i.value = '';
-        await _sb.from('messages').insert([{ content: txt, nickname: user.nick, group_id: currentRoom, sender_avatar: user.avatar, reactions: "" }]);
-    }
-
-    function render(m) {
-        if(document.getElementById('m-'+m.id)) return;
-        const isMy = m.nickname === user.nick;
-        const row = document.createElement('div');
-        row.id = 'm-'+m.id; row.className = `msg-row ${isMy ? 'my' : ''}`;
-        
-        let body = m.content;
-        if(body.includes('img_')) body = `<img src="${body}" style="max-width:200px; border-radius:12px; display:block;">`;
-        if(body.includes('v_')) body = `<audio src="${body}" controls style="width:180px; filter:invert(1)"></audio>`;
-
-        let r = m.reactions;
-        let reactionDisplay = (typeof r === 'string' && !r.includes('[object')) ? r : "";
-
-        row.innerHTML = `
-            <img src="${m.sender_avatar}" class="msg-ava">
-            <div class="msg-bubble" onclick="addReaction(${m.id})">
-                <div style="font-size:11px; font-weight:bold; margin-bottom:3px; color:var(--accent)">${m.nickname}</div>
-                <div class="msg-text">${body}</div>
-                <div class="reaction-box">${reactionDisplay}</div>
-                <div class="msg-meta">
-                    ${new Date(m.created_at).getHours()}:${String(new Date(m.created_at).getMinutes()).padStart(2,'0')}
-                    ${isMy ? `<span onclick="deleteMsg(event, ${m.id})" style="margin-left:8px; cursor:pointer;">🗑️</span>` : ''}
-                </div>
-            </div>
-        `;
-        document.getElementById('chat').appendChild(row);
-        document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
-    }
-
-    // SİLMƏ - FORCE DELETE
-    async function deleteMsg(e, id) {
-        e.stopPropagation();
-        if(confirm("Silinsin?")) {
-            document.getElementById('m-'+id)?.remove(); // Ekranda dərhal sil
-            await _sb.from('messages').delete().eq('id', id);
-        }
-    }
-
-    // REAKSİYA - FORCE UPDATE
-    async function addReaction(id) {
-        const emo = prompt("Emoji?");
-        if(emo) {
-            const box = document.querySelector(`#m-${id} .reaction-box`);
-            if(box) box.innerText += emo; // Ekranda dərhal göstər
-            
-            const {data} = await _sb.from('messages').select('reactions').eq('id', id).single();
-            let current = (data && typeof data.reactions === 'string' && !data.reactions.includes('[object')) ? data.reactions : "";
-            await _sb.from('messages').update({ reactions: current + emo }).eq('id', id);
-        }
     }
 
     async function loadMessages() {
@@ -195,66 +92,84 @@
         if(data) data.forEach(render);
     }
 
-    // Digər köməkçi funksiyalar (Qruplar, Səs, Foto və s.) dəyişməz qaldı
-    function addGroup() { const n = document.getElementById('newGroupInp').value.trim(); if(n && !myGroups.includes(n)) { myGroups.push(n); localStorage.setItem('my_groups', JSON.stringify(myGroups)); updateGroupList(); changeRoom(n); } }
-    function updateGroupList() {
-        const l = document.getElementById('group-list'); l.innerHTML = "";
-        myGroups.forEach(g => { l.innerHTML += `<div style="padding:10px; background:var(--glass); margin-bottom:5px; border-radius:8px; cursor:pointer;" onclick="changeRoom('${g}')"># ${g}</div>`; });
+    function render(m) {
+        if(document.getElementById('msg-'+m.id)) return;
+        const isMy = m.nickname === user.nick;
+        const div = document.createElement('div');
+        div.id = 'msg-' + m.id;
+        div.className = `msg-row ${isMy ? 'my' : ''}`;
+        
+        let content = m.content;
+        if(content.includes('http')) {
+            if(content.match(/\.(jpg|jpeg|png|gif|webp)$/i)) content = `<img src="${content}" style="max-width:100%; border-radius:8px;">`;
+        }
+
+        // Reaksiya təmizləmə
+        let reacts = String(m.reactions || "").replace("[object Object]", "");
+
+        div.innerHTML = `
+            <div style="font-size:10px; margin-bottom:2px; opacity:0.7;">${m.nickname}</div>
+            <div class="msg-bubble" onclick="addReact(${m.id})">
+                <div>${content}</div>
+                <div class="reaction-box">${reacts}</div>
+            </div>
+            <div class="msg-meta">
+                ${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                ${isMy ? `<span onclick="deleteMsg(${m.id})" style="color:red; cursor:pointer;">Sil</span>` : ''}
+            </div>
+        `;
+        const chat = document.getElementById('chat');
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
     }
-    function startDM() { const n = document.getElementById('dmSearch').value.replace('@','').trim(); if(n) goToDM(n); }
-    function goToDM(n) {
-        currentRoom = [user.nick, n].sort().join('_dm_');
-        if(!myDMs.includes(n)) { myDMs.push(n); localStorage.setItem('my_dms', JSON.stringify(myDMs)); updateDMList(); }
-        document.getElementById('roomTitle').innerText = "@"+n;
-        loadMessages(); closeSidebars();
+
+    async function doSend() {
+        const inp = document.getElementById('msgInp');
+        const val = inp.value.trim();
+        if(!val) return;
+        inp.value = "";
+        await _sb.from('messages').insert([{ content: val, nickname: user.nick, group_id: currentRoom, sender_avatar: user.avatar, reactions: "" }]);
     }
-    function updateDMList() {
-        const l = document.getElementById('dm-list'); l.innerHTML = "";
-        myDMs.forEach(d => { l.innerHTML += `<div style="padding:10px; background:var(--glass); margin-bottom:5px; border-radius:8px; cursor:pointer;" onclick="goToDM('${d}')">👤 ${d}</div>`; });
+
+    async function deleteMsg(id) {
+        if(!confirm("Bu mesajı silmək istəyirsiz?")) return;
+        document.getElementById('msg-' + id)?.remove(); // Anında sil
+        await _sb.from('messages').delete().eq('id', id);
     }
-    function changeRoom(n) { currentRoom = n; document.getElementById('roomTitle').innerText = n; loadMessages(); closeSidebars(); }
-    function toggleSidebar(id) { document.getElementById(id).classList.toggle('open'); }
-    function closeSidebars() { document.querySelectorAll('.sidebar').forEach(s => s.classList.remove('open')); }
-    
-    // Audio və File yükləmə hissəsi (Dəyişməz)
-    let recorder, chunks = [];
-    async function handleVoice() {
-        const btn = document.getElementById('micBtn');
-        if(!recorder || recorder.state === 'inactive') {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            recorder = new MediaRecorder(stream);
-            chunks = [];
-            recorder.ondataavailable = e => chunks.push(e.data);
-            recorder.onstop = async () => {
-                const blob = new Blob(chunks, { type: 'audio/webm' });
-                const fn = `v_${Date.now()}.webm`;
-                const { data } = await _sb.storage.from('audio_messages').upload(fn, blob);
-                if(data) {
-                    const url = `${SB_URL}/storage/v1/object/public/audio_messages/${fn}`;
-                    await _sb.from('messages').insert([{ content: url, nickname: user.nick, group_id: currentRoom, sender_avatar: user.avatar, reactions: "" }]);
-                }
-            };
-            recorder.start();
-            btn.style.color = 'red';
-        } else { recorder.stop(); btn.style.color = 'white'; }
+
+    async function addReact(id) {
+        const emoji = prompt("Emoji daxil edin (👍, ❤️, 😂):");
+        if(!emoji) return;
+        
+        const {data} = await _sb.from('messages').select('reactions').eq('id', id).single();
+        let current = String(data.reactions || "").replace("[object Object]", "");
+        
+        const newReacts = current + emoji;
+        // Ekranda dərhal göstər
+        const box = document.querySelector(`#msg-${id} .reaction-box`);
+        if(box) box.innerText = newReacts;
+
+        await _sb.from('messages').update({ reactions: newReacts }).eq('id', id);
     }
+
     async function uploadFile(el) {
-        const file = el.files[0]; if(!file) return;
-        const fn = `img_${Date.now()}.jpg`;
-        const { data } = await _sb.storage.from('audio_messages').upload(fn, file);
+        const file = el.files[0];
+        if(!file) return;
+        const name = Date.now() + "_" + file.name;
+        const {data} = await _sb.storage.from('audio_messages').upload(name, file);
         if(data) {
-            const url = `${SB_URL}/storage/v1/object/public/audio_messages/${fn}`;
+            const url = SB_URL + "/storage/v1/object/public/audio_messages/" + name;
             await _sb.from('messages').insert([{ content: url, nickname: user.nick, group_id: currentRoom, sender_avatar: user.avatar, reactions: "" }]);
         }
     }
-    async function updateProfilePhoto(el) {
-        const file = el.files[0]; if(!file) return;
-        const fn = `ava_${Date.now()}.jpg`;
-        const { data } = await _sb.storage.from('audio_messages').upload(fn, file);
-        if(data) {
-            user.avatar = `${SB_URL}/storage/v1/object/public/audio_messages/${fn}`;
-            localStorage.setItem('chat_user', JSON.stringify(user));
-            location.reload();
+
+    function joinGroup() {
+        const name = document.getElementById('newGroup').value.trim();
+        if(name) {
+            currentRoom = name;
+            document.getElementById('roomTitle').innerText = name;
+            document.getElementById('group-sidebar').classList.remove('open');
+            loadMessages();
         }
     }
 </script>
