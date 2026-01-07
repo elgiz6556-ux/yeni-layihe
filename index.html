@@ -3,44 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Chat Fixed</title>
+    <title>X-Chat Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --accent: #00d2ff; --bg: #0b141a; }
-        body { margin: 0; font-family: sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; }
-        .header { padding: 15px; background: #202c33; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+        body { margin: 0; font-family: sans-serif; background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        .header { padding: 15px; background: #202c33; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; }
         #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .msg-row { display: flex; flex-direction: column; max-width: 80%; margin-bottom: 5px; }
+        .msg-row { display: flex; flex-direction: column; max-width: 85%; }
         .msg-row.my { align-self: flex-end; align-items: flex-end; }
-        .msg-bubble { padding: 10px; border-radius: 12px; background: #202c33; cursor: pointer; }
+        .msg-bubble { padding: 12px; border-radius: 15px; background: #202c33; cursor: pointer; position: relative; }
         .my .msg-bubble { background: #005c4b; }
         .react-box { font-size: 13px; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 10px; margin-top: 5px; display: inline-block; }
-        .msg-meta { font-size: 10px; opacity: 0.6; margin-top: 4px; }
-        .input-bar { padding: 10px; background: #111b21; display: flex; gap: 10px; }
-        input { flex: 1; padding: 12px; border-radius: 20px; border: none; background: #2a3942; color: #fff; outline: none; }
-        #login { position: fixed; inset: 0; background: var(--bg); z-index: 999; display: flex; align-items: center; justify-content: center; }
+        .msg-meta { font-size: 10px; opacity: 0.6; margin-top: 5px; display: flex; gap: 10px; }
+        .input-bar { padding: 12px; background: #111b21; display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border-radius: 25px; border: none; background: #2a3942; color: #fff; outline: none; }
+        #login { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
 <div id="login">
-    <div style="text-align:center; background:#1c272d; padding:30px; border-radius:15px; width:280px;">
-        <h2>X-Chat</h2>
-        <input type="text" id="nick" placeholder="Adınız..."><br><br>
-        <button onclick="auth()" style="width:100%; padding:12px; background:var(--accent); border:none; border-radius:10px; font-weight:bold; cursor:pointer;">Giriş</button>
+    <div style="text-align:center; background:#1c272d; padding:40px; border-radius:20px; width:280px;">
+        <h2 style="color:var(--accent)">X-Chat</h2>
+        <input type="text" id="nick" placeholder="Adınız...">
+        <button onclick="auth()" style="width:100%; padding:12px; background:var(--accent); border:none; border-radius:10px; font-weight:bold; margin-top:10px;">Giriş</button>
     </div>
 </div>
 
 <div class="header">
-    <b id="roomName">General</b>
-    <div id="online" style="font-size:10px; color:#4cd137;">Online: 1 nəfər</div>
+    <b id="roomName">General Room</b>
+    <div id="online" style="font-size:10px; color:#4cd137;">Online: 1</div>
 </div>
 
 <div id="chat"></div>
 
 <div class="input-bar">
-    <input type="text" id="m" placeholder="Mesaj yazın..." onkeypress="if(event.key=='Enter') send()">
-    <button onclick="send()" style="background:none; border:none; font-size:20px; cursor:pointer;">🚀</button>
+    <input type="text" id="m" placeholder="Mesaj..." onkeypress="if(event.key=='Enter') send()">
+    <button onclick="send()" style="background:none; border:none; font-size:24px;">🚀</button>
 </div>
 
 <script>
@@ -48,27 +48,25 @@
     const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(URL, KEY);
 
-    let user = JSON.parse(localStorage.getItem('chat_user'));
-    
+    let user = JSON.parse(localStorage.getItem('chat_v4_user'));
     if(user) { document.getElementById('login').style.display='none'; init(); }
 
     function auth() {
         let n = document.getElementById('nick').value.trim();
         if(!n) return;
         user = { n };
-        localStorage.setItem('chat_user', JSON.stringify(user));
+        localStorage.setItem('chat_v4_user', JSON.stringify(user));
         location.reload();
     }
 
     function init() {
         load();
-        // Realtime Qoşulma
-        sb.channel('chat-room').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, (p) => {
+        sb.channel('global').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, (p) => {
             if(p.eventType === 'INSERT') render(p.new);
             if(p.eventType === 'DELETE') document.getElementById('msg-'+p.old.id)?.remove();
             if(p.eventType === 'UPDATE') {
                 const b = document.querySelector(`#msg-${p.new.id} .react-box`);
-                if(b) b.innerText = String(p.new.reactions || "").replace("[object Object]", "");
+                if(b) b.innerText = (typeof p.new.reactions === 'string' && !p.new.reactions.includes('[object')) ? p.new.reactions : "";
             }
         }).subscribe();
     }
@@ -84,7 +82,7 @@
         const d = document.createElement('div');
         d.id = 'msg-'+m.id; d.className = `msg-row ${isMy?'my':''}`;
         
-        let r = String(m.reactions || "").replace("[object Object]", "");
+        let r = (typeof m.reactions === 'string' && !m.reactions.includes('[object')) ? m.reactions : "";
 
         d.innerHTML = `
             <span style="font-size:10px; opacity:0.6; margin-bottom:2px;">${m.nickname}</span>
@@ -93,46 +91,42 @@
                 <div class="react-box">${r}</div>
             </div>
             <div class="msg-meta">
-                ${isMy ? `<span onclick="del(event, ${m.id})" style="color:#ff4757; cursor:pointer; font-weight:bold;">SİL</span>` : ''}
+                ${isMy ? `<span onclick="del(event, ${m.id})" style="color:#ff4d4d; font-weight:bold; cursor:pointer;">SİL</span>` : ''}
             </div>
         `;
-        const chat = document.getElementById('chat');
-        chat.appendChild(d);
-        chat.scrollTop = chat.scrollHeight;
+        document.getElementById('chat').appendChild(d);
+        document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
     async function send() {
         const i = document.getElementById('m');
-        const v = i.value.trim();
-        if(!v) return;
-        i.value = "";
-        await sb.from('messages').insert([{content: v, nickname: user.n, group_id: 'General', reactions: ""}]);
+        if(!i.value.trim()) return;
+        const val = i.value; i.value = "";
+        await sb.from('messages').insert([{content: val, nickname: user.n, group_id: 'General', reactions: ""}]);
     }
 
     async function del(e, id) {
         e.stopPropagation();
-        if(!confirm("Mesajı silmək istəyirsiz?")) return;
+        if(!confirm("Silinsin?")) return;
         
-        // Ekranda dərhal silirik
-        document.getElementById('msg-'+id)?.remove();
+        // GECİKMƏSİZ SİLMƏ: Bazadan cavab gözləmədən ekrandan silirik
+        const el = document.getElementById('msg-'+id);
+        if(el) el.style.display = 'none'; 
         
-        // Bazaya silmə əmri göndəririk
         await sb.from('messages').delete().eq('id', id);
     }
 
     async function react(id) {
-        const e = prompt("Emoji seçin:");
+        const e = prompt("Emoji?");
         if(!e) return;
         
-        const {data} = await sb.from('messages').select('reactions').eq('id', id).single();
-        let cur = String(data.reactions || "").replace("[object Object]", "");
-        
-        const newR = cur + e;
-        // Ekranda dərhal yenilə
+        // GECİKMƏSİZ REAKSİYA: Ekranda dərhal göstəririk
         const box = document.querySelector(`#msg-${id} .react-box`);
-        if(box) box.innerText = newR;
+        if(box) box.innerText += e;
 
-        await sb.from('messages').update({reactions: newR}).eq('id', id);
+        const {data} = await sb.from('messages').select('reactions').eq('id', id).single();
+        let cur = (data && typeof data.reactions === 'string' && !data.reactions.includes('[object')) ? data.reactions : "";
+        await sb.from('messages').update({reactions: cur + e}).eq('id', id);
     }
 </script>
 </body>
