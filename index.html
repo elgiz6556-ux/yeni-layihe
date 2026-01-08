@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>X-Elite Stable</title>
+    <title>X-Elite Ultra Stable</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -12,20 +12,18 @@
             --me: #007aff; --other: #e9e9eb; --text: #000000; --dim: #8e8e93;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        
-        /* Ekranın sabit qalması üçün əsas struktur */
+        /* Ekranın böyüməsini və sürüşməsini tam kəsirik */
         html, body { 
             height: 100%; 
             width: 100%; 
-            overflow: hidden; /* Bütün səhifənin sürüşməsini bağlayırıq */
+            overflow: hidden; 
             background: var(--bg);
-            position: fixed; /* Mobil brauzerlərdə 'bounce' effektini kəsir */
+            position: fixed;
+            touch-action: manipulation; /* Zoom hərəkətlərini ləğv edir */
         }
 
         body { display: flex; flex-direction: column; }
 
-        /* Header - Sabit yuxarıda */
         .app-header {
             height: 60px;
             padding: 0 20px;
@@ -41,7 +39,6 @@
         }
         .room-tag { font-size: 10px; font-weight: 800; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; }
 
-        /* Chat Area - Yalnız bura sürüşə bilər */
         #chat { 
             flex: 1; 
             overflow-y: auto; 
@@ -50,7 +47,7 @@
             flex-direction: column; 
             gap: 10px; 
             background: var(--bg);
-            -webkit-overflow-scrolling: touch; /* iOS-da axıcı sürüşmə */
+            -webkit-overflow-scrolling: touch;
         }
 
         .msg-wrapper { display: flex; flex-direction: column; max-width: 85%; animation: fadeIn 0.2s ease; }
@@ -71,7 +68,6 @@
 
         .msg-img { max-width: 100%; border-radius: 15px; margin-top: 5px; display: block; }
 
-        /* Input və Naviqasiya - Sabit aşağıda */
         .bottom-section {
             background: var(--bg);
             border-top: 1px solid #efeff4;
@@ -89,9 +85,12 @@
             flex: 1; background: #f2f2f7; border-radius: 20px;
             padding: 5px 15px; display: flex; align-items: center;
         }
+        
+        /* Şrift ölçüsü 16px-dən kiçik olduqda iPhone avtomatik yaxınlaşdırır. 
+           Bunu önləmək üçün input şriftini 16px-də sabitlədim. */
         .input-wrap input {
             flex: 1; background: none; border: none; color: #000;
-            padding: 8px 0; outline: none; font-size: 16px;
+            padding: 10px 0; outline: none; font-size: 16px; 
         }
 
         .nav-bar {
@@ -99,16 +98,15 @@
             display: flex;
             justify-content: space-around;
             align-items: center;
-            padding-bottom: env(safe-area-inset-bottom); /* iPhone çentiği üçün */
+            padding-bottom: env(safe-area-inset-bottom);
         }
         .nav-btn { 
             display: flex; flex-direction: column; align-items: center; 
-            color: var(--dim); font-size: 20px; transition: 0.2s;
+            color: var(--dim); font-size: 20px; transition: 0.2s; cursor: pointer;
         }
         .nav-btn.active { color: #000; font-weight: bold; }
         .nav-btn span { font-size: 10px; margin-top: 2px; }
 
-        /* Login Screen */
         .auth-screen {
             position: fixed; inset: 0; background: #fff; z-index: 1000;
             display: flex; flex-direction: column; justify-content: center; padding: 40px;
@@ -123,10 +121,10 @@
 
 <div id="authBox" class="auth-screen">
     <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 5px;">X-Elite</h1>
-    <p style="margin-bottom: 30px; color: #8e8e93;">Daxil olun.</p>
-    <input type="text" id="uN" placeholder="Ləqəbiniz" style="width:100%; padding:15px; background:#f2f2f7; border:none; border-radius:12px; margin-bottom:10px; outline:none;">
-    <input type="password" id="uP" placeholder="Şifrəniz" style="width:100%; padding:15px; background:#f2f2f7; border:none; border-radius:12px; outline:none;">
-    <button onclick="handleLogin()" class="auth-btn">Giriş</button>
+    <p style="margin-bottom: 30px; color: #8e8e93;">Giriş edin.</p>
+    <input type="text" id="uN" placeholder="Ləqəbiniz" style="width:100%; padding:15px; background:#f2f2f7; border:none; border-radius:12px; margin-bottom:10px; outline:none; font-size:16px;">
+    <input type="password" id="uP" placeholder="Şifrəniz" style="width:100%; padding:15px; background:#f2f2f7; border:none; border-radius:12px; outline:none; font-size:16px;">
+    <button onclick="handleLogin()" class="auth-btn">Daxil ol</button>
 </div>
 
 <header class="app-header">
@@ -161,7 +159,7 @@
     const K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(U, K);
 
-    let user = JSON.parse(localStorage.getItem('xe_stable_v1'));
+    let user = JSON.parse(localStorage.getItem('xe_stable_v2'));
     let currentRoom = 'General';
     let mediaRec, chunks = [];
 
@@ -171,7 +169,7 @@
         const n = document.getElementById('uN').value.trim();
         if(!n) return;
         user = { n: n.toLowerCase() };
-        localStorage.setItem('xe_stable_v1', JSON.stringify(user));
+        localStorage.setItem('xe_stable_v2', JSON.stringify(user));
         location.reload();
     }
 
@@ -180,7 +178,7 @@
         const bg = localStorage.getItem('xe_bg');
         if(bg) document.getElementById('chat').style.backgroundImage = `url(${bg})`;
         load();
-        sb.channel('xe_st').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
+        sb.channel('xe_ultra').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
             if(p.new.group_id === currentRoom) render(p.new);
         }).subscribe();
     }
@@ -190,7 +188,7 @@
         chat.innerHTML = "";
         const {data} = await sb.from('messages').select('*').eq('group_id', currentRoom).order('created_at', {ascending: false}).limit(30);
         if(data) data.reverse().forEach(render);
-        setTimeout(() => { chat.scrollTop = chat.scrollHeight; }, 200);
+        setTimeout(() => { chat.scrollTop = chat.scrollHeight; }, 300);
     }
 
     function render(m) {
@@ -214,12 +212,17 @@
         const inp = document.getElementById('mInp');
         const v = inp.value.trim();
         if(!v) return;
+        if(v === '/clear') {
+            if(confirm("Təmizlənsin?")) await sb.from('messages').delete().eq('group_id', currentRoom);
+            inp.value = ""; return;
+        }
         inp.value = "";
         await sb.from('messages').insert([{ content: v, nickname: user.n, group_id: currentRoom }]);
     }
 
-    function compress(file, cb) {
-        const r = new FileReader(); r.readAsDataURL(file);
+    function uploadImg(inp) {
+        if(!inp.files[0]) return;
+        const r = new FileReader(); r.readAsDataURL(inp.files[0]);
         r.onload = e => {
             const img = new Image(); img.src = e.target.result;
             img.onload = () => {
@@ -227,24 +230,18 @@
                 const scale = Math.min(800 / img.width, 1);
                 canvas.width = img.width * scale; canvas.height = img.height * scale;
                 canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                cb(canvas.toDataURL('image/jpeg', 0.6));
+                sb.from('messages').insert([{ content: 'IMG:'+canvas.toDataURL('image/jpeg', 0.6), nickname: user.n, group_id: currentRoom }]);
             }
         }
     }
 
-    function uploadImg(inp) {
-        if(!inp.files[0]) return;
-        compress(inp.files[0], async b => {
-            await sb.from('messages').insert([{ content: 'IMG:'+b, nickname: user.n, group_id: currentRoom }]);
-        });
-    }
-
     function updateBg(inp) {
         if(!inp.files[0]) return;
-        compress(inp.files[0], b => {
-            document.getElementById('chat').style.backgroundImage = `url(${b})`;
-            localStorage.setItem('xe_bg', b);
-        });
+        const r = new FileReader(); r.readAsDataURL(inp.files[0]);
+        r.onload = e => {
+            document.getElementById('chat').style.backgroundImage = `url(${e.target.result})`;
+            localStorage.setItem('xe_bg', e.target.result);
+        };
     }
 
     async function toggleMic() {
