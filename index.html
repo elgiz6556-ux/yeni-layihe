@@ -1,63 +1,117 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>X-Elite Ultimate Fix V4</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --bg: #050810; --panel: rgba(15, 23, 42, 0.9); --accent: #38bdf8; --text: #f1f5f9; --me: #0284c7; --other: #1e293b; }
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { margin: 0; background: var(--bg); background-size: cover; background-position: center; background-attachment: fixed; color: var(--text); height: 100dvh; display: flex; overflow: hidden; }
+        
+        .sidebar { width: 65px; background: rgba(2, 6, 23, 0.9); display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 15px; border-right: 1px solid rgba(255,255,255,0.1); z-index: 100; }
+        .r-btn { width: 45px; height: 45px; border-radius: 12px; background: var(--panel); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; border: 1px solid transparent; }
+        .r-btn.active { border-color: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        .main { flex: 1; display: flex; flex-direction: column; position: relative; }
+        .header { padding: 12px; background: var(--panel); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: rgba(0,0,0,0.2); }
+        .msg { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; }
+        .msg.my { align-self: flex-end; flex-direction: row-reverse; }
+        .bub { padding: 10px 14px; border-radius: 18px; background: var(--other); font-size: 14px; line-height: 1.4; word-break: break-word; }
+        .my .bub { background: var(--me); }
+        .msg-img { max-width: 220px; border-radius: 12px; border: 2px solid var(--accent); margin: 5px 0; }
+
+        .game-panel { display: none; background: #020617; padding: 10px; border-bottom: 1px solid var(--accent); text-align: center; }
+        .input-bar { padding: 10px; background: var(--panel); display: flex; gap: 8px; align-items: center; }
+        #mInp { flex: 1; background: rgba(0,0,0,0.5); border: 1px solid #334155; border-radius: 20px; padding: 10px 15px; color: #fff; outline: none; }
+        
+        .modal { position: fixed; inset: 0; background: #050810; z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .card { background: #0f172a; padding: 25px; border-radius: 20px; width: 85%; max-width: 320px; text-align: center; border: 1px solid var(--accent); }
+    </style>
+</head>
+<body>
+
+<div id="authBox" class="modal">
+    <div class="card">
+        <h2 style="color:var(--accent)">X-ELITE</h2>
+        <input type="text" id="uN" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; background:#050810; color:#fff; border:1px solid #334155;" placeholder="İstifadəçi adı">
+        <input type="password" id="uP" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; background:#050810; color:#fff; border:1px solid #334155;" placeholder="Şifrə">
+        <button onclick="handleLogin()" style="width:100%; padding:12px; background:var(--accent); border:none; border-radius:10px; color:#fff; font-weight:bold;">DAXİL OL</button>
+    </div>
+</div>
+
+<div class="sidebar">
+    <div class="r-btn active" onclick="setRoom('General', this)">🌍</div>
+    <div class="r-btn" onclick="setRoom('Gaming', this)">🎮</div>
+    <div class="r-btn" onclick="setRoom('DM', this)">✉️</div>
+    <hr style="width:30px; opacity:0.1;">
+    <label class="r-btn" title="Arxa fon">🖼️<input type="file" hidden onchange="changeBg(this)"></label>
+</div>
+
+<div class="main">
+    <div class="header">
+        <div id="uHead" style="font-weight:bold; font-size:14px;">Yüklənir...</div>
+        <div id="roomTitle" style="color:var(--accent); font-weight:bold; font-size:12px;">GENERAL</div>
+    </div>
+
+    <div id="gameArea" class="game-panel">
+        <div style="display:flex; justify-content:center; gap:15px;">
+            <button onclick="alert('Snake tezliklə!')">🐍</button>
+            <button onclick="pClick()" style="background:var(--accent); border:none; border-radius:50%; width:35px; height:35px;">⚡</button>
+            <span id="scoreText" style="font-size:12px; align-self:center;">0</span>
+        </div>
+    </div>
+
+    <div id="chat"></div>
+
+    <div class="input-bar">
+        <button onclick="toggleMic()" id="micBtn" style="background:none; border:none; font-size:20px;">🎤</button>
+        <button onclick="document.getElementById('imgI').click()" style="background:none; border:none; font-size:20px;">📷</button>
+        <input type="file" id="imgI" hidden onchange="sImg(this)">
+        <input type="text" id="mInp" placeholder="Mesaj yaz..." onkeypress="if(event.key=='Enter') sendMsg()">
+        <button onclick="sendMsg()" style="background:var(--accent); border:none; border-radius:50%; width:35px; height:35px; color:#fff;">🚀</button>
+    </div>
+</div>
+
 <script>
-    // --- ŞƏKİL SIXMA (RESIZER) FUNKSİYASI ---
-    // Bu funksiya şəkilləri kiçildir ki, "Ağ ekran" və "Kod yığını" problemi olmasın
-    function compressImage(file, callback) {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = event => {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 800; // Şəkli maksimum bu ölçüyə gətiririk
-                let width = img.width;
-                let height = img.height;
+    const U = 'https://pyknspxnwnilhqsazidj.supabase.co';
+    const K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
+    const sb = supabase.createClient(U, K);
 
-                if (width > height) {
-                    if (width > MAX_WIDTH) {
-                        height *= MAX_WIDTH / width;
-                        width = MAX_WIDTH;
-                    }
-                } else {
-                    if (height > MAX_WIDTH) {
-                        width *= MAX_WIDTH / height;
-                        height = MAX_WIDTH;
-                    }
-                }
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                callback(canvas.toDataURL('image/jpeg', 0.7)); // 70% keyfiyyətlə sıxır
-            };
-        };
+    let user = JSON.parse(localStorage.getItem('x_elite_v4'));
+    let currentRoom = 'General';
+    let mediaRec, chunks = [];
+
+    if(user) { document.getElementById('authBox').style.display='none'; init(); }
+
+    async function handleLogin() {
+        const n = document.getElementById('uN').value.trim().toLowerCase();
+        const p = document.getElementById('uP').value.trim();
+        if(!n || !p) return;
+        user = { n, a: `https://api.dicebear.com/7.x/bottts/svg?seed=${n}` };
+        localStorage.setItem('x_elite_v4', JSON.stringify(user));
+        location.reload();
     }
 
-    // --- ARXA FON DƏYİŞMƏ FUNKSİYASI (YENİLƏNDİ) ---
-    function changeBg(input) {
-        if (!input.files[0]) return;
-        compressImage(input.files[0], (compressedBase64) => {
-            document.body.style.backgroundImage = `url(${compressedBase64})`;
-            document.body.style.backgroundSize = "cover";
-            document.body.style.backgroundPosition = "center";
-            document.body.style.backgroundAttachment = "fixed";
-            localStorage.setItem('x_bg', compressedBase64);
-        });
+    function init() {
+        document.getElementById('uHead').innerText = user.n;
+        const bg = localStorage.getItem('x_bg_v4');
+        if(bg) document.body.style.backgroundImage = `url(${bg})`;
+        load();
+        sb.channel('v4').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
+            if(p.new.group_id === currentRoom) render(p.new);
+        }).subscribe();
     }
 
-    // --- ŞƏKİL MESAJI GÖNDƏRMƏ (YENİLƏNDİ) ---
-    function sImg(input) {
-        if (!input.files[0]) return;
-        compressImage(input.files[0], async (compressedBase64) => {
-            await sb.from('messages').insert([{ 
-                content: 'IMG:' + compressedBase64, 
-                nickname: user.n, 
-                group_id: currentRoom 
-            }]);
-        });
+    async function load() {
+        document.getElementById('chat').innerHTML = "";
+        const {data} = await sb.from('messages').select('*').eq('group_id', currentRoom).order('created_at');
+        if(data) data.forEach(render);
     }
 
-    // --- RENDER FUNKSİYASI (DAHA DƏQİQ YOXlama) ---
     function render(m) {
         if(document.getElementById('m-'+m.id)) return;
         const isMe = m.nickname === user.n;
@@ -66,42 +120,88 @@
         div.className = `msg ${isMe ? 'my' : ''}`;
         
         let c = m.content;
-        let finalContent = "";
-
         if(c.startsWith('IMG:')) {
-            finalContent = `<img src="${c.replace('IMG:','')}" class="msg-img" style="max-width:250px; border-radius:15px; border: 2px solid var(--accent);">`;
+            c = `<img src="${c.replace('IMG:','')}" class="msg-img">`;
         } else if(c.startsWith('VOICE:')) {
-            finalContent = `<div class="bub" onclick="new Audio('${c.replace('VOICE:','')}').play()" style="cursor:pointer">🔊 Səsli Mesaj (Dinlə)</div>`;
+            c = `<div class="bub" onclick="new Audio('${c.replace('VOICE:','')}').play()" style="cursor:pointer">🔊 Səsli Mesaj</div>`;
         } else {
-            finalContent = `<div class="bub">${c}</div>`;
+            c = `<div class="bub">${c}</div>`;
         }
 
-        div.innerHTML = `
-            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" style="width:30px; border-radius:50%; background:#1e293b;">
-            ${finalContent}
-        `;
+        div.innerHTML = `<img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" style="width:28px; border-radius:50%; background:#1e293b;">${c}`;
         document.getElementById('chat').appendChild(div);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
-</script>
 
-<style>
-    /* Arxa fonun tam oturması üçün CSS */
-    body {
-        background-color: #050810;
-        background-size: cover !important;
-        background-position: center !important;
-        background-attachment: fixed !important;
-        background-repeat: no-repeat !important;
+    async function sendMsg() {
+        const i = document.getElementById('mInp');
+        if(!i.value.trim()) return;
+        await sb.from('messages').insert([{ content: i.value, nickname: user.n, group_id: currentRoom }]);
+        i.value = "";
     }
-    .msg-img {
-        transition: transform 0.3s;
-        cursor: pointer;
+
+    function compress(file, callback) {
+        const r = new FileReader();
+        r.readAsDataURL(file);
+        r.onload = e => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const scale = Math.min(800 / img.width, 1);
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                callback(canvas.toDataURL('image/jpeg', 0.6));
+            };
+        };
     }
-    .msg-img:active {
-        transform: scale(1.5); /* Şəklə basanda böyüdür */
-        z-index: 1000;
-        position: relative;
+
+    function sImg(input) {
+        if(!input.files[0]) return;
+        compress(input.files[0], async (base64) => {
+            await sb.from('messages').insert([{ content: 'IMG:'+base64, nickname: user.n, group_id: currentRoom }]);
+        });
     }
-</style>
- 
+
+    function changeBg(input) {
+        if(!input.files[0]) return;
+        compress(input.files[0], (base64) => {
+            document.body.style.backgroundImage = `url(${base64})`;
+            localStorage.setItem('x_bg_v4', base64);
+        });
+    }
+
+    async function toggleMic() {
+        if(!mediaRec || mediaRec.state === 'inactive') {
+            const s = await navigator.mediaDevices.getUserMedia({audio:true});
+            mediaRec = new MediaRecorder(s); chunks = [];
+            mediaRec.ondataavailable = e => chunks.push(e.data);
+            mediaRec.onstop = () => {
+                const r = new FileReader();
+                r.onloadend = async () => {
+                    await sb.from('messages').insert([{ content: 'VOICE:'+r.result, nickname: user.n, group_id: currentRoom }]);
+                };
+                r.readAsDataURL(new Blob(chunks));
+            };
+            mediaRec.start(); document.getElementById('micBtn').style.color='red';
+        } else { mediaRec.stop(); document.getElementById('micBtn').style.color=''; }
+    }
+
+    function setRoom(r, el) {
+        currentRoom = r;
+        document.getElementById('roomTitle').innerText = r.toUpperCase();
+        document.querySelectorAll('.r-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('gameArea').style.display = (r === 'Gaming') ? 'block' : 'none';
+        load();
+    }
+
+    function pClick() { 
+        const s = document.getElementById('scoreText');
+        s.innerText = parseInt(s.innerText)+1;
+    }
+</script>
+</body>
+</html>
