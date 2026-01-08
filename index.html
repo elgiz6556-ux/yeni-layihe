@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>X-Elite Final Edition</title>
+    <title>X-Elite VIP Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -15,12 +15,12 @@
         body { background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
         /* Header */
-        .app-header { height: 70px; padding: 0 20px; background: var(--header); border-bottom: 1px solid rgba(128,128,128,0.2); display: flex; justify-content: space-between; align-items: center; z-index: 100; }
-        .user-info { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .user-avatar { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; }
+        .app-header { height: 75px; padding: 0 20px; background: var(--header); border-bottom: 1px solid rgba(128,128,128,0.2); display: flex; justify-content: space-between; align-items: center; z-index: 100; }
+        .user-info { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .user-avatar { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; background: #eee; }
         .crown { color: #ffd700; font-size: 14px; margin-left: 4px; }
 
-        /* Chat Area */
+        /* Chat */
         #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
         .msg-row { display: flex; gap: 10px; max-width: 85%; animation: slideUp 0.3s ease; }
         .msg-row.my { align-self: flex-end; flex-direction: row-reverse; }
@@ -31,33 +31,44 @@
 
         /* Special Bubbles */
         .ai-msg { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%) !important; color: white !important; }
-        .fire-msg { background: linear-gradient(-45deg, #ff3d00, #ffea00) !important; animation: shake 0.5s infinite alternate !important; color: #fff !important; font-weight: bold; border:none; }
-        .ice-msg { background: linear-gradient(135deg, #e0f7fa, #80deea) !important; color: #006064 !important; font-weight: bold; border: 1px solid #b2ebf2; }
+        .fire-msg { background: linear-gradient(-45deg, #ff3d00, #ffea00) !important; animation: shake 0.5s infinite alternate !important; color: #fff !important; font-weight: bold; }
+        .ice-msg { background: linear-gradient(135deg, #e0f7fa, #80deea) !important; color: #006064 !important; font-weight: bold; }
         
         @keyframes shake { from { transform: rotate(-1deg); } to { transform: rotate(1deg); } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Input Area */
-        .input-box { padding: 10px 15px 30px; background: var(--header); border-top: 1px solid rgba(128,128,128,0.2); display: flex; align-items: center; gap: 8px; }
+        /* Input */
+        .input-box { padding: 10px 15px 35px; background: var(--header); border-top: 1px solid rgba(128,128,128,0.2); display: flex; align-items: center; gap: 8px; }
         .field-wrap { flex: 1; background: var(--other); border-radius: 22px; padding: 4px 15px; display: flex; align-items: center; }
         .field-wrap input { flex: 1; background: none; border: none; padding: 10px 0; outline: none; font-size: 16px; color: var(--text); }
 
-        .icon-btn { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--accent); }
+        /* Auth */
         .overlay { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 30px; }
         .auth-card { width: 100%; max-width: 320px; text-align: center; }
-        .auth-input { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 12px; border: none; background: #222; color: #fff; }
+        .auth-input { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 12px; border: none; background: #f0f0f5; color: #000; font-size: 15px; }
+        body.dark .auth-input { background: #222; color: #fff; }
+        
+        .p-upload { width: 80px; height: 80px; border-radius: 50%; background: var(--accent); margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; overflow: hidden; border: 3px solid var(--accent); position: relative; }
+        .p-upload img { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body class="dark">
 
 <div id="authBox" class="overlay">
     <div class="auth-card">
-        <h2 style="font-size: 36px; margin-bottom: 5px;">X-Elite 💎</h2>
-        <p style="color:var(--dim); font-size:12px; margin-bottom:20px;">Xoş gəldiniz!</p>
-        <input type="text" id="uN" class="auth-input" placeholder="Ləqəb">
-        <input type="text" id="uB" class="auth-input" placeholder="Bio (Məs: Gəncəli)">
+        <h2 style="font-size: 32px; margin-bottom: 15px;">X-Elite VIP</h2>
+        
+        <div class="p-upload" onclick="document.getElementById('pImg').click()">
+            <img id="pPreview" src="" style="display:none">
+            <span id="pText">Foto 📸</span>
+        </div>
+        <input type="file" id="pImg" hidden accept="image/*" onchange="previewProfile(this)">
+        
+        <input type="text" id="uN" class="auth-input" placeholder="Ləqəbiniz">
+        <input type="text" id="uB" class="auth-input" placeholder="Bio (Haqqınızda)">
         <input type="password" id="uP" class="auth-input" placeholder="Şifrə">
-        <button onclick="handleLogin()" style="background:var(--accent); color:#fff; padding:15px; border-radius:12px; width:100%; border:none; font-weight:bold; cursor:pointer;">Başla</button>
+        
+        <button onclick="handleLogin()" style="background:var(--accent); color:#fff; padding:15px; border-radius:12px; width:100%; border:none; font-weight:bold; cursor:pointer; font-size:16px;">Sistemə Giriş</button>
     </div>
 </div>
 
@@ -69,19 +80,19 @@
             <div id="userBio" style="font-size:10px; color:var(--dim);">...</div>
         </div>
     </div>
-    <div style="font-size: 16px;">🔥 ❄️ 🤖</div>
+    <div style="font-size: 18px; opacity: 0.8;">🤖 🎤 🖼️</div>
 </header>
 
 <div id="chat"></div>
 
 <div class="input-box">
-    <button class="icon-btn" onclick="document.getElementById('imgI').click()">🖼️</button>
+    <button style="background:none; border:none; font-size:22px; cursor:pointer" onclick="document.getElementById('imgI').click()">🖼️</button>
     <input type="file" id="imgI" hidden onchange="uploadImg(this)">
     <div class="field-wrap">
         <input type="text" id="mInp" placeholder="@ai yazaraq sual ver..." onkeypress="if(event.key=='Enter') send()">
-        <button id="micBtn" class="icon-btn" onclick="toggleMic()" style="font-size:18px;">🎤</button>
+        <button id="micBtn" style="background:none; border:none; font-size:18px; cursor:pointer" onclick="toggleMic()">🎤</button>
     </div>
-    <button onclick="send()" class="icon-btn" style="font-size:28px;">🚀</button>
+    <button onclick="send()" style="background:none; border:none; font-size:28px; color:var(--accent); cursor:pointer">🚀</button>
 </div>
 
 <script>
@@ -89,18 +100,34 @@
     const K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(U, K);
 
-    let user = JSON.parse(localStorage.getItem('xe_final_v1'));
+    let user = JSON.parse(localStorage.getItem('xe_v4_final'));
     let currentRoom = 'General';
     let mediaRec, chunks = [];
+    let tempAvatar = "";
 
     if(user) { document.getElementById('authBox').style.display='none'; init(); }
 
+    function previewProfile(inp) {
+        const file = inp.files[0];
+        if(!file) return;
+        const r = new FileReader();
+        r.onload = e => {
+            tempAvatar = e.target.result;
+            document.getElementById('pPreview').src = tempAvatar;
+            document.getElementById('pPreview').style.display = 'block';
+            document.getElementById('pText').style.display = 'none';
+        };
+        r.readAsDataURL(file);
+    }
+
     function handleLogin() {
-        const n = document.getElementById('uN').value.trim().toLowerCase();
+        const n = document.getElementById('uN').value.trim();
         const b = document.getElementById('uB').value.trim() || "X-Elite Üzvü";
-        if(!n) return alert("Ləqəb daxil edin!");
-        user = { n: n, b: b, a: `https://api.dicebear.com/7.x/bottts/svg?seed=${n}` };
-        localStorage.setItem('xe_final_v1', JSON.stringify(user));
+        if(!n) return alert("Ləqəb mütləqdir!");
+        
+        const avatar = tempAvatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${n}`;
+        user = { n: n, b: b, a: avatar };
+        localStorage.setItem('xe_v4_final', JSON.stringify(user));
         location.reload();
     }
 
@@ -111,14 +138,12 @@
         document.getElementById('userBio').innerText = user.b;
         document.getElementById('myAvatar').src = user.a;
         load();
-        sb.channel('xe_final').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
+        sb.channel('xe_chat').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
             if(p.new.group_id === currentRoom) render(p.new);
-        }).on('postgres_changes', {event:'DELETE', schema:'public', table:'messages'}, p => {
-            document.getElementById('m-'+p.old.id)?.remove();
         }).subscribe();
 
         const { data } = await sb.from('messages').select('id').eq('nickname', user.n);
-        if(data && data.length > 8) document.getElementById('vipCrown').style.display = 'inline';
+        if(data && data.length > 7) document.getElementById('vipCrown').style.display = 'inline';
     }
 
     async function load() {
@@ -141,13 +166,16 @@
         if(m.content.includes('❄️')) bClass += " ice-msg";
 
         let content = m.content;
-        if(content.startsWith('VOICE:')) content = `<div onclick="new Audio('${content.replace('VOICE:','')}').play()" style="cursor:pointer">🔊 Səsli Mesajı Dinlə</div>`;
+        if(content.startsWith('VOICE:')) content = `<div onclick="new Audio('${content.replace('VOICE:','')}').play()" style="cursor:pointer">🔊 Səsli Mesaj</div>`;
         else if(content.startsWith('IMG:')) content = `<img src="${content.replace('IMG:','')}" style="max-width:100%; border-radius:10px;">`;
         else if(content.includes('🎁')) content = `<div onclick="confetti();this.innerText='✨ '+this.getAttribute('d')" d="${content.replace('🎁','')}">🎁 Hədiyyəni Aç</div>`;
         else if(content.includes('👻')) content = `<div style="filter:blur(5px); cursor:pointer;" onclick="this.innerHTML='⏳ '+this.getAttribute('d');this.style.filter='none';setTimeout(()=>sb.from('messages').delete().eq('id','${m.id}'),10000)" d="${content.replace('👻','')}">👻 Gizli Mesaj (Toxun)</div>`;
 
+        // Avatar: Əgər mesajı göndərən mənəmsə mənim avatarım, deyilse standart bot avatarı (Real sistemdə avatarlar bazada saxlanılır)
+        const avatarUrl = isMe ? user.a : (isAI ? 'https://api.dicebear.com/7.x/bottts/svg?seed=AI' : `https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}`);
+
         div.innerHTML = `
-            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" style="width:30px; height:30px; border-radius:50%; margin-top:10px;">
+            <img src="${avatarUrl}" class="user-avatar" style="width:32px; height:32px; margin-top:10px; border:none">
             <div class="${bClass}">
                 <div style="font-size:10px; font-weight:bold; opacity:0.8; margin-bottom:2px;">${m.nickname}</div>
                 <div>${content}</div>
@@ -169,21 +197,15 @@
     async function getAIResponse(q) {
         const tId = "ai-think-" + Date.now();
         render({ id: tId, nickname: 'Elite AI', content: 'Düşünürəm... 🧠', group_id: currentRoom });
-        
         try {
-            // Stabil DuckDuckGo API (Həmişə cavab verir)
             const res = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(q)}&format=json&no_html=1`);
             const data = await res.json();
             document.getElementById('m-'+tId)?.remove();
-            
-            let ans = data.AbstractText || "Mən hələ də bu barədə öyrənirəm, başqa nə soruşmaq istərdin? 🤖";
+            let ans = data.AbstractText || "Bunu hələ araşdırıram, başqa bir şey soruşa bilərsən? 🤖";
             await sb.from('messages').insert([{ content: "🤖 " + ans, nickname: 'Elite AI', group_id: currentRoom }]);
         } catch (e) {
-            document.getElementById('m-'+tId).innerText = "Sistemi yoxlayıram, bir saniyə...";
-            setTimeout(() => {
-                document.getElementById('m-'+tId)?.remove();
-                sb.from('messages').insert([{ content: "🤖 Səninlə söhbət etmək çox maraqlıdır! ✨", nickname: 'Elite AI', group_id: currentRoom }]);
-            }, 2000);
+            document.getElementById('m-'+tId)?.remove();
+            sb.from('messages').insert([{ content: "🤖 Hal-hazırda sistemlərim yenilənir! ✨", nickname: 'Elite AI', group_id: currentRoom }]);
         }
     }
 
@@ -197,11 +219,12 @@
                 const r = new FileReader(); r.readAsDataURL(new Blob(chunks));
                 r.onloadend = () => sb.from('messages').insert([{ content: 'VOICE:'+r.result, nickname: user.n, group_id: currentRoom }]);
             };
-            mediaRec.start(); btn.innerText = "🛑";
-        } else { mediaRec.stop(); btn.innerText = "🎤"; }
+            mediaRec.start(); btn.innerText = "🛑"; btn.style.color = "red";
+        } else { mediaRec.stop(); btn.innerText = "🎤"; btn.style.color = ""; }
     }
 
     function uploadImg(inp) {
+        if(!inp.files[0]) return;
         const r = new FileReader(); r.readAsDataURL(inp.files[0]);
         r.onload = e => sb.from('messages').insert([{ content: 'IMG:'+e.target.result, nickname: user.n, group_id: currentRoom }]);
     }
