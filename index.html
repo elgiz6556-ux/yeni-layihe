@@ -3,43 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Elite Ultimate Fix V4</title>
+    <title>X-Elite Ultimate V5</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #050810; --panel: rgba(15, 23, 42, 0.9); --accent: #38bdf8; --text: #f1f5f9; --me: #0284c7; --other: #1e293b; }
-        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        :root { --bg: #050810; --panel: rgba(15, 23, 42, 0.95); --accent: #38bdf8; --text: #f1f5f9; --me: #0284c7; --other: #1e293b; --dm: #f43f5e; }
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg); background-size: cover; background-position: center; background-attachment: fixed; color: var(--text); height: 100dvh; display: flex; overflow: hidden; }
         
         .sidebar { width: 65px; background: rgba(2, 6, 23, 0.9); display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 15px; border-right: 1px solid rgba(255,255,255,0.1); z-index: 100; }
-        .r-btn { width: 45px; height: 45px; border-radius: 12px; background: var(--panel); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; border: 1px solid transparent; }
+        .r-btn { width: 45px; height: 45px; border-radius: 12px; background: var(--panel); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; border: 1px solid transparent; position: relative; }
         .r-btn.active { border-color: var(--accent); box-shadow: 0 0 10px var(--accent); }
 
         .main { flex: 1; display: flex; flex-direction: column; position: relative; }
         .header { padding: 12px; background: var(--panel); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
         
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: rgba(0,0,0,0.2); }
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
         .msg { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; }
         .msg.my { align-self: flex-end; flex-direction: row-reverse; }
-        .bub { padding: 10px 14px; border-radius: 18px; background: var(--other); font-size: 14px; line-height: 1.4; word-break: break-word; }
+        .bub { padding: 10px 14px; border-radius: 18px; background: var(--other); font-size: 14px; line-height: 1.4; word-break: break-word; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .my .bub { background: var(--me); }
-        .msg-img { max-width: 220px; border-radius: 12px; border: 2px solid var(--accent); margin: 5px 0; }
-
-        .game-panel { display: none; background: #020617; padding: 10px; border-bottom: 1px solid var(--accent); text-align: center; }
-        .input-bar { padding: 10px; background: var(--panel); display: flex; gap: 8px; align-items: center; }
-        #mInp { flex: 1; background: rgba(0,0,0,0.5); border: 1px solid #334155; border-radius: 20px; padding: 10px 15px; color: #fff; outline: none; }
+        .bub.dm-style { border-left: 3px solid var(--dm); }
         
+        .msg-img { max-width: 220px; border-radius: 12px; border: 2px solid var(--accent); margin: 5px 0; display: block; }
+        .ava { width: 30px; height: 30px; border-radius: 50%; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); }
+
+        .input-bar { padding: 10px; background: var(--panel); display: flex; gap: 8px; align-items: center; }
+        #mInp { flex: 1; background: rgba(0,0,0,0.5); border: 1px solid #334155; border-radius: 20px; padding: 12px 15px; color: #fff; outline: none; }
+        
+        .game-panel { display: none; background: #020617; padding: 10px; border-bottom: 1px solid var(--accent); text-align: center; }
         .modal { position: fixed; inset: 0; background: #050810; z-index: 1000; display: flex; align-items: center; justify-content: center; }
         .card { background: #0f172a; padding: 25px; border-radius: 20px; width: 85%; max-width: 320px; text-align: center; border: 1px solid var(--accent); }
+        .p-inp { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; background: #050810; color: #fff; border: 1px solid #334155; outline: none; }
     </style>
 </head>
 <body>
 
 <div id="authBox" class="modal">
     <div class="card">
-        <h2 style="color:var(--accent)">X-ELITE</h2>
-        <input type="text" id="uN" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; background:#050810; color:#fff; border:1px solid #334155;" placeholder="İstifadəçi adı">
-        <input type="password" id="uP" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; background:#050810; color:#fff; border:1px solid #334155;" placeholder="Şifrə">
-        <button onclick="handleLogin()" style="width:100%; padding:12px; background:var(--accent); border:none; border-radius:10px; color:#fff; font-weight:bold;">DAXİL OL</button>
+        <h2 style="color:var(--accent); margin-top:0;">X-ELITE</h2>
+        <input type="text" id="uN" class="p-inp" placeholder="Ləqəbiniz">
+        <input type="password" id="uP" class="p-inp" placeholder="Şifrəniz">
+        <button onclick="handleLogin()" style="width:100%; padding:12px; background:var(--accent); border:none; border-radius:10px; color:#fff; font-weight:bold; cursor:pointer;">DAXİL OL</button>
     </div>
 </div>
 
@@ -47,32 +51,32 @@
     <div class="r-btn active" onclick="setRoom('General', this)">🌍</div>
     <div class="r-btn" onclick="setRoom('Gaming', this)">🎮</div>
     <div class="r-btn" onclick="setRoom('DM', this)">✉️</div>
-    <hr style="width:30px; opacity:0.1;">
-    <label class="r-btn" title="Arxa fon">🖼️<input type="file" hidden onchange="changeBg(this)"></label>
+    <hr style="width:30px; opacity:0.1; margin: 5px 0;">
+    <label class="r-btn">🖼️<input type="file" hidden onchange="changeBg(this)"></label>
 </div>
 
 <div class="main">
     <div class="header">
-        <div id="uHead" style="font-weight:bold; font-size:14px;">Yüklənir...</div>
-        <div id="roomTitle" style="color:var(--accent); font-weight:bold; font-size:12px;">GENERAL</div>
+        <div id="uHead" style="font-weight:bold; font-size:14px;">...</div>
+        <div id="roomTitle" style="color:var(--accent); font-weight:bold; font-size:11px;">GENERAL</div>
     </div>
 
     <div id="gameArea" class="game-panel">
-        <div style="display:flex; justify-content:center; gap:15px;">
-            <button onclick="alert('Snake tezliklə!')">🐍</button>
-            <button onclick="pClick()" style="background:var(--accent); border:none; border-radius:50%; width:35px; height:35px;">⚡</button>
-            <span id="scoreText" style="font-size:12px; align-self:center;">0</span>
+        <div style="display:flex; justify-content:center; align-items:center; gap:15px;">
+            <button onclick="alert('Snake Yüklənir...')" style="background:none; border:none; font-size:20px;">🐍</button>
+            <button onclick="pClick()" style="background:var(--accent); border:none; border-radius:50%; width:40px; height:40px; font-size:20px;">⚡</button>
+            <span id="scoreText" style="font-size:14px; font-weight:bold; min-width:30px;">0</span>
         </div>
     </div>
 
     <div id="chat"></div>
 
     <div class="input-bar">
-        <button onclick="toggleMic()" id="micBtn" style="background:none; border:none; font-size:20px;">🎤</button>
-        <button onclick="document.getElementById('imgI').click()" style="background:none; border:none; font-size:20px;">📷</button>
+        <button onclick="toggleMic()" id="micBtn" style="background:none; border:none; font-size:20px; cursor:pointer;">🎤</button>
+        <button onclick="document.getElementById('imgI').click()" style="background:none; border:none; font-size:20px; cursor:pointer;">📷</button>
         <input type="file" id="imgI" hidden onchange="sImg(this)">
         <input type="text" id="mInp" placeholder="Mesaj yaz..." onkeypress="if(event.key=='Enter') sendMsg()">
-        <button onclick="sendMsg()" style="background:var(--accent); border:none; border-radius:50%; width:35px; height:35px; color:#fff;">🚀</button>
+        <button onclick="sendMsg()" style="background:var(--accent); border:none; border-radius:50%; width:40px; height:40px; color:#fff; display:flex; align-items:center; justify-content:center;">🚀</button>
     </div>
 </div>
 
@@ -81,7 +85,7 @@
     const K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(U, K);
 
-    let user = JSON.parse(localStorage.getItem('x_elite_v4'));
+    let user = JSON.parse(localStorage.getItem('x_elite_v5'));
     let currentRoom = 'General';
     let mediaRec, chunks = [];
 
@@ -90,25 +94,34 @@
     async function handleLogin() {
         const n = document.getElementById('uN').value.trim().toLowerCase();
         const p = document.getElementById('uP').value.trim();
-        if(!n || !p) return;
+        if(!n || !p) return alert("Məlumatları doldurun!");
+        
         user = { n, a: `https://api.dicebear.com/7.x/bottts/svg?seed=${n}` };
-        localStorage.setItem('x_elite_v4', JSON.stringify(user));
+        localStorage.setItem('x_elite_v5', JSON.stringify(user));
         location.reload();
     }
 
     function init() {
-        document.getElementById('uHead').innerText = user.n;
-        const bg = localStorage.getItem('x_bg_v4');
+        document.getElementById('uHead').innerText = `Elite: ${user.n}`;
+        const bg = localStorage.getItem('x_bg_v5');
         if(bg) document.body.style.backgroundImage = `url(${bg})`;
         load();
-        sb.channel('v4').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
-            if(p.new.group_id === currentRoom) render(p.new);
+        
+        sb.channel('global_v5').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
+            const msg = p.new;
+            // Əgər mənə gələn DM-dirsə bildiriş ver
+            if (msg.group_id.startsWith('DM_') && msg.group_id.includes(user.n) && msg.group_id !== currentRoom) {
+                alert(`✉️ ${msg.nickname} sizə gizli mesaj göndərdi!`);
+            }
+            if(msg.group_id === currentRoom) render(msg);
         }).subscribe();
     }
 
     async function load() {
-        document.getElementById('chat').innerHTML = "";
+        const chat = document.getElementById('chat');
+        chat.innerHTML = "<div style='text-align:center; opacity:0.5; font-size:10px;'>Yüklənir...</div>";
         const {data} = await sb.from('messages').select('*').eq('group_id', currentRoom).order('created_at');
+        chat.innerHTML = "";
         if(data) data.forEach(render);
     }
 
@@ -120,15 +133,18 @@
         div.className = `msg ${isMe ? 'my' : ''}`;
         
         let c = m.content;
+        let contentHTML = "";
+
         if(c.startsWith('IMG:')) {
-            c = `<img src="${c.replace('IMG:','')}" class="msg-img">`;
+            contentHTML = `<img src="${c.replace('IMG:','')}" class="msg-img">`;
         } else if(c.startsWith('VOICE:')) {
-            c = `<div class="bub" onclick="new Audio('${c.replace('VOICE:','')}').play()" style="cursor:pointer">🔊 Səsli Mesaj</div>`;
+            contentHTML = `<div class="bub" onclick="new Audio('${c.replace('VOICE:','')}').play()" style="cursor:pointer; display:flex; align-items:center; gap:8px;">🔊 <b>Səsli Mesaj</b></div>`;
         } else {
-            c = `<div class="bub">${c}</div>`;
+            const dmClass = m.group_id.startsWith('DM_') ? 'dm-style' : '';
+            contentHTML = `<div class="bub ${dmClass}">${c}</div>`;
         }
 
-        div.innerHTML = `<img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" style="width:28px; border-radius:50%; background:#1e293b;">${c}`;
+        div.innerHTML = `<img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" class="ava">${contentHTML}`;
         document.getElementById('chat').appendChild(div);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
@@ -136,8 +152,8 @@
     async function sendMsg() {
         const i = document.getElementById('mInp');
         if(!i.value.trim()) return;
-        await sb.from('messages').insert([{ content: i.value, nickname: user.n, group_id: currentRoom }]);
-        i.value = "";
+        const val = i.value; i.value = "";
+        await sb.from('messages').insert([{ content: val, nickname: user.n, group_id: currentRoom }]);
     }
 
     function compress(file, callback) {
@@ -148,10 +164,10 @@
             img.src = e.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
                 const scale = Math.min(800 / img.width, 1);
                 canvas.width = img.width * scale;
                 canvas.height = img.height * scale;
+                const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 callback(canvas.toDataURL('image/jpeg', 0.6));
             };
@@ -160,20 +176,21 @@
 
     function sImg(input) {
         if(!input.files[0]) return;
-        compress(input.files[0], async (base64) => {
-            await sb.from('messages').insert([{ content: 'IMG:'+base64, nickname: user.n, group_id: currentRoom }]);
+        compress(input.files[0], async (b64) => {
+            await sb.from('messages').insert([{ content: 'IMG:'+b64, nickname: user.n, group_id: currentRoom }]);
         });
     }
 
     function changeBg(input) {
         if(!input.files[0]) return;
-        compress(input.files[0], (base64) => {
-            document.body.style.backgroundImage = `url(${base64})`;
-            localStorage.setItem('x_bg_v4', base64);
+        compress(input.files[0], (b64) => {
+            document.body.style.backgroundImage = `url(${b64})`;
+            localStorage.setItem('x_bg_v5', b64);
         });
     }
 
     async function toggleMic() {
+        const btn = document.getElementById('micBtn');
         if(!mediaRec || mediaRec.state === 'inactive') {
             const s = await navigator.mediaDevices.getUserMedia({audio:true});
             mediaRec = new MediaRecorder(s); chunks = [];
@@ -185,23 +202,32 @@
                 };
                 r.readAsDataURL(new Blob(chunks));
             };
-            mediaRec.start(); document.getElementById('micBtn').style.color='red';
-        } else { mediaRec.stop(); document.getElementById('micBtn').style.color=''; }
+            mediaRec.start(); btn.style.color = 'red';
+        } else { mediaRec.stop(); btn.style.color = ''; }
     }
 
     function setRoom(r, el) {
-        currentRoom = r;
-        document.getElementById('roomTitle').innerText = r.toUpperCase();
+        if(r === 'DM') {
+            const target = prompt("Kiminlə gizli yazışmaq istəyirsiz? (Ləqəbi yazın)");
+            if(!target) return;
+            const ids = [user.n, target.toLowerCase().trim()].sort();
+            currentRoom = `DM_${ids[0]}_${ids[1]}`;
+            document.getElementById('roomTitle').innerText = `📩 DM: ${target.toUpperCase()}`;
+        } else {
+            currentRoom = r;
+            document.getElementById('roomTitle').innerText = r.toUpperCase();
+        }
         document.querySelectorAll('.r-btn').forEach(b => b.classList.remove('active'));
         el.classList.add('active');
         document.getElementById('gameArea').style.display = (r === 'Gaming') ? 'block' : 'none';
         load();
     }
 
-    function pClick() { 
+    function pClick() {
         const s = document.getElementById('scoreText');
-        s.innerText = parseInt(s.innerText)+1;
+        s.innerText = parseInt(s.innerText) + 1;
     }
 </script>
 </body>
 </html>
+ 
