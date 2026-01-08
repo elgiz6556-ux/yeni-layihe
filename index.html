@@ -3,76 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Elite Universe PRO</title>
+    <title>X-Elite Ultimate</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #050810; --panel: #0f172a; --accent: #38bdf8; --text: #f1f5f9; --me: #0284c7; --other: #1e293b; --ghost: #f43f5e; }
-        * { box-sizing: border-box; font-family: 'Inter', sans-serif; transition: 0.2s; }
-        body { margin: 0; background: var(--bg); color: var(--text); height: 100dvh; display: flex; overflow: hidden; }
-        
-        .sidebar { width: 60px; background: #020617; display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 15px; border-right: 1px solid rgba(255,255,255,0.1); }
-        .r-btn { width: 40px; height: 40px; border-radius: 12px; background: var(--panel); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; border: 1px solid transparent; }
-        .r-btn.active { border-color: var(--accent); color: var(--accent); }
+        :root { --bg: #050810; --panel: rgba(15, 23, 42, 0.9); --accent: #38bdf8; --text: #f1f5f9; --me: #0284c7; --other: #1e293b; }
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { margin: 0; background: var(--bg); background-size: cover; background-position: center; color: var(--text); height: 100dvh; display: flex; overflow: hidden; }
 
-        .main { flex: 1; display: flex; flex-direction: column; }
-        .header { padding: 12px 15px; background: rgba(15, 23, 42, 0.9); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        /* Sidebar */
+        .sidebar { width: 70px; background: rgba(2, 6, 23, 0.8); backdrop-filter: blur(10px); display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 15px; border-right: 1px solid rgba(255,255,255,0.1); z-index: 100; }
+        .r-btn { width: 45px; height: 45px; border-radius: 15px; background: var(--panel); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; border: 1px solid transparent; }
+        .r-btn.active { border-color: var(--accent); box-shadow: 0 0 15px var(--accent); }
+
+        /* Main Content */
+        .main { flex: 1; display: flex; flex-direction: column; position: relative; }
+        .header { padding: 15px; background: var(--panel); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
         
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-        .msg { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; }
+        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .msg { display: flex; gap: 10px; max-width: 85%; align-items: flex-end; }
         .msg.my { align-self: flex-end; flex-direction: row-reverse; }
-        .bub { padding: 10px 14px; border-radius: 18px; font-size: 14px; background: var(--other); line-height: 1.4; }
+        .bub { padding: 12px 16px; border-radius: 20px; background: var(--other); font-size: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .my .bub { background: var(--me); }
-        .ava { width: 30px; height: 30px; border-radius: 8px; }
+        
+        .input-bar { padding: 15px; background: var(--panel); display: flex; gap: 10px; align-items: center; }
+        #mInp { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 25px; padding: 12px 20px; color: #fff; outline: none; }
+        
+        /* Modals & Overlays */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .card { background: #0f172a; padding: 30px; border-radius: 25px; width: 100%; max-width: 350px; text-align: center; border: 1px solid var(--accent); }
+        .p-inp { width: 100%; padding: 12px; background: #050810; border: 1px solid #334155; border-radius: 12px; color: #fff; margin-bottom: 10px; text-align: center; }
 
-        .input-bar { padding: 12px; background: var(--panel); display: flex; gap: 8px; align-items: center; }
-        #mInp { flex: 1; background: var(--bg); border: 1px solid #334155; border-radius: 20px; padding: 10px 15px; color: #fff; outline: none; }
-        
-        .auth { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
-        .card { background: var(--panel); padding: 30px; border-radius: 25px; text-align: center; width: 90%; max-width: 320px; }
-        .p-inp { width: 100%; padding: 12px; background: #050810; border: 1px solid #334155; border-radius: 10px; color: #fff; margin-bottom: 10px; text-align: center; }
-        
-        #gamePanel { background: #020617; padding: 10px; border-bottom: 1px solid var(--accent); display: none; }
+        canvas { background: #000; border: 1px solid var(--accent); margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div id="authBox" class="auth">
+<div id="roomModal" class="modal">
     <div class="card">
-        <h2 style="color:var(--accent)">X-ELITE</h2>
-        <input type="text" id="uN" class="p-inp" placeholder="İstifadəçi adı">
-        <input type="password" id="uP" class="p-inp" placeholder="Şifrə">
-        <p id="err" style="color:var(--ghost); font-size:11px;"></p>
-        <button onclick="handleLogin()" style="width:100%; padding:12px; background:var(--accent); color:#fff; border:none; border-radius:10px; font-weight:bold;">DAXİL OL</button>
+        <h3>🆕 Yeni Otaq Yarat</h3>
+        <input type="text" id="newRoomName" class="p-inp" placeholder="Otaq adı...">
+        <input type="password" id="newRoomPass" class="p-inp" placeholder="Şifrə (opsional)">
+        <button onclick="createNewRoom()" class="p-inp" style="background:var(--accent); font-weight:bold; border:none;">YARAT</button>
+        <button onclick="closeModal('roomModal')" style="background:none; border:none; color:#aaa; cursor:pointer;">Ləğv et</button>
     </div>
 </div>
 
-<div class="sidebar">
+<div class="sidebar" id="roomList">
     <div class="r-btn active" onclick="setRoom('General', this)">🌍</div>
-    <div class="r-btn" onclick="setRoom('Gaming', this)">🎮</div>
-    <div class="r-btn" onclick="setRoom('VIP', this)">💎</div>
+    <div class="r-btn" onclick="openModal('roomModal')">➕</div>
+    <div class="r-btn" onclick="setRoom('DM', this)">✉️</div>
+    <hr style="width:30px; opacity:0.2;">
+    <label for="bgInp" class="r-btn" title="Arxa fon dəyiş">🖼️</label>
+    <input type="file" id="bgInp" hidden onchange="changeBg(this)">
 </div>
 
 <div class="main">
-    <div class="header">
-        <div id="uHead" style="font-size:13px; font-weight:bold;"></div>
-        <div id="curRoom" style="color:var(--accent); font-weight:bold; font-size:12px;">GENERAL</div>
+    <div id="authBox" class="modal" style="display:flex;">
+        <div class="card">
+            <h1 style="color:var(--accent)">X-ELITE</h1>
+            <input type="text" id="uN" class="p-inp" placeholder="İstifadəçi adı">
+            <input type="password" id="uP" class="p-inp" placeholder="Şifrə">
+            <button onclick="handleLogin()" style="width:100%; padding:15px; background:var(--accent); border:none; border-radius:12px; color:#fff; font-weight:bold;">GİRİŞ</button>
+        </div>
     </div>
-    
-    <div id="gamePanel">
-       <div style="color:var(--accent); font-size:10px; text-align:center; margin-bottom:5px;">ELITE GAMES</div>
-       <div id="game_click" style="text-align:center;">
-           <button onclick="pClick()" style="background:var(--accent); border:none; border-radius:50%; width:40px; height:40px;">⚡</button>
-           <span id="scoreText" style="font-size:11px; margin-left:10px;">Xal: 0</span>
-       </div>
+
+    <div class="header">
+        <div id="uHead" style="font-weight:bold;">Elite Universe</div>
+        <div id="roomTitle" style="color:var(--accent); font-size:12px;">GENERAL</div>
+    </div>
+
+    <div id="gameArea" style="display:none; padding:10px; background:rgba(0,0,0,0.5); text-align:center;">
+        <div id="clickGame">
+            <button onclick="pClick()" style="background:var(--accent); border:none; border-radius:50%; width:40px; height:40px; font-size:20px;">⚡</button>
+            <span id="score">0</span>
+        </div>
     </div>
 
     <div id="chat"></div>
 
     <div class="input-bar">
-        <button onclick="document.getElementById('iI').click()" style="background:none; border:none; font-size:18px;">🖼️</button>
-        <input type="file" id="iI" hidden onchange="sImg(this)">
-        <input type="text" id="mInp" placeholder="Mesaj..." onkeypress="if(event.key=='Enter') sTxt()">
-        <button onclick="sTxt()" style="background:var(--accent); border:none; padding:8px 15px; border-radius:15px; color:#fff;">🚀</button>
+        <button onclick="toggleMic()" id="micBtn" class="r-btn" style="background:none; border:none;">🎤</button>
+        <input type="text" id="mInp" placeholder="Mesaj yaz..." onkeypress="if(event.key=='Enter') sendMsg()">
+        <button onclick="sendMsg()" class="r-btn" style="background:var(--accent); border:none;">🚀</button>
     </div>
 </div>
 
@@ -81,51 +93,46 @@
     const K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(U, K);
 
-    let user = JSON.parse(localStorage.getItem('x_elite_final'));
-    let room = 'General';
-    let myScore = 0;
+    let user = JSON.parse(localStorage.getItem('x_ultimate_user'));
+    let currentRoom = 'General';
+    let mediaRec, chunks = [];
 
     if(user) { 
-        document.getElementById('authBox').style.display='none'; 
-        init(); 
+        document.getElementById('authBox').style.display = 'none';
+        init();
     }
 
     async function handleLogin() {
         const n = document.getElementById('uN').value.trim().toLowerCase();
         const p = document.getElementById('uP').value.trim();
         if(!n || !p) return;
-
-        const { data } = await sb.from('messages').select('*').eq('nickname', n).eq('group_id', 'SYS_AUTH').limit(1);
-        
-        if(data && data.length > 0) {
-            if(data[0].content === p) {
-                go(n);
-            } else {
-                document.getElementById('err').innerText = "Səhv şifrə!";
-            }
-        } else {
-            await sb.from('messages').insert([{ content: p, nickname: n, group_id: 'SYS_AUTH' }]);
-            go(n);
-        }
-    }
-
-    function go(n) {
+        const { data } = await sb.from('messages').select('*').eq('nickname', n).eq('group_id', 'AUTH').limit(1);
+        if(data?.length > 0 && data[0].content !== p) return alert("Səhv şifrə!");
+        if(!data?.length) await sb.from('messages').insert([{ content: p, nickname: n, group_id: 'AUTH' }]);
         user = { n, a: `https://api.dicebear.com/7.x/bottts/svg?seed=${n}` };
-        localStorage.setItem('x_elite_final', JSON.stringify(user));
+        localStorage.setItem('x_ultimate_user', JSON.stringify(user));
         location.reload();
     }
 
     function init() {
-        document.getElementById('uHead').innerText = user.n;
-        load();
-        sb.channel('realtime').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
-            if(p.new.group_id === room) render(p.new);
+        document.getElementById('uHead').innerText = `X-Elite: ${user.n}`;
+        const bg = localStorage.getItem('x_bg');
+        if(bg) document.body.style.backgroundImage = `url(${bg})`;
+        loadMsgs();
+        sb.channel('global').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
+            if(p.new.group_id === currentRoom || (currentRoom === 'DM' && p.new.group_id.includes(user.n))) render(p.new);
         }).subscribe();
     }
 
-    async function load() {
+    async function loadMsgs() {
         document.getElementById('chat').innerHTML = "";
-        const {data} = await sb.from('messages').select('*').eq('group_id', room).order('created_at');
+        let query = sb.from('messages').select('*').order('created_at');
+        if(currentRoom === 'DM') {
+            query = query.ilike('group_id', `%DM_${user.n}%`);
+        } else {
+            query = query.eq('group_id', currentRoom);
+        }
+        const {data} = await query;
         if(data) data.forEach(render);
     }
 
@@ -137,42 +144,80 @@
         div.className = `msg ${isMe ? 'my' : ''}`;
         
         let c = m.content;
-        if(c.startsWith('IMG:')) c = `<img src="${c.replace('IMG:','')}" class="msg-img" style="max-width:180px; border-radius:10px;">`;
+        if(c.startsWith('VOICE:')) {
+            c = `<div onclick="new Audio('${c.replace('VOICE:','')}').play()" style="cursor:pointer">🔊 Səsli Mesaj</div>`;
+        }
 
-        div.innerHTML = `<img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" class="ava">
+        div.innerHTML = `<img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" style="width:30px; border-radius:50%">
                          <div class="bub">${c}</div>`;
         document.getElementById('chat').appendChild(div);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
-    async function sTxt() {
+    async function sendMsg() {
         const i = document.getElementById('mInp');
         if(!i.value.trim()) return;
-        const v = i.value; i.value = "";
-        await sb.from('messages').insert([{ content: v, nickname: user.n, group_id: room }]);
+        let gid = currentRoom;
+        if(currentRoom === 'DM') {
+            const target = prompt("Kiminlə yazışmaq istəyirsiniz? (Ləqəbi yazın)");
+            if(!target) return;
+            gid = `DM_${[user.n, target.toLowerCase()].sort().join('_')}`;
+        }
+        await sb.from('messages').insert([{ content: i.value, nickname: user.n, group_id: gid }]);
+        i.value = "";
     }
 
-    function sImg(input) {
-        const reader = new FileReader();
-        reader.onload = async e => {
-            await sb.from('messages').insert([{ content: 'IMG:' + e.target.result, nickname: user.n, group_id: room }]);
+    async function toggleMic() {
+        const btn = document.getElementById('micBtn');
+        if(!mediaRec || mediaRec.state === 'inactive') {
+            const s = await navigator.mediaDevices.getUserMedia({audio:true});
+            mediaRec = new MediaRecorder(s);
+            chunks = [];
+            mediaRec.ondataavailable = e => chunks.push(e.data);
+            mediaRec.onstop = () => {
+                const r = new FileReader();
+                r.onloadend = async () => {
+                    await sb.from('messages').insert([{ content: 'VOICE:'+r.result, nickname: user.n, group_id: currentRoom }]);
+                };
+                r.readAsDataURL(new Blob(chunks));
+            };
+            mediaRec.start(); btn.style.color = 'red';
+        } else { mediaRec.stop(); btn.style.color = ''; }
+    }
+
+    function changeBg(input) {
+        const r = new FileReader();
+        r.onload = e => {
+            document.body.style.backgroundImage = `url(${e.target.result})`;
+            localStorage.setItem('x_bg', e.target.result);
         };
-        reader.readAsDataURL(input.files[0]);
+        r.readAsDataURL(input.files[0]);
+    }
+
+    function createNewRoom() {
+        const name = document.getElementById('newRoomName').value.trim();
+        if(!name) return;
+        const btn = document.createElement('div');
+        btn.className = 'r-btn';
+        btn.innerText = name[0].toUpperCase();
+        btn.onclick = () => setRoom(name, btn);
+        document.getElementById('roomList').appendChild(btn);
+        closeModal('roomModal');
+        setRoom(name, btn);
     }
 
     function setRoom(r, el) {
-        room = r;
-        document.getElementById('curRoom').innerText = r.toUpperCase();
+        currentRoom = r;
+        document.getElementById('roomTitle').innerText = r.toUpperCase();
         document.querySelectorAll('.r-btn').forEach(b => b.classList.remove('active'));
         el.classList.add('active');
-        document.getElementById('gamePanel').style.display = (r === 'Gaming') ? 'block' : 'none';
-        load();
+        document.getElementById('gameArea').style.display = (r === 'General') ? 'block' : 'none';
+        loadMsgs();
     }
 
-    function pClick() {
-        myScore++;
-        document.getElementById('scoreText').innerText = "Xal: " + myScore;
-    }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function pClick() { let s = document.getElementById('score'); s.innerText = parseInt(s.innerText)+1; }
 </script>
 </body>
 </html>
