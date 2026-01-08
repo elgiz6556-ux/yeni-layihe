@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Elite Chat VIP</title>
+    <title>Elite Chat Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -14,13 +14,13 @@
         body { background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
         .app-header { height: 75px; padding: 0 20px; background: var(--header); border-bottom: 1px solid rgba(128,128,128,0.2); display: flex; justify-content: space-between; align-items: center; z-index: 100; }
-        .user-info { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-        .user-avatar { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; background: #eee; }
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .user-avatar { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; background: #eee; cursor: pointer; }
 
         #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
         .msg-row { display: flex; gap: 10px; max-width: 85%; animation: slideUp 0.3s ease; }
         .msg-row.my { align-self: flex-end; flex-direction: row-reverse; }
-        .bubble { padding: 10px 14px; border-radius: 18px; font-size: 15px; line-height: 1.4; position: relative; }
+        .bubble { padding: 10px 14px; border-radius: 18px; font-size: 15px; line-height: 1.4; }
         .my .bubble { background: var(--me); color: #fff; border-bottom-right-radius: 4px; }
         .other .bubble { background: var(--other); color: var(--text); border-bottom-left-radius: 4px; }
 
@@ -39,40 +39,40 @@
 
 <div id="authBox" class="overlay">
     <div class="auth-card">
-        <h2 style="margin-bottom: 20px;">X-Elite Giriş</h2>
+        <h2 style="margin-bottom: 20px;">Elite Chat Giriş</h2>
         <div class="p-upload" onclick="document.getElementById('pImg').click()">
             <img id="pPreview" src="" style="display:none">
-            <span id="pText">Şəkil Seç 📸</span>
+            <span id="pText">Profil Şəkli 📸</span>
         </div>
         <input type="file" id="pImg" hidden accept="image/*" onchange="previewProfile(this)">
-        <input type="text" id="uN" style="width:100%; padding:14px; margin-bottom:10px; border-radius:12px; border:none; background:#222; color:#fff;" placeholder="Ləqəb">
-        <input type="text" id="uB" style="width:100%; padding:14px; margin-bottom:10px; border-radius:12px; border:none; background:#222; color:#fff;" placeholder="Bio">
-        <button onclick="handleLogin()" style="background:var(--accent); color:#fff; padding:15px; border-radius:12px; width:100%; border:none; font-weight:bold; cursor:pointer;">Başla</button>
+        <input type="text" id="uN" style="width:100%; padding:14px; margin-bottom:10px; border-radius:12px; border:none; background:#222; color:#fff;" placeholder="Ləqəbiniz">
+        <input type="text" id="uB" style="width:100%; padding:14px; margin-bottom:10px; border-radius:12px; border:none; background:#222; color:#fff;" placeholder="Status/Bio">
+        <button onclick="handleLogin()" style="background:var(--accent); color:#fff; padding:15px; border-radius:12px; width:100%; border:none; font-weight:bold; cursor:pointer;">Daxil Ol</button>
     </div>
 </div>
 
 <header class="app-header">
     <div class="user-info">
-        <img id="myAvatar" class="user-avatar" onclick="document.getElementById('changeAvatarInput').click()">
+        <img id="myAvatar" class="user-avatar" title="Şəkli dəyişmək üçün toxun" onclick="document.getElementById('changeAvatarInput').click()">
         <input type="file" id="changeAvatarInput" hidden accept="image/*" onchange="changeExistingAvatar(this)">
         <div onclick="toggleDarkMode()">
             <b id="userName">...</b>
             <div id="userBio" style="font-size:10px; color:var(--dim);">...</div>
         </div>
     </div>
-    <div style="font-size: 14px; opacity: 0.7;">V6 Pro</div>
+    <div style="font-size: 14px; color: var(--accent); font-weight: bold;">LIVE</div>
 </header>
 
 <div id="chat"></div>
 
 <div class="input-box">
-    <button style="background:none; border:none; font-size:22px;" onclick="document.getElementById('imgI').click()">🖼️</button>
+    <button style="background:none; border:none; font-size:22px; cursor:pointer;" onclick="document.getElementById('imgI').click()">🖼️</button>
     <input type="file" id="imgI" hidden onchange="uploadImg(this)">
     <div class="field-wrap">
-        <input type="text" id="mInp" placeholder="Mesaj..." onkeypress="if(event.key=='Enter') send()">
-        <button id="micBtn" style="background:none; border:none; font-size:18px;" onclick="toggleMic()">🎤</button>
+        <input type="text" id="mInp" placeholder="Mesaj yazın..." onkeypress="if(event.key=='Enter') send()">
+        <button id="micBtn" style="background:none; border:none; font-size:18px; cursor:pointer;" onclick="toggleMic()">🎤</button>
     </div>
-    <button onclick="send()" style="background:none; border:none; font-size:28px; color:var(--accent);">🚀</button>
+    <button onclick="send()" style="background:none; border:none; font-size:28px; color:var(--accent); cursor:pointer;">🚀</button>
 </div>
 
 <script>
@@ -80,7 +80,7 @@
     const K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(U, K);
 
-    let user = JSON.parse(localStorage.getItem('xe_v6_data'));
+    let user = JSON.parse(localStorage.getItem('xe_v7_final'));
     let currentRoom = 'General';
     let mediaRec, chunks = [];
     let tempAvatar = "";
@@ -90,7 +90,6 @@
         init(); 
     }
 
-    // Girişdə profil fotosu önizləmə
     function previewProfile(inp) {
         const r = new FileReader();
         r.onload = e => {
@@ -102,25 +101,24 @@
         r.readAsDataURL(inp.files[0]);
     }
 
-    // Çat daxilində profil fotosunu dəyişmək
     function changeExistingAvatar(inp) {
         const r = new FileReader();
         r.onload = e => {
             user.a = e.target.result;
-            localStorage.setItem('xe_v6_data', JSON.stringify(user));
+            localStorage.setItem('xe_v7_final', JSON.stringify(user));
             document.getElementById('myAvatar').src = user.a;
-            alert("Profil şəkli yeniləndi! ✅");
+            location.reload(); 
         };
         r.readAsDataURL(inp.files[0]);
     }
 
     function handleLogin() {
         const n = document.getElementById('uN').value.trim();
-        const b = document.getElementById('uB').value.trim();
+        const b = document.getElementById('uB').value.trim() || "Elite Chat Üzvü";
         if(!n) return alert("Ləqəb mütləqdir!");
         const avatar = tempAvatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${n}`;
         user = { n: n, b: b, a: avatar };
-        localStorage.setItem('xe_v6_data', JSON.stringify(user));
+        localStorage.setItem('xe_v7_final', JSON.stringify(user));
         location.reload();
     }
 
@@ -131,7 +129,7 @@
         document.getElementById('userBio').innerText = user.b;
         document.getElementById('myAvatar').src = user.a;
         load();
-        sb.channel('global').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
+        sb.channel('v7_chat').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
             if(p.new.group_id === currentRoom) render(p.new);
         }).on('postgres_changes', {event:'DELETE', schema:'public', table:'messages'}, p => {
             document.getElementById('m-'+p.old.id)?.remove();
@@ -155,20 +153,20 @@
         let content = m.content;
         if(content.includes('👻')) {
             const txt = content.replace('👻','');
-            content = `<div style="filter:blur(5px); cursor:pointer;" onclick="this.innerHTML='⏳ '+this.getAttribute('d'); this.style.filter='none'; deleteGhost('${m.id}')" d="${txt}">👻 Gizli (10s)</div>`;
+            content = `<div style="filter:blur(5px); cursor:pointer;" onclick="this.innerHTML='⏳ '+this.getAttribute('d'); this.style.filter='none'; deleteGhost('${m.id}')" d="${txt}">👻 Gizli Mesaj (10s)</div>`;
         } else if(content.startsWith('VOICE:')) {
             content = `<div onclick="new Audio('${content.replace('VOICE:','')}').play()" style="cursor:pointer">🔊 Səsli Mesaj</div>`;
         } else if(content.startsWith('IMG:')) {
             content = `<img src="${content.replace('IMG:','')}" style="max-width:100%; border-radius:10px;">`;
         }
 
-        // Şəkil bazadan (m.avatar) gəlir, yoxdursa standart çıxır
+        // PROFİL FOTOSU DÜZƏLİŞİ: Bazadan (m.avatar) gələn şəkli mütləq istifadə edirik
         const msgAvatar = m.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}`;
 
         div.innerHTML = `
-            <img src="${msgAvatar}" class="user-avatar" style="width:35px; height:35px; margin-top:10px;">
+            <img src="${msgAvatar}" class="user-avatar" style="width:38px; height:38px; margin-top:8px;">
             <div class="bubble">
-                <div style="font-size:10px; font-weight:bold; opacity:0.8;">${m.nickname}</div>
+                <div style="font-size:10px; font-weight:bold; opacity:0.8; margin-bottom:2px;">${m.nickname}</div>
                 <div>${content}</div>
             </div>
         `;
@@ -185,7 +183,7 @@
         const val = inp.value.trim();
         if(!val) return;
         inp.value = "";
-        // Mesajla birlikdə profil şəklini (user.a) mütləq bazaya göndəririk
+        // HƏLL BURADADIR: Mesajla birlikdə profil şəklimizi (user.a) bazaya göndəririk
         await sb.from('messages').insert([{ 
             content: val, 
             nickname: user.n, 
