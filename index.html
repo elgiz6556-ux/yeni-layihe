@@ -1,134 +1,63 @@
-<!DOCTYPE html>
-<html lang="az">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Elite Ultimate Fix</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root { --bg: #050810; --panel: rgba(15, 23, 42, 0.95); --accent: #38bdf8; --text: #f1f5f9; --me: #0284c7; --other: #1e293b; }
-        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { margin: 0; background: var(--bg); background-size: cover; background-position: center; color: var(--text); height: 100dvh; display: flex; overflow: hidden; }
-
-        .sidebar { width: 65px; background: rgba(2, 6, 23, 0.9); display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 15px; border-right: 1px solid rgba(255,255,255,0.1); z-index: 100; }
-        .r-btn { width: 42px; height: 42px; border-radius: 12px; background: var(--panel); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; border: 1px solid transparent; }
-        .r-btn.active { border-color: var(--accent); box-shadow: 0 0 10px var(--accent); }
-
-        .main { flex: 1; display: flex; flex-direction: column; position: relative; }
-        .header { padding: 12px; background: var(--panel); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-        .msg { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; }
-        .msg.my { align-self: flex-end; flex-direction: row-reverse; }
-        .bub { padding: 10px 14px; border-radius: 18px; background: var(--other); font-size: 14px; line-height: 1.4; word-break: break-word; }
-        .my .bub { background: var(--me); }
-        .msg-img { max-width: 200px; border-radius: 10px; display: block; margin: 5px 0; }
-        
-        /* Game Styles */
-        #gameArea { display: none; background: #020617; padding: 10px; border-bottom: 1px solid var(--accent); }
-        .game-unit { display: none; text-align: center; }
-        .xo-cell { width: 40px; height: 40px; background: #1e293b; border-radius: 5px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; }
-
-        .input-bar { padding: 10px; background: var(--panel); display: flex; gap: 8px; align-items: center; }
-        #mInp { flex: 1; background: rgba(0,0,0,0.5); border: 1px solid #334155; border-radius: 20px; padding: 10px 15px; color: #fff; outline: none; }
-        
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; }
-        .card { background: #0f172a; padding: 25px; border-radius: 20px; width: 85%; max-width: 320px; text-align: center; border: 1px solid var(--accent); }
-    </style>
-</head>
-<body>
-
-<div id="authBox" class="modal" style="display:flex;">
-    <div class="card">
-        <h2 style="color:var(--accent)">X-ELITE</h2>
-        <input type="text" id="uN" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px;" placeholder="İstifadəçi adı">
-        <input type="password" id="uP" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px;" placeholder="Şifrə">
-        <button onclick="handleLogin()" style="width:100%; padding:12px; background:var(--accent); border:none; border-radius:10px; color:#fff; font-weight:bold;">GİRİŞ</button>
-    </div>
-</div>
-
-<div class="sidebar">
-    <div class="r-btn active" onclick="setRoom('General', this)">🌍</div>
-    <div class="r-btn" onclick="setRoom('Gaming', this)">🎮</div>
-    <div class="r-btn" onclick="setRoom('DM', this)">✉️</div>
-    <hr style="width:30px; opacity:0.2;">
-    <label class="r-btn"><input type="file" hidden onchange="changeBg(this)">🖼️</label>
-</div>
-
-<div class="main">
-    <div class="header">
-        <div id="uHead">Yüklenir...</div>
-        <div id="roomTitle" style="color:var(--accent); font-weight:bold;">GENERAL</div>
-    </div>
-
-    <div id="gameArea">
-        <div style="display: flex; justify-content: space-around; margin-bottom: 8px;">
-            <button onclick="switchGame('click')" style="font-size:10px;">⚡</button>
-            <button onclick="switchGame('xo')" style="font-size:10px;">❌</button>
-            <button onclick="switchGame('snake')" style="font-size:10px;">🐍</button>
-        </div>
-        
-        <div id="g_click" class="game-unit">
-            <button onclick="pClick()" style="background:var(--accent); border:none; border-radius:50%; width:40px; height:40px;">⚡</button>
-            <span id="scoreText">0</span>
-        </div>
-
-        <div id="g_xo" class="game-unit">
-            <div id="xo-board" style="display: grid; grid-template-columns: repeat(3, 40px); gap: 5px; justify-content: center;"></div>
-        </div>
-
-        <div id="g_snake" class="game-unit">
-            <canvas id="snakeCanvas" width="150" height="150"></canvas>
-        </div>
-    </div>
-
-    <div id="chat"></div>
-
-    <div class="input-bar">
-        <button onclick="toggleMic()" id="micBtn" style="background:none; border:none; font-size:20px;">🎤</button>
-        <button onclick="document.getElementById('imgI').click()" style="background:none; border:none; font-size:20px;">📷</button>
-        <input type="file" id="imgI" hidden onchange="sImg(this)">
-        <input type="text" id="mInp" placeholder="Mesaj..." onkeypress="if(event.key=='Enter') sendMsg()">
-        <button onclick="sendMsg()" style="background:var(--accent); border:none; border-radius:50%; width:35px; height:35px;">🚀</button>
-    </div>
-</div>
-
 <script>
-    const U = 'https://pyknspxnwnilhqsazidj.supabase.co';
-    const K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
-    const sb = supabase.createClient(U, K);
+    // --- ŞƏKİL SIXMA (RESIZER) FUNKSİYASI ---
+    // Bu funksiya şəkilləri kiçildir ki, "Ağ ekran" və "Kod yığını" problemi olmasın
+    function compressImage(file, callback) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = event => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 800; // Şəkli maksimum bu ölçüyə gətiririk
+                let width = img.width;
+                let height = img.height;
 
-    let user = JSON.parse(localStorage.getItem('x_fix_user'));
-    let currentRoom = 'General';
-    let mediaRec, chunks = [];
-
-    if(user) { document.getElementById('authBox').style.display='none'; init(); }
-
-    async function handleLogin() {
-        const n = document.getElementById('uN').value.trim().toLowerCase();
-        const p = document.getElementById('uP').value.trim();
-        if(!n || !p) return;
-        user = { n, a: `https://api.dicebear.com/7.x/bottts/svg?seed=${n}` };
-        localStorage.setItem('x_fix_user', JSON.stringify(user));
-        location.reload();
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                } else {
+                    if (height > MAX_WIDTH) {
+                        width *= MAX_WIDTH / height;
+                        height = MAX_WIDTH;
+                    }
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                callback(canvas.toDataURL('image/jpeg', 0.7)); // 70% keyfiyyətlə sıxır
+            };
+        };
     }
 
-    function init() {
-        document.getElementById('uHead').innerText = user.n;
-        const bg = localStorage.getItem('x_bg');
-        if(bg) document.body.style.backgroundImage = `url(${bg})`;
-        load();
-        sb.channel('fix').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
-            if(p.new.group_id === currentRoom) render(p.new);
-        }).subscribe();
+    // --- ARXA FON DƏYİŞMƏ FUNKSİYASI (YENİLƏNDİ) ---
+    function changeBg(input) {
+        if (!input.files[0]) return;
+        compressImage(input.files[0], (compressedBase64) => {
+            document.body.style.backgroundImage = `url(${compressedBase64})`;
+            document.body.style.backgroundSize = "cover";
+            document.body.style.backgroundPosition = "center";
+            document.body.style.backgroundAttachment = "fixed";
+            localStorage.setItem('x_bg', compressedBase64);
+        });
     }
 
-    async function load() {
-        document.getElementById('chat').innerHTML = "";
-        const {data} = await sb.from('messages').select('*').eq('group_id', currentRoom).order('created_at');
-        if(data) data.forEach(render);
+    // --- ŞƏKİL MESAJI GÖNDƏRMƏ (YENİLƏNDİ) ---
+    function sImg(input) {
+        if (!input.files[0]) return;
+        compressImage(input.files[0], async (compressedBase64) => {
+            await sb.from('messages').insert([{ 
+                content: 'IMG:' + compressedBase64, 
+                nickname: user.n, 
+                group_id: currentRoom 
+            }]);
+        });
     }
 
+    // --- RENDER FUNKSİYASI (DAHA DƏQİQ YOXlama) ---
     function render(m) {
         if(document.getElementById('m-'+m.id)) return;
         const isMe = m.nickname === user.n;
@@ -137,100 +66,42 @@
         div.className = `msg ${isMe ? 'my' : ''}`;
         
         let c = m.content;
-        // PROBLEMİN HƏLLİ: Burada kodun nə olduğunu yoxlayırıq
+        let finalContent = "";
+
         if(c.startsWith('IMG:')) {
-            c = `<img src="${c.replace('IMG:','')}" class="msg-img">`;
+            finalContent = `<img src="${c.replace('IMG:','')}" class="msg-img" style="max-width:250px; border-radius:15px; border: 2px solid var(--accent);">`;
         } else if(c.startsWith('VOICE:')) {
-            c = `<div class="bub" onclick="new Audio('${c.replace('VOICE:','')}').play()" style="cursor:pointer">🔊 Səsli Mesaj</div>`;
+            finalContent = `<div class="bub" onclick="new Audio('${c.replace('VOICE:','')}').play()" style="cursor:pointer">🔊 Səsli Mesaj (Dinlə)</div>`;
         } else {
-            c = `<div class="bub">${c}</div>`;
+            finalContent = `<div class="bub">${c}</div>`;
         }
 
-        div.innerHTML = `<img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" style="width:25px; border-radius:50%"> ${c}`;
+        div.innerHTML = `
+            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" style="width:30px; border-radius:50%; background:#1e293b;">
+            ${finalContent}
+        `;
         document.getElementById('chat').appendChild(div);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
-
-    async function sendMsg() {
-        const i = document.getElementById('mInp');
-        if(!i.value.trim()) return;
-        await sb.from('messages').insert([{ content: i.value, nickname: user.n, group_id: currentRoom }]);
-        i.value = "";
-    }
-
-    function sImg(input) {
-        const r = new FileReader();
-        r.onload = async e => {
-            await sb.from('messages').insert([{ content: 'IMG:' + e.target.result, nickname: user.n, group_id: currentRoom }]);
-        };
-        r.readAsDataURL(input.files[0]);
-    }
-
-    async function toggleMic() {
-        const btn = document.getElementById('micBtn');
-        if(!mediaRec || mediaRec.state === 'inactive') {
-            const s = await navigator.mediaDevices.getUserMedia({audio:true});
-            mediaRec = new MediaRecorder(s); chunks = [];
-            mediaRec.ondataavailable = e => chunks.push(e.data);
-            mediaRec.onstop = () => {
-                const r = new FileReader();
-                r.onloadend = async () => {
-                    await sb.from('messages').insert([{ content: 'VOICE:'+r.result, nickname: user.n, group_id: currentRoom }]);
-                };
-                r.readAsDataURL(new Blob(chunks));
-            };
-            mediaRec.start(); btn.style.color = 'red';
-        } else { mediaRec.stop(); btn.style.color = ''; }
-    }
-
-    // --- OYUNLAR SİSTEMİ ---
-    function setRoom(r, el) {
-        currentRoom = r;
-        document.getElementById('roomTitle').innerText = r.toUpperCase();
-        document.querySelectorAll('.r-btn').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
-        document.getElementById('gameArea').style.display = (r === 'Gaming') ? 'block' : 'none';
-        if(r === 'Gaming') switchGame('click');
-        load();
-    }
-
-    function switchGame(g) {
-        document.querySelectorAll('.game-unit').forEach(u => u.style.display = 'none');
-        document.getElementById('g_' + g).style.display = 'block';
-        if(g === 'xo') initXO();
-        if(g === 'snake') startSnake();
-    }
-
-    function pClick() { 
-        const s = document.getElementById('scoreText');
-        s.innerText = parseInt(s.innerText) + 1;
-    }
-
-    // XO & Snake kodları bura daxildir (sadələşdirilmiş)
-    function initXO() {
-        const b = document.getElementById('xo-board'); b.innerHTML = "";
-        for(let i=0; i<9; i++) {
-            const c = document.createElement('div'); c.className = 'xo-cell';
-            c.onclick = () => { if(!c.innerText) c.innerText = "X"; };
-            b.appendChild(c);
-        }
-    }
-
-    function startSnake() {
-        const canvas = document.getElementById('snakeCanvas');
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = "green"; ctx.fillRect(10, 10, 50, 50); // Test üçün
-    }
-
-    function changeBg(input) {
-        const r = new FileReader();
-        r.onload = e => {
-            document.body.style.backgroundImage = `url(${e.target.result})`;
-            localStorage.setItem('x_bg', e.target.result);
-        };
-        r.readAsDataURL(input.files[0]);
-    }
 </script>
-</body>
-</html>
+
+<style>
+    /* Arxa fonun tam oturması üçün CSS */
+    body {
+        background-color: #050810;
+        background-size: cover !important;
+        background-position: center !important;
+        background-attachment: fixed !important;
+        background-repeat: no-repeat !important;
+    }
+    .msg-img {
+        transition: transform 0.3s;
+        cursor: pointer;
+    }
+    .msg-img:active {
+        transform: scale(1.5); /* Şəklə basanda böyüdür */
+        z-index: 1000;
+        position: relative;
+    }
+</style>
  
