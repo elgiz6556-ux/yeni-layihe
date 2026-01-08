@@ -3,63 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>X-Elite AI Edition</title>
+    <title>X-Elite Ultimate AI</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #ffffff; --header: #fdfdfd; --accent: #007aff;
-            --me: #007aff; --other: #f2f2f7; --text: #1c1c1e; --dim: #8e8e93;
-        }
-        body.dark {
-            --bg: #000000; --header: #121212; --accent: #0a84ff;
-            --me: #0a84ff; --other: #1c1c1e; --text: #ffffff; --dim: #8e8e93;
-        }
+        :root { --bg: #ffffff; --header: #fdfdfd; --accent: #007aff; --me: #007aff; --other: #f2f2f7; --text: #1c1c1e; --dim: #8e8e93; }
+        body.dark { --bg: #000000; --header: #121212; --accent: #0a84ff; --me: #0a84ff; --other: #1c1c1e; --text: #ffffff; --dim: #8e8e93; }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.2s; }
         body { background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Header */
         .app-header { height: 70px; padding: 0 20px; background: var(--header); border-bottom: 1px solid rgba(128,128,128,0.2); display: flex; justify-content: space-between; align-items: center; z-index: 100; }
         .user-info { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .user-avatar { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--accent); }
+        .crown { color: #ffd700; font-size: 14px; margin-left: 4px; }
 
-        /* Chat */
         #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
         .msg-row { display: flex; gap: 10px; max-width: 85%; animation: slideUp 0.3s ease; }
         .msg-row.my { align-self: flex-end; flex-direction: row-reverse; }
         
-        .bubble { padding: 10px 14px; border-radius: 18px; font-size: 15px; line-height: 1.4; position: relative; }
+        .bubble { padding: 10px 14px; border-radius: 18px; font-size: 15px; line-height: 1.4; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .my .bubble { background: var(--me); color: #fff; border-bottom-right-radius: 4px; }
         .other .bubble { background: var(--other); color: var(--text); border-bottom-left-radius: 4px; }
 
-        /* AI Bubble */
-        .ai-msg { background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%) !important; color: white !important; font-weight: 500; border: none !important; }
-
-        /* Effects */
-        .fire-msg { background: linear-gradient(-45deg, #ff3d00, #ffea00) !important; animation: shake 0.5s infinite alternate !important; color: #fff !important; }
-        .ice-msg { background: linear-gradient(135deg, #e0f7fa, #80deea) !important; color: #006064 !important; }
+        /* Effektlər */
+        .ai-msg { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%) !important; color: white !important; font-weight: 500; }
+        .fire-msg { background: linear-gradient(-45deg, #ff3d00, #ffea00) !important; animation: shake 0.5s infinite alternate !important; color: #fff !important; font-weight: bold; }
+        .ice-msg { background: linear-gradient(135deg, #e0f7fa, #80deea) !important; color: #006064 !important; font-weight: bold; }
         @keyframes shake { from { transform: rotate(-1deg); } to { transform: rotate(1deg); } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Input Area */
         .input-box { padding: 10px 15px 30px; background: var(--header); border-top: 1px solid rgba(128,128,128,0.2); display: flex; align-items: center; gap: 8px; }
         .field-wrap { flex: 1; background: var(--other); border-radius: 22px; padding: 4px 15px; display: flex; align-items: center; }
         .field-wrap input { flex: 1; background: none; border: none; padding: 10px 0; outline: none; font-size: 16px; color: var(--text); }
 
-        .btn-main { background: var(--accent); color: #fff; padding: 15px; border-radius: 12px; border: none; font-weight: bold; width: 100%; cursor: pointer; margin-top: 15px; }
         .overlay { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 30px; }
+        .auth-card { width: 100%; max-width: 320px; text-align: center; }
+        .auth-input { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 12px; border: none; background: #222; color: #fff; }
     </style>
 </head>
 <body class="dark">
 
 <div id="authBox" class="overlay">
     <div class="auth-card">
-        <h2 style="font-size: 32px; margin-bottom: 5px;">X-Elite 🤖</h2>
-        <input type="text" id="uN" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; border:none; background:#222; color:#fff;" placeholder="Ləqəb">
-        <input type="text" id="uB" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; border:none; background:#222; color:#fff;" placeholder="Bio">
-        <button onclick="handleLogin()" class="btn-main">Giriş</button>
+        <h2 style="font-size: 36px; margin-bottom: 20px;">X-Elite 👑</h2>
+        <input type="text" id="uN" class="auth-input" placeholder="Ləqəb">
+        <input type="text" id="uB" class="auth-input" placeholder="Bio (Məs: Gəncəli 🔥)">
+        <input type="password" id="uP" class="auth-input" placeholder="Şifrə">
+        <button onclick="handleLogin()" style="background:var(--accent); color:#fff; padding:15px; border-radius:12px; width:100%; border:none; font-weight:bold;">Sistemə Giriş</button>
     </div>
 </div>
 
@@ -67,11 +59,11 @@
     <div class="user-info" onclick="toggleDarkMode()">
         <img id="myAvatar" class="user-avatar" src="">
         <div>
-            <b id="userName">...</b>
+            <div style="display:flex; align-items:center;"><b id="userName">...</b><span id="vipCrown" class="crown" style="display:none;">👑</span></div>
             <div id="userBio" style="font-size:10px; color:var(--dim);">...</div>
         </div>
     </div>
-    <div style="font-size: 14px; color: var(--accent); font-weight: bold;">@ai aktivdir</div>
+    <div style="font-size: 18px;">🤖 🎤 🎁</div>
 </header>
 
 <div id="chat"></div>
@@ -80,10 +72,10 @@
     <button style="background:none; border:none; font-size:22px;" onclick="document.getElementById('imgI').click()">🖼️</button>
     <input type="file" id="imgI" hidden onchange="uploadImg(this)">
     <div class="field-wrap">
-        <input type="text" id="mInp" placeholder="@ai yazaraq sual ver..." onkeypress="if(event.key=='Enter') send()">
-        <button id="micBtn" onclick="toggleMic()" style="background:none; border:none; font-size:18px;">🎤</button>
+        <input type="text" id="mInp" placeholder="@ai yaz və sual ver..." onkeypress="if(event.key=='Enter') send()">
+        <button id="micBtn" onclick="toggleMic()" style="background:none; border:none; font-size:18px; cursor:pointer;">🎤</button>
     </div>
-    <button onclick="send()" style="background:none; border:none; font-size:26px;">🚀</button>
+    <button onclick="send()" style="background:none; border:none; font-size:28px; color:var(--accent);">🚀</button>
 </div>
 
 <script>
@@ -91,18 +83,18 @@
     const K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(U, K);
 
-    let user = JSON.parse(localStorage.getItem('xe_ai_v1'));
+    let user = JSON.parse(localStorage.getItem('xe_ultimate_v1'));
     let currentRoom = 'General';
     let mediaRec, chunks = [];
 
     if(user) { document.getElementById('authBox').style.display='none'; init(); }
 
     function handleLogin() {
-        const n = document.getElementById('uN').value.trim();
+        const n = document.getElementById('uN').value.trim().toLowerCase();
         const b = document.getElementById('uB').value.trim() || "X-Elite Üzvü";
-        if(!n) return;
+        if(!n) return alert("Ləqəb yazın!");
         user = { n: n, b: b, a: `https://api.dicebear.com/7.x/bottts/svg?seed=${n}` };
-        localStorage.setItem('xe_ai_v1', JSON.stringify(user));
+        localStorage.setItem('xe_ultimate_v1', JSON.stringify(user));
         location.reload();
     }
 
@@ -113,9 +105,14 @@
         document.getElementById('userBio').innerText = user.b;
         document.getElementById('myAvatar').src = user.a;
         load();
-        sb.channel('ai_chat').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
+        sb.channel('xe_ultimate').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
             if(p.new.group_id === currentRoom) render(p.new);
+        }).on('postgres_changes', {event:'DELETE', schema:'public', table:'messages'}, p => {
+            document.getElementById('m-'+p.old.id)?.remove();
         }).subscribe();
+
+        const { data } = await sb.from('messages').select('id').eq('nickname', user.n);
+        if(data && data.length > 10) document.getElementById('vipCrown').style.display = 'inline';
     }
 
     async function load() {
@@ -138,14 +135,15 @@
         if(m.content.includes('❄️')) bClass += " ice-msg";
 
         let content = m.content;
-        if(content.startsWith('VOICE:')) content = `<div onclick="new Audio('${content.replace('VOICE:','')}').play()" style="cursor:pointer">🔊 Səsli Mesaj</div>`;
-        if(content.startsWith('IMG:')) content = `<img src="${content.replace('IMG:','')}" style="max-width:100%; border-radius:10px;">`;
-        if(content.includes('🎁')) content = `<div onclick="confetti();this.innerText='✨ '+this.getAttribute('d')" d="${content.replace('🎁','')}">🎁 Hədiyyəni Aç</div>`;
+        if(content.startsWith('VOICE:')) content = `<div onclick="new Audio('${content.replace('VOICE:','')}').play()" style="cursor:pointer">🔊 Səsli Mesajı Dinlə</div>`;
+        else if(content.startsWith('IMG:')) content = `<img src="${content.replace('IMG:','')}" style="max-width:100%; border-radius:10px;">`;
+        else if(content.includes('🎁')) content = `<div onclick="confetti();this.innerText='✨ '+this.getAttribute('d')" d="${content.replace('🎁','')}">🎁 Hədiyyəni Aç</div>`;
+        else if(content.includes('👻')) content = `<div style="filter:blur(5px); cursor:pointer;" onclick="this.innerHTML='⏳ '+this.getAttribute('d');this.style.filter='none';setTimeout(()=>sb.from('messages').delete().eq('id','${m.id}'),10000)" d="${content.replace('👻','')}">👻 Gizli Mesaj (Toxun)</div>`;
 
         div.innerHTML = `
             <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" style="width:30px; height:30px; border-radius:50%; margin-top:10px;">
             <div class="${bClass}">
-                <div style="font-size:10px; font-weight:bold; opacity:0.7;">${m.nickname}</div>
+                <div style="font-size:10px; font-weight:bold; opacity:0.8; margin-bottom:2px;">${m.nickname}</div>
                 <div>${content}</div>
             </div>
         `;
@@ -158,25 +156,27 @@
         const val = inp.value.trim();
         if(!val) return;
         inp.value = "";
-        
         await sb.from('messages').insert([{ content: val, nickname: user.n, group_id: currentRoom }]);
-
-        if(val.toLowerCase().startsWith('@ai')) {
-            const question = val.replace('@ai', '').trim();
-            getAIResponse(question);
-        }
+        if(val.toLowerCase().startsWith('@ai')) getAIResponse(val.replace('@ai','').trim());
     }
 
     async function getAIResponse(q) {
-        // Simulyasiya: AI cavabı (Burada real API qoşula bilər, hazırda sadə məntiqdir)
-        setTimeout(async () => {
-            let ans = "Mən X-Elite süni intellektiyəm. Sənə necə kömək edə bilərəm? 🤖";
-            if(q.includes('salam')) ans = "Salam! Necə kömək edə bilərəm? 😊";
-            if(q.includes('kim')) ans = "Mən sənin çat dostun olan Elite AI robotuyam! 👑";
-            if(q.includes('hava')) ans = "Mən hələlik çöldəki havanı bilmirəm, amma çatda hava əladır! 🔥";
-            
+        const tId = "ai-think-" + Date.now();
+        render({ id: tId, nickname: 'Elite AI', content: 'Düşünürəm... 🧠', group_id: currentRoom });
+        
+        try {
+            const res = await fetch("https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill", {
+                headers: { "Content-Type": "application/json" },
+                method: "POST",
+                body: JSON.stringify({ inputs: q }),
+            });
+            const data = await res.json();
+            document.getElementById('m-'+tId)?.remove();
+            const ans = (data[0] && data[0].generated_text) ? data[0].generated_text : "Sistemi anlaya bilmədim...";
             await sb.from('messages').insert([{ content: "🤖 " + ans, nickname: 'Elite AI', group_id: currentRoom }]);
-        }, 1500);
+        } catch (e) {
+            document.getElementById('m-'+tId).innerText = "AI müvəqqəti məşğuldur.";
+        }
     }
 
     async function toggleMic() {
