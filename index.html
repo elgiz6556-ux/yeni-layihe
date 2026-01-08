@@ -3,246 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Elite Professional</title>
+    <title>X-Elite Mobile</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0f172a; --side: #020617; --panel: rgba(30, 41, 59, 0.7);
-            --accent: #22d3ee; --text-main: #f8fafc; --text-dim: #94a3b8;
-            --me: #0891b2; --other: #334155; --danger: #f43f5e;
+            --bg: #0b0e14; --card: #161b22; --accent: #00d2ff;
+            --me: #00d2ff; --other: #21262d; --text: #e6edf3;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
         
         body { 
-            background: var(--bg); color: var(--text-main); height: 100dvh; 
-            display: flex; overflow: hidden; background-image: radial-gradient(circle at top right, #1e293b, #0f172a);
+            background: var(--bg); color: var(--text); height: 100dvh; 
+            display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* Sidebar Navigation */
-        .sidebar { 
-            width: 80px; background: var(--side); display: flex; flex-direction: column; 
-            align-items: center; padding: 25px 0; gap: 20px; border-right: 1px solid rgba(255,255,255,0.05); 
+        /* Header - Minimalist */
+        .app-header {
+            padding: 15px 20px; background: rgba(11, 14, 20, 0.8);
+            backdrop-filter: blur(10px); display: flex; justify-content: space-between;
+            align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);
+            position: sticky; top: 0; z-index: 10;
         }
-        .nav-item { 
-            width: 50px; height: 50px; border-radius: 16px; background: var(--panel);
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.03);
-            font-size: 20px; position: relative;
+
+        /* Chat Area - Full Screen for Mobile */
+        #chat { 
+            flex: 1; overflow-y: auto; padding: 15px; 
+            display: flex; flex-direction: column; gap: 12px;
+            background-size: cover; background-position: center;
         }
-        .nav-item:hover { transform: translateY(-3px); background: var(--accent); color: var(--side); }
-        .nav-item.active { background: var(--accent); color: var(--side); box-shadow: 0 0 20px rgba(34, 211, 238, 0.3); }
 
-        /* Main Workspace */
-        .workspace { flex: 1; display: flex; flex-direction: column; position: relative; }
-        
-        .top-bar { 
-            height: 70px; padding: 0 30px; display: flex; justify-content: space-between; 
-            align-items: center; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .user-profile { display: flex; align-items: center; gap: 12px; }
-        .status-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981; }
+        .msg-wrapper { display: flex; flex-direction: column; max-width: 80%; }
+        .msg-wrapper.my { align-self: flex-end; }
+        .msg-wrapper.other { align-self: flex-start; }
 
-        /* Chat Engine */
-        #chat { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
-        .msg-row { display: flex; gap: 12px; max-width: 75%; animation: fadeIn 0.4s ease; }
-        .msg-row.my { align-self: flex-end; flex-direction: row-reverse; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .avatar { width: 38px; height: 38px; border-radius: 12px; background: var(--other); flex-shrink: 0; }
         .bubble { 
-            padding: 12px 18px; border-radius: 20px; background: var(--panel); 
-            line-height: 1.6; font-size: 14.5px; position: relative; border: 1px solid rgba(255,255,255,0.05);
+            padding: 10px 16px; border-radius: 18px; font-size: 15px; 
+            line-height: 1.4; position: relative; word-wrap: break-word;
         }
-        .my .bubble { background: var(--me); border: none; color: white; border-bottom-right-radius: 4px; }
-        .other .bubble { border-bottom-left-radius: 4px; }
+        .my .bubble { background: var(--me); color: #000; border-bottom-right-radius: 4px; }
+        .other .bubble { background: var(--other); color: white; border-bottom-left-radius: 4px; }
 
-        /* Input System */
-        .input-area { 
-            padding: 20px 30px; background: var(--side); border-top: 1px solid rgba(255,255,255,0.05);
-            display: flex; gap: 15px; align-items: center;
-        }
-        .input-box { 
-            flex: 1; background: var(--bg); border: 1px solid #1e293b; border-radius: 14px;
-            padding: 14px 20px; color: white; outline: none; transition: 0.3s;
-        }
-        .input-box:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1); }
+        .msg-info { font-size: 10px; opacity: 0.5; margin-bottom: 4px; padding: 0 5px; }
+        .my .msg-info { text-align: right; }
 
-        .action-btn { 
-            background: none; border: none; color: var(--text-dim); cursor: pointer; 
-            font-size: 22px; transition: 0.2s; 
-        }
-        .action-btn:hover { color: var(--accent); }
-        .send-btn { 
-            background: var(--accent); color: var(--side); padding: 12px 25px; 
-            border-radius: 12px; font-weight: 700; border: none; cursor: pointer;
-        }
+        /* Multimedia */
+        .msg-img { max-width: 100%; border-radius: 12px; margin-top: 5px; border: 1px solid rgba(255,255,255,0.1); }
 
-        /* Modals */
-        .auth-overlay { 
-            position: fixed; inset: 0; background: var(--side); z-index: 1000;
-            display: flex; align-items: center; justify-content: center;
+        /* Input Bar - Mobile Optimized */
+        .input-container {
+            padding: 10px 15px 25px 15px; background: var(--card);
+            display: flex; align-items: center; gap: 10px;
         }
-        .auth-card { 
-            background: var(--bg); padding: 40px; border-radius: 24px; width: 100%; max-width: 400px;
-            text-align: center; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        .input-wrap {
+            flex: 1; background: #0d1117; border-radius: 25px;
+            padding: 5px 15px; display: flex; align-items: center; border: 1px solid #30363d;
+        }
+        .input-wrap input {
+            flex: 1; background: none; border: none; color: white;
+            padding: 10px 5px; outline: none; font-size: 16px;
         }
 
-        /* Mobile Adjustments */
-        @media (max-width: 600px) {
-            .sidebar { width: 60px; }
-            .nav-item { width: 40px; height: 40px; font-size: 16px; }
-            .msg-row { max-width: 90%; }
+        /* Bottom Navigation */
+        .nav-bar {
+            height: 65px; background: #0d1117; border-top: 1px solid #30363d;
+            display: flex; justify-content: space-around; align-items: center;
+            padding-bottom: 10px;
         }
+        .nav-btn { 
+            display: flex; flex-direction: column; align-items: center; 
+            color: #8b949e; font-size: 20px; transition: 0.3s;
+        }
+        .nav-btn.active { color: var(--accent); }
+        .nav-btn span { font-size: 10px; margin-top: 4px; font-weight: 600; }
+
+        /* Auth Screen */
+        .auth-screen {
+            position: fixed; inset: 0; background: var(--bg); z-index: 100;
+            display: flex; flex-direction: column; justify-content: center; padding: 40px;
+        }
+        .auth-btn {
+            background: var(--accent); color: #000; padding: 15px;
+            border-radius: 12px; border: none; font-weight: bold; font-size: 16px;
+        }
+
+        /* Audio Indicator */
+        .recording { color: #ff453a !important; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
     </style>
 </head>
 <body>
 
-<div id="authBox" class="auth-overlay">
-    <div class="auth-card">
-        <h2 style="font-size: 28px; margin-bottom: 10px; color: var(--accent);">X-Elite</h2>
-        <p style="color: var(--text-dim); margin-bottom: 30px;">Zəhmət olmasa ləqəbinizlə daxil olun.</p>
-        <input type="text" id="uN" class="input-box" placeholder="İstifadəçi adı" style="width: 100%; margin-bottom: 15px;">
-        <input type="password" id="uP" class="input-box" placeholder="Şifrə" style="width: 100%; margin-bottom: 25px;">
-        <button onclick="handleLogin()" class="send-btn" style="width: 100%;">SİSTEMƏ GİRİŞ</button>
-    </div>
+<div id="authBox" class="auth-screen">
+    <h1 style="font-size: 40px; margin-bottom: 10px; color: var(--accent);">X-Elite</h1>
+    <p style="margin-bottom: 30px; opacity: 0.6;">Xoş gəldiniz, daxil olun.</p>
+    <input type="text" id="uN" placeholder="İstifadəçi adı" style="width:100%; padding:15px; background:#161b22; border:1px solid #30363d; color:white; border-radius:12px; margin-bottom:15px; outline:none;">
+    <input type="password" id="uP" placeholder="Şifrə" style="width:100%; padding:15px; background:#161b22; border:1px solid #30363d; color:white; border-radius:12px; margin-bottom:20px; outline:none;">
+    <button onclick="handleLogin()" class="auth-btn">Daxil Ol</button>
 </div>
 
-<nav class="sidebar">
-    <div class="nav-item active" onclick="setRoom('General', this)" title="Ümumi">🌍</div>
-    <div class="nav-item" onclick="setRoom('Gaming', this)" title="Oyunlar">🎮</div>
-    <div class="nav-item" onclick="setRoom('Direct', this)" title="DM">✉️</div>
-    <div style="margin-top: auto;">
-        <label class="nav-item">🖼️<input type="file" hidden onchange="updateBg(this)"></label>
+<header class="app-header">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <div id="status" class="status-dot"></div>
+        <b id="userName" style="font-size: 18px;">X-Elite</b>
     </div>
+    <div id="roomName" style="color: var(--accent); font-size: 12px; font-weight: 600;">GENERAL</div>
+</header>
+
+<div id="chat"></div>
+
+<div class="input-container">
+    <button onclick="document.getElementById('imgI').click()" style="background:none; border:none; color:var(--accent); font-size:22px;">📷</button>
+    <input type="file" id="imgI" hidden onchange="uploadImg(this)">
+    <div class="input-wrap">
+        <input type="text" id="mInp" placeholder="Mesaj..." onkeypress="if(event.key=='Enter') send()">
+        <button onclick="toggleMic()" id="micBtn" style="background:none; border:none; color:#8b949e; font-size:20px; margin-left:10px;">🎤</button>
+    </div>
+    <button onclick="send()" style="background:none; border:none; color:var(--accent); font-size:24px;">🚀</button>
+</div>
+
+<nav class="nav-bar">
+    <div class="nav-btn active" onclick="setRoom('General', this)">🌍<span>Ümumi</span></div>
+    <div class="nav-btn" onclick="setRoom('Gaming', this)">🎮<span>Oyunlar</span></div>
+    <div class="nav-btn" onclick="setRoom('Direct', this)">✉️<span>DM</span></div>
+    <div class="nav-btn" onclick="document.getElementById('bgI').click()">🖼️<span>Fon</span></div>
+    <input type="file" id="bgI" hidden onchange="updateBg(this)">
 </nav>
-
-<main class="workspace">
-    <header class="top-bar">
-        <div class="user-profile">
-            <div class="status-dot"></div>
-            <span id="userName" style="font-weight: 600;">Yüklənir...</span>
-        </div>
-        <div id="roomTitle" style="text-transform: uppercase; font-size: 12px; letter-spacing: 2px; color: var(--accent);">General</div>
-    </header>
-
-    <div id="chat"></div>
-
-    <footer class="input-area">
-        <button class="action-btn" onclick="toggleMic()" id="micBtn">🎤</button>
-        <button class="action-btn" onclick="document.getElementById('imgI').click()">📷</button>
-        <input type="file" id="imgI" hidden onchange="uploadImg(this)">
-        <input type="text" id="mInp" class="input-box" placeholder="Mesajınızı bura yazın..." onkeypress="if(event.key=='Enter') send()">
-        <button class="send-btn" onclick="send()">GÖNDƏR</button>
-    </footer>
-</main>
 
 <script>
     const U = 'https://pyknspxnwnilhqsazidj.supabase.co';
     const K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(U, K);
 
-    let user = JSON.parse(localStorage.getItem('x_elite_pro'));
+    let user = JSON.parse(localStorage.getItem('x_elite_m'));
     let currentRoom = 'General';
     let mediaRec, chunks = [];
 
     if(user) { document.getElementById('authBox').style.display='none'; init(); }
 
-    async function handleLogin() {
+    function handleLogin() {
         const n = document.getElementById('uN').value.trim();
-        const p = document.getElementById('uP').value.trim();
-        if(!n || !p) return;
-        user = { n: n.toLowerCase(), a: `https://api.dicebear.com/7.x/bottts/svg?seed=${n}` };
-        localStorage.setItem('x_elite_pro', JSON.stringify(user));
+        if(!n) return;
+        user = { n: n.toLowerCase() };
+        localStorage.setItem('x_elite_m', JSON.stringify(user));
         location.reload();
     }
 
     function init() {
         document.getElementById('userName').innerText = user.n;
-        const bg = localStorage.getItem('x_elite_bg');
-        if(bg) document.body.style.backgroundImage = `url(${bg})`;
-        loadMsgs();
-        sb.channel('pro').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
+        const bg = localStorage.getItem('x_bg_m');
+        if(bg) document.getElementById('chat').style.backgroundImage = `url(${bg})`;
+        load();
+        sb.channel('m_chat').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
             if(p.new.group_id === currentRoom) render(p.new);
         }).subscribe();
     }
 
-    async function loadMsgs() {
+    async function load() {
         const chat = document.getElementById('chat');
         chat.innerHTML = "";
-        const {data} = await sb.from('messages').select('*').eq('group_id', currentRoom).order('created_at', {ascending: false}).limit(40);
+        const {data} = await sb.from('messages').select('*').eq('group_id', currentRoom).order('created_at', {ascending: false}).limit(30);
         if(data) data.reverse().forEach(render);
     }
 
     function render(m) {
         if(document.getElementById('m-'+m.id)) return;
         const isMe = m.nickname === user.n;
-        const chat = document.getElementById('chat');
-        
         const div = document.createElement('div');
         div.id = 'm-'+m.id;
-        div.className = `msg-row ${isMe ? 'my' : 'other'}`;
+        div.className = `msg-wrapper ${isMe ? 'my' : 'other'}`;
         
         let content = m.content;
-        if(content.startsWith('IMG:')) {
-            content = `<img src="${content.replace('IMG:','')}" style="max-width:100%; border-radius:12px; margin-top:5px;">`;
-        } else if(content.startsWith('VOICE:')) {
-            content = `<div style="cursor:pointer" onclick="new Audio('${content.replace('VOICE:','')}').play()">🔊 Səsli Mesajı Dinlə</div>`;
-        }
+        if(content.startsWith('IMG:')) content = `<img src="${content.replace('IMG:','')}" class="msg-img">`;
+        else if(content.startsWith('VOICE:')) content = `<div onclick="new Audio('${content.replace('VOICE:','')}').play()">🔊 Səsli Mesaj</div>`;
 
         div.innerHTML = `
-            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" class="avatar">
-            <div class="bubble">
-                <div style="font-size: 10px; opacity: 0.6; margin-bottom: 4px;">${m.nickname}</div>
-                ${content}
-            </div>
+            <div class="msg-info">${m.nickname}</div>
+            <div class="bubble">${content}</div>
         `;
-        chat.appendChild(div);
-        chat.scrollTop = chat.scrollHeight;
+        document.getElementById('chat').appendChild(div);
+        document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
     async function send() {
         const inp = document.getElementById('mInp');
-        const val = inp.value.trim();
-        if(!val) return;
-        if(val === '/clear') {
-            if(confirm("Bütün çat silinsin?")) await sb.from('messages').delete().eq('group_id', currentRoom);
-            inp.value = ""; return;
-        }
+        const v = inp.value.trim();
+        if(!v) return;
         inp.value = "";
-        await sb.from('messages').insert([{ content: val, nickname: user.n, group_id: currentRoom }]);
+        await sb.from('messages').insert([{ content: v, nickname: user.n, group_id: currentRoom }]);
     }
 
-    // Multimedia logic
     function compress(file, cb) {
         const r = new FileReader(); r.readAsDataURL(file);
         r.onload = e => {
             const img = new Image(); img.src = e.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const scale = Math.min(1000 / img.width, 1);
+                const scale = Math.min(800 / img.width, 1);
                 canvas.width = img.width * scale; canvas.height = img.height * scale;
                 canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                cb(canvas.toDataURL('image/jpeg', 0.7));
+                cb(canvas.toDataURL('image/jpeg', 0.6));
             }
         }
     }
 
     function uploadImg(inp) {
         if(!inp.files[0]) return;
-        compress(inp.files[0], async b64 => {
-            await sb.from('messages').insert([{ content: 'IMG:'+b64, nickname: user.n, group_id: currentRoom }]);
+        compress(inp.files[0], async b => {
+            await sb.from('messages').insert([{ content: 'IMG:'+b, nickname: user.n, group_id: currentRoom }]);
         });
     }
 
     function updateBg(inp) {
         if(!inp.files[0]) return;
-        compress(inp.files[0], b64 => {
-            document.body.style.backgroundImage = `url(${b64})`;
-            localStorage.setItem('x_elite_bg', b64);
+        compress(inp.files[0], b => {
+            document.getElementById('chat').style.backgroundImage = `url(${b})`;
+            localStorage.setItem('x_bg_m', b);
         });
     }
 
@@ -254,20 +231,26 @@
             mediaRec.ondataavailable = e => chunks.push(e.data);
             mediaRec.onstop = () => {
                 const r = new FileReader(); r.readAsDataURL(new Blob(chunks));
-                r.onloadend = async () => {
-                    await sb.from('messages').insert([{ content: 'VOICE:'+r.result, nickname: user.n, group_id: currentRoom }]);
-                }
+                r.onloadend = async () => await sb.from('messages').insert([{ content: 'VOICE:'+r.result, nickname: user.n, group_id: currentRoom }]);
             }
-            mediaRec.start(); btn.style.color = '#f43f5e';
-        } else { mediaRec.stop(); btn.style.color = ''; }
+            mediaRec.start(); btn.classList.add('recording');
+        } else { mediaRec.stop(); btn.classList.remove('recording'); }
     }
 
     function setRoom(r, el) {
-        currentRoom = r;
-        document.getElementById('roomTitle').innerText = r;
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        if(r === 'Direct') {
+            const t = prompt("Kimə yazmaq istəyirsiz?");
+            if(!t) return;
+            const ids = [user.n, t.toLowerCase().trim()].sort();
+            currentRoom = `DM_${ids[0]}_${ids[1]}`;
+            document.getElementById('roomName').innerText = "DM: " + t.toUpperCase();
+        } else {
+            currentRoom = r;
+            document.getElementById('roomName').innerText = r.toUpperCase();
+        }
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         el.classList.add('active');
-        loadMsgs();
+        load();
     }
 </script>
 </body>
