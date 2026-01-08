@@ -3,96 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>X-Elite VIP Edition</title>
+    <title>Elite Chat VIP</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #ffffff; --header: #fdfdfd; --accent: #007aff; --me: #007aff; --other: #f2f2f7; --text: #1c1c1e; --dim: #8e8e93; }
         body.dark { --bg: #000000; --header: #121212; --accent: #0a84ff; --me: #0a84ff; --other: #1c1c1e; --text: #ffffff; --dim: #8e8e93; }
-
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.2s; }
         body { background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Header */
         .app-header { height: 75px; padding: 0 20px; background: var(--header); border-bottom: 1px solid rgba(128,128,128,0.2); display: flex; justify-content: space-between; align-items: center; z-index: 100; }
         .user-info { display: flex; align-items: center; gap: 12px; cursor: pointer; }
         .user-avatar { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; background: #eee; }
-        .crown { color: #ffd700; font-size: 14px; margin-left: 4px; }
 
-        /* Chat */
         #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
         .msg-row { display: flex; gap: 10px; max-width: 85%; animation: slideUp 0.3s ease; }
         .msg-row.my { align-self: flex-end; flex-direction: row-reverse; }
-        
-        .bubble { padding: 10px 14px; border-radius: 18px; font-size: 15px; line-height: 1.4; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .bubble { padding: 10px 14px; border-radius: 18px; font-size: 15px; line-height: 1.4; position: relative; }
         .my .bubble { background: var(--me); color: #fff; border-bottom-right-radius: 4px; }
         .other .bubble { background: var(--other); color: var(--text); border-bottom-left-radius: 4px; }
 
-        /* Special Bubbles */
-        .ai-msg { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%) !important; color: white !important; }
-        .fire-msg { background: linear-gradient(-45deg, #ff3d00, #ffea00) !important; animation: shake 0.5s infinite alternate !important; color: #fff !important; font-weight: bold; }
-        .ice-msg { background: linear-gradient(135deg, #e0f7fa, #80deea) !important; color: #006064 !important; font-weight: bold; }
-        
-        @keyframes shake { from { transform: rotate(-1deg); } to { transform: rotate(1deg); } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Input */
         .input-box { padding: 10px 15px 35px; background: var(--header); border-top: 1px solid rgba(128,128,128,0.2); display: flex; align-items: center; gap: 8px; }
         .field-wrap { flex: 1; background: var(--other); border-radius: 22px; padding: 4px 15px; display: flex; align-items: center; }
         .field-wrap input { flex: 1; background: none; border: none; padding: 10px 0; outline: none; font-size: 16px; color: var(--text); }
 
-        /* Auth */
         .overlay { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 30px; }
         .auth-card { width: 100%; max-width: 320px; text-align: center; }
-        .auth-input { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 12px; border: none; background: #f0f0f5; color: #000; font-size: 15px; }
-        body.dark .auth-input { background: #222; color: #fff; }
-        
-        .p-upload { width: 80px; height: 80px; border-radius: 50%; background: var(--accent); margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; overflow: hidden; border: 3px solid var(--accent); position: relative; }
+        .p-upload { width: 90px; height: 90px; border-radius: 50%; background: var(--accent); margin: 0 auto 15px; cursor: pointer; overflow: hidden; border: 3px solid var(--accent); display: flex; align-items: center; justify-content: center; color: white; position: relative; }
         .p-upload img { width: 100%; height: 100%; object-fit: cover; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="dark">
 
 <div id="authBox" class="overlay">
     <div class="auth-card">
-        <h2 style="font-size: 32px; margin-bottom: 15px;">X-Elite VIP</h2>
-        
+        <h2 style="margin-bottom: 20px;">X-Elite Giriş</h2>
         <div class="p-upload" onclick="document.getElementById('pImg').click()">
             <img id="pPreview" src="" style="display:none">
-            <span id="pText">Foto 📸</span>
+            <span id="pText">Şəkil Seç 📸</span>
         </div>
         <input type="file" id="pImg" hidden accept="image/*" onchange="previewProfile(this)">
-        
-        <input type="text" id="uN" class="auth-input" placeholder="Ləqəbiniz">
-        <input type="text" id="uB" class="auth-input" placeholder="Bio (Haqqınızda)">
-        <input type="password" id="uP" class="auth-input" placeholder="Şifrə">
-        
-        <button onclick="handleLogin()" style="background:var(--accent); color:#fff; padding:15px; border-radius:12px; width:100%; border:none; font-weight:bold; cursor:pointer; font-size:16px;">Sistemə Giriş</button>
+        <input type="text" id="uN" style="width:100%; padding:14px; margin-bottom:10px; border-radius:12px; border:none; background:#222; color:#fff;" placeholder="Ləqəb">
+        <input type="text" id="uB" style="width:100%; padding:14px; margin-bottom:10px; border-radius:12px; border:none; background:#222; color:#fff;" placeholder="Bio">
+        <button onclick="handleLogin()" style="background:var(--accent); color:#fff; padding:15px; border-radius:12px; width:100%; border:none; font-weight:bold; cursor:pointer;">Başla</button>
     </div>
 </div>
 
 <header class="app-header">
-    <div class="user-info" onclick="toggleDarkMode()">
-        <img id="myAvatar" class="user-avatar" src="">
-        <div>
-            <div style="display:flex; align-items:center;"><b id="userName">...</b><span id="vipCrown" class="crown" style="display:none;">👑</span></div>
+    <div class="user-info">
+        <img id="myAvatar" class="user-avatar" onclick="document.getElementById('changeAvatarInput').click()">
+        <input type="file" id="changeAvatarInput" hidden accept="image/*" onchange="changeExistingAvatar(this)">
+        <div onclick="toggleDarkMode()">
+            <b id="userName">...</b>
             <div id="userBio" style="font-size:10px; color:var(--dim);">...</div>
         </div>
     </div>
-    <div style="font-size: 18px; opacity: 0.8;">🤖 🎤 🖼️</div>
+    <div style="font-size: 14px; opacity: 0.7;">V6 Pro</div>
 </header>
 
 <div id="chat"></div>
 
 <div class="input-box">
-    <button style="background:none; border:none; font-size:22px; cursor:pointer" onclick="document.getElementById('imgI').click()">🖼️</button>
+    <button style="background:none; border:none; font-size:22px;" onclick="document.getElementById('imgI').click()">🖼️</button>
     <input type="file" id="imgI" hidden onchange="uploadImg(this)">
     <div class="field-wrap">
-        <input type="text" id="mInp" placeholder="@ai yazaraq sual ver..." onkeypress="if(event.key=='Enter') send()">
-        <button id="micBtn" style="background:none; border:none; font-size:18px; cursor:pointer" onclick="toggleMic()">🎤</button>
+        <input type="text" id="mInp" placeholder="Mesaj..." onkeypress="if(event.key=='Enter') send()">
+        <button id="micBtn" style="background:none; border:none; font-size:18px;" onclick="toggleMic()">🎤</button>
     </div>
-    <button onclick="send()" style="background:none; border:none; font-size:28px; color:var(--accent); cursor:pointer">🚀</button>
+    <button onclick="send()" style="background:none; border:none; font-size:28px; color:var(--accent);">🚀</button>
 </div>
 
 <script>
@@ -100,16 +80,18 @@
     const K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(U, K);
 
-    let user = JSON.parse(localStorage.getItem('xe_v4_final'));
+    let user = JSON.parse(localStorage.getItem('xe_v6_data'));
     let currentRoom = 'General';
     let mediaRec, chunks = [];
     let tempAvatar = "";
 
-    if(user) { document.getElementById('authBox').style.display='none'; init(); }
+    if(user) { 
+        document.getElementById('authBox').style.display='none'; 
+        init(); 
+    }
 
+    // Girişdə profil fotosu önizləmə
     function previewProfile(inp) {
-        const file = inp.files[0];
-        if(!file) return;
         const r = new FileReader();
         r.onload = e => {
             tempAvatar = e.target.result;
@@ -117,17 +99,28 @@
             document.getElementById('pPreview').style.display = 'block';
             document.getElementById('pText').style.display = 'none';
         };
-        r.readAsDataURL(file);
+        r.readAsDataURL(inp.files[0]);
+    }
+
+    // Çat daxilində profil fotosunu dəyişmək
+    function changeExistingAvatar(inp) {
+        const r = new FileReader();
+        r.onload = e => {
+            user.a = e.target.result;
+            localStorage.setItem('xe_v6_data', JSON.stringify(user));
+            document.getElementById('myAvatar').src = user.a;
+            alert("Profil şəkli yeniləndi! ✅");
+        };
+        r.readAsDataURL(inp.files[0]);
     }
 
     function handleLogin() {
         const n = document.getElementById('uN').value.trim();
-        const b = document.getElementById('uB').value.trim() || "X-Elite Üzvü";
+        const b = document.getElementById('uB').value.trim();
         if(!n) return alert("Ləqəb mütləqdir!");
-        
         const avatar = tempAvatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${n}`;
         user = { n: n, b: b, a: avatar };
-        localStorage.setItem('xe_v4_final', JSON.stringify(user));
+        localStorage.setItem('xe_v6_data', JSON.stringify(user));
         location.reload();
     }
 
@@ -138,46 +131,44 @@
         document.getElementById('userBio').innerText = user.b;
         document.getElementById('myAvatar').src = user.a;
         load();
-        sb.channel('xe_chat').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
+        sb.channel('global').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
             if(p.new.group_id === currentRoom) render(p.new);
+        }).on('postgres_changes', {event:'DELETE', schema:'public', table:'messages'}, p => {
+            document.getElementById('m-'+p.old.id)?.remove();
         }).subscribe();
-
-        const { data } = await sb.from('messages').select('id').eq('nickname', user.n);
-        if(data && data.length > 7) document.getElementById('vipCrown').style.display = 'inline';
     }
 
     async function load() {
         const chat = document.getElementById('chat'); chat.innerHTML = "";
-        const {data} = await sb.from('messages').select('*').eq('group_id', currentRoom).order('created_at', {ascending: false}).limit(40);
+        const {data} = await sb.from('messages').select('*').eq('group_id', currentRoom).order('created_at', {ascending: false}).limit(50);
         if(data) { data.reverse().forEach(render); chat.scrollTop = chat.scrollHeight; }
     }
 
     function render(m) {
         if(document.getElementById('m-'+m.id)) return;
         const isMe = m.nickname === user.n;
-        const isAI = m.nickname === 'Elite AI';
         const chat = document.getElementById('chat');
         const div = document.createElement('div');
         div.id = 'm-'+m.id;
         div.className = `msg-row ${isMe ? 'my' : 'other'}`;
         
-        let bClass = isAI ? "bubble ai-msg" : "bubble";
-        if(m.content.includes('🔥')) bClass += " fire-msg";
-        if(m.content.includes('❄️')) bClass += " ice-msg";
-
         let content = m.content;
-        if(content.startsWith('VOICE:')) content = `<div onclick="new Audio('${content.replace('VOICE:','')}').play()" style="cursor:pointer">🔊 Səsli Mesaj</div>`;
-        else if(content.startsWith('IMG:')) content = `<img src="${content.replace('IMG:','')}" style="max-width:100%; border-radius:10px;">`;
-        else if(content.includes('🎁')) content = `<div onclick="confetti();this.innerText='✨ '+this.getAttribute('d')" d="${content.replace('🎁','')}">🎁 Hədiyyəni Aç</div>`;
-        else if(content.includes('👻')) content = `<div style="filter:blur(5px); cursor:pointer;" onclick="this.innerHTML='⏳ '+this.getAttribute('d');this.style.filter='none';setTimeout(()=>sb.from('messages').delete().eq('id','${m.id}'),10000)" d="${content.replace('👻','')}">👻 Gizli Mesaj (Toxun)</div>`;
+        if(content.includes('👻')) {
+            const txt = content.replace('👻','');
+            content = `<div style="filter:blur(5px); cursor:pointer;" onclick="this.innerHTML='⏳ '+this.getAttribute('d'); this.style.filter='none'; deleteGhost('${m.id}')" d="${txt}">👻 Gizli (10s)</div>`;
+        } else if(content.startsWith('VOICE:')) {
+            content = `<div onclick="new Audio('${content.replace('VOICE:','')}').play()" style="cursor:pointer">🔊 Səsli Mesaj</div>`;
+        } else if(content.startsWith('IMG:')) {
+            content = `<img src="${content.replace('IMG:','')}" style="max-width:100%; border-radius:10px;">`;
+        }
 
-        // Avatar: Əgər mesajı göndərən mənəmsə mənim avatarım, deyilse standart bot avatarı (Real sistemdə avatarlar bazada saxlanılır)
-        const avatarUrl = isMe ? user.a : (isAI ? 'https://api.dicebear.com/7.x/bottts/svg?seed=AI' : `https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}`);
+        // Şəkil bazadan (m.avatar) gəlir, yoxdursa standart çıxır
+        const msgAvatar = m.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}`;
 
         div.innerHTML = `
-            <img src="${avatarUrl}" class="user-avatar" style="width:32px; height:32px; margin-top:10px; border:none">
-            <div class="${bClass}">
-                <div style="font-size:10px; font-weight:bold; opacity:0.8; margin-bottom:2px;">${m.nickname}</div>
+            <img src="${msgAvatar}" class="user-avatar" style="width:35px; height:35px; margin-top:10px;">
+            <div class="bubble">
+                <div style="font-size:10px; font-weight:bold; opacity:0.8;">${m.nickname}</div>
                 <div>${content}</div>
             </div>
         `;
@@ -185,28 +176,22 @@
         chat.scrollTop = chat.scrollHeight;
     }
 
+    async function deleteGhost(id) {
+        setTimeout(async () => { await sb.from('messages').delete().eq('id', id); }, 10000);
+    }
+
     async function send() {
         const inp = document.getElementById('mInp');
         const val = inp.value.trim();
         if(!val) return;
         inp.value = "";
-        await sb.from('messages').insert([{ content: val, nickname: user.n, group_id: currentRoom }]);
-        if(val.toLowerCase().startsWith('@ai')) getAIResponse(val.replace('@ai','').trim());
-    }
-
-    async function getAIResponse(q) {
-        const tId = "ai-think-" + Date.now();
-        render({ id: tId, nickname: 'Elite AI', content: 'Düşünürəm... 🧠', group_id: currentRoom });
-        try {
-            const res = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(q)}&format=json&no_html=1`);
-            const data = await res.json();
-            document.getElementById('m-'+tId)?.remove();
-            let ans = data.AbstractText || "Bunu hələ araşdırıram, başqa bir şey soruşa bilərsən? 🤖";
-            await sb.from('messages').insert([{ content: "🤖 " + ans, nickname: 'Elite AI', group_id: currentRoom }]);
-        } catch (e) {
-            document.getElementById('m-'+tId)?.remove();
-            sb.from('messages').insert([{ content: "🤖 Hal-hazırda sistemlərim yenilənir! ✨", nickname: 'Elite AI', group_id: currentRoom }]);
-        }
+        // Mesajla birlikdə profil şəklini (user.a) mütləq bazaya göndəririk
+        await sb.from('messages').insert([{ 
+            content: val, 
+            nickname: user.n, 
+            avatar: user.a, 
+            group_id: currentRoom 
+        }]);
     }
 
     async function toggleMic() {
@@ -217,16 +202,15 @@
             mediaRec.ondataavailable = e => chunks.push(e.data);
             mediaRec.onstop = () => {
                 const r = new FileReader(); r.readAsDataURL(new Blob(chunks));
-                r.onloadend = () => sb.from('messages').insert([{ content: 'VOICE:'+r.result, nickname: user.n, group_id: currentRoom }]);
+                r.onloadend = () => sb.from('messages').insert([{ content: 'VOICE:'+r.result, nickname: user.n, avatar: user.a, group_id: currentRoom }]);
             };
-            mediaRec.start(); btn.innerText = "🛑"; btn.style.color = "red";
-        } else { mediaRec.stop(); btn.innerText = "🎤"; btn.style.color = ""; }
+            mediaRec.start(); btn.innerText = "🛑";
+        } else { mediaRec.stop(); btn.innerText = "🎤"; }
     }
 
     function uploadImg(inp) {
-        if(!inp.files[0]) return;
         const r = new FileReader(); r.readAsDataURL(inp.files[0]);
-        r.onload = e => sb.from('messages').insert([{ content: 'IMG:'+e.target.result, nickname: user.n, group_id: currentRoom }]);
+        r.onload = e => sb.from('messages').insert([{ content: 'IMG:'+e.target.result, nickname: user.n, avatar: user.a, group_id: currentRoom }]);
     }
 </script>
 </body>
