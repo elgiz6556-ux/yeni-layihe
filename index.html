@@ -3,88 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Elite Ultimate</title>
+    <title>X-Elite Ultimate Fix</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #050810; --panel: rgba(15, 23, 42, 0.9); --accent: #38bdf8; --text: #f1f5f9; --me: #0284c7; --other: #1e293b; }
+        :root { --bg: #050810; --panel: rgba(15, 23, 42, 0.95); --accent: #38bdf8; --text: #f1f5f9; --me: #0284c7; --other: #1e293b; }
         * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { margin: 0; background: var(--bg); background-size: cover; background-position: center; color: var(--text); height: 100dvh; display: flex; overflow: hidden; }
 
-        /* Sidebar */
-        .sidebar { width: 70px; background: rgba(2, 6, 23, 0.8); backdrop-filter: blur(10px); display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 15px; border-right: 1px solid rgba(255,255,255,0.1); z-index: 100; }
-        .r-btn { width: 45px; height: 45px; border-radius: 15px; background: var(--panel); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; border: 1px solid transparent; }
-        .r-btn.active { border-color: var(--accent); box-shadow: 0 0 15px var(--accent); }
+        .sidebar { width: 65px; background: rgba(2, 6, 23, 0.9); display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 15px; border-right: 1px solid rgba(255,255,255,0.1); z-index: 100; }
+        .r-btn { width: 42px; height: 42px; border-radius: 12px; background: var(--panel); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; border: 1px solid transparent; }
+        .r-btn.active { border-color: var(--accent); box-shadow: 0 0 10px var(--accent); }
 
-        /* Main Content */
         .main { flex: 1; display: flex; flex-direction: column; position: relative; }
-        .header { padding: 15px; background: var(--panel); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .header { padding: 12px; background: var(--panel); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
         
-        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .msg { display: flex; gap: 10px; max-width: 85%; align-items: flex-end; }
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+        .msg { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; }
         .msg.my { align-self: flex-end; flex-direction: row-reverse; }
-        .bub { padding: 12px 16px; border-radius: 20px; background: var(--other); font-size: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .bub { padding: 10px 14px; border-radius: 18px; background: var(--other); font-size: 14px; line-height: 1.4; word-break: break-word; }
         .my .bub { background: var(--me); }
+        .msg-img { max-width: 200px; border-radius: 10px; display: block; margin: 5px 0; }
         
-        .input-bar { padding: 15px; background: var(--panel); display: flex; gap: 10px; align-items: center; }
-        #mInp { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 25px; padding: 12px 20px; color: #fff; outline: none; }
-        
-        /* Modals & Overlays */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .card { background: #0f172a; padding: 30px; border-radius: 25px; width: 100%; max-width: 350px; text-align: center; border: 1px solid var(--accent); }
-        .p-inp { width: 100%; padding: 12px; background: #050810; border: 1px solid #334155; border-radius: 12px; color: #fff; margin-bottom: 10px; text-align: center; }
+        /* Game Styles */
+        #gameArea { display: none; background: #020617; padding: 10px; border-bottom: 1px solid var(--accent); }
+        .game-unit { display: none; text-align: center; }
+        .xo-cell { width: 40px; height: 40px; background: #1e293b; border-radius: 5px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; }
 
-        canvas { background: #000; border: 1px solid var(--accent); margin-top: 10px; }
+        .input-bar { padding: 10px; background: var(--panel); display: flex; gap: 8px; align-items: center; }
+        #mInp { flex: 1; background: rgba(0,0,0,0.5); border: 1px solid #334155; border-radius: 20px; padding: 10px 15px; color: #fff; outline: none; }
+        
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        .card { background: #0f172a; padding: 25px; border-radius: 20px; width: 85%; max-width: 320px; text-align: center; border: 1px solid var(--accent); }
     </style>
 </head>
 <body>
 
-<div id="roomModal" class="modal">
+<div id="authBox" class="modal" style="display:flex;">
     <div class="card">
-        <h3>🆕 Yeni Otaq Yarat</h3>
-        <input type="text" id="newRoomName" class="p-inp" placeholder="Otaq adı...">
-        <input type="password" id="newRoomPass" class="p-inp" placeholder="Şifrə (opsional)">
-        <button onclick="createNewRoom()" class="p-inp" style="background:var(--accent); font-weight:bold; border:none;">YARAT</button>
-        <button onclick="closeModal('roomModal')" style="background:none; border:none; color:#aaa; cursor:pointer;">Ləğv et</button>
+        <h2 style="color:var(--accent)">X-ELITE</h2>
+        <input type="text" id="uN" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px;" placeholder="İstifadəçi adı">
+        <input type="password" id="uP" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px;" placeholder="Şifrə">
+        <button onclick="handleLogin()" style="width:100%; padding:12px; background:var(--accent); border:none; border-radius:10px; color:#fff; font-weight:bold;">GİRİŞ</button>
     </div>
 </div>
 
-<div class="sidebar" id="roomList">
+<div class="sidebar">
     <div class="r-btn active" onclick="setRoom('General', this)">🌍</div>
-    <div class="r-btn" onclick="openModal('roomModal')">➕</div>
+    <div class="r-btn" onclick="setRoom('Gaming', this)">🎮</div>
     <div class="r-btn" onclick="setRoom('DM', this)">✉️</div>
     <hr style="width:30px; opacity:0.2;">
-    <label for="bgInp" class="r-btn" title="Arxa fon dəyiş">🖼️</label>
-    <input type="file" id="bgInp" hidden onchange="changeBg(this)">
+    <label class="r-btn"><input type="file" hidden onchange="changeBg(this)">🖼️</label>
 </div>
 
 <div class="main">
-    <div id="authBox" class="modal" style="display:flex;">
-        <div class="card">
-            <h1 style="color:var(--accent)">X-ELITE</h1>
-            <input type="text" id="uN" class="p-inp" placeholder="İstifadəçi adı">
-            <input type="password" id="uP" class="p-inp" placeholder="Şifrə">
-            <button onclick="handleLogin()" style="width:100%; padding:15px; background:var(--accent); border:none; border-radius:12px; color:#fff; font-weight:bold;">GİRİŞ</button>
-        </div>
-    </div>
-
     <div class="header">
-        <div id="uHead" style="font-weight:bold;">Elite Universe</div>
-        <div id="roomTitle" style="color:var(--accent); font-size:12px;">GENERAL</div>
+        <div id="uHead">Yüklenir...</div>
+        <div id="roomTitle" style="color:var(--accent); font-weight:bold;">GENERAL</div>
     </div>
 
-    <div id="gameArea" style="display:none; padding:10px; background:rgba(0,0,0,0.5); text-align:center;">
-        <div id="clickGame">
-            <button onclick="pClick()" style="background:var(--accent); border:none; border-radius:50%; width:40px; height:40px; font-size:20px;">⚡</button>
-            <span id="score">0</span>
+    <div id="gameArea">
+        <div style="display: flex; justify-content: space-around; margin-bottom: 8px;">
+            <button onclick="switchGame('click')" style="font-size:10px;">⚡</button>
+            <button onclick="switchGame('xo')" style="font-size:10px;">❌</button>
+            <button onclick="switchGame('snake')" style="font-size:10px;">🐍</button>
+        </div>
+        
+        <div id="g_click" class="game-unit">
+            <button onclick="pClick()" style="background:var(--accent); border:none; border-radius:50%; width:40px; height:40px;">⚡</button>
+            <span id="scoreText">0</span>
+        </div>
+
+        <div id="g_xo" class="game-unit">
+            <div id="xo-board" style="display: grid; grid-template-columns: repeat(3, 40px); gap: 5px; justify-content: center;"></div>
+        </div>
+
+        <div id="g_snake" class="game-unit">
+            <canvas id="snakeCanvas" width="150" height="150"></canvas>
         </div>
     </div>
 
     <div id="chat"></div>
 
     <div class="input-bar">
-        <button onclick="toggleMic()" id="micBtn" class="r-btn" style="background:none; border:none;">🎤</button>
-        <input type="text" id="mInp" placeholder="Mesaj yaz..." onkeypress="if(event.key=='Enter') sendMsg()">
-        <button onclick="sendMsg()" class="r-btn" style="background:var(--accent); border:none;">🚀</button>
+        <button onclick="toggleMic()" id="micBtn" style="background:none; border:none; font-size:20px;">🎤</button>
+        <button onclick="document.getElementById('imgI').click()" style="background:none; border:none; font-size:20px;">📷</button>
+        <input type="file" id="imgI" hidden onchange="sImg(this)">
+        <input type="text" id="mInp" placeholder="Mesaj..." onkeypress="if(event.key=='Enter') sendMsg()">
+        <button onclick="sendMsg()" style="background:var(--accent); border:none; border-radius:50%; width:35px; height:35px;">🚀</button>
     </div>
 </div>
 
@@ -93,46 +98,34 @@
     const K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(U, K);
 
-    let user = JSON.parse(localStorage.getItem('x_ultimate_user'));
+    let user = JSON.parse(localStorage.getItem('x_fix_user'));
     let currentRoom = 'General';
     let mediaRec, chunks = [];
 
-    if(user) { 
-        document.getElementById('authBox').style.display = 'none';
-        init();
-    }
+    if(user) { document.getElementById('authBox').style.display='none'; init(); }
 
     async function handleLogin() {
         const n = document.getElementById('uN').value.trim().toLowerCase();
         const p = document.getElementById('uP').value.trim();
         if(!n || !p) return;
-        const { data } = await sb.from('messages').select('*').eq('nickname', n).eq('group_id', 'AUTH').limit(1);
-        if(data?.length > 0 && data[0].content !== p) return alert("Səhv şifrə!");
-        if(!data?.length) await sb.from('messages').insert([{ content: p, nickname: n, group_id: 'AUTH' }]);
         user = { n, a: `https://api.dicebear.com/7.x/bottts/svg?seed=${n}` };
-        localStorage.setItem('x_ultimate_user', JSON.stringify(user));
+        localStorage.setItem('x_fix_user', JSON.stringify(user));
         location.reload();
     }
 
     function init() {
-        document.getElementById('uHead').innerText = `X-Elite: ${user.n}`;
+        document.getElementById('uHead').innerText = user.n;
         const bg = localStorage.getItem('x_bg');
         if(bg) document.body.style.backgroundImage = `url(${bg})`;
-        loadMsgs();
-        sb.channel('global').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
-            if(p.new.group_id === currentRoom || (currentRoom === 'DM' && p.new.group_id.includes(user.n))) render(p.new);
+        load();
+        sb.channel('fix').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
+            if(p.new.group_id === currentRoom) render(p.new);
         }).subscribe();
     }
 
-    async function loadMsgs() {
+    async function load() {
         document.getElementById('chat').innerHTML = "";
-        let query = sb.from('messages').select('*').order('created_at');
-        if(currentRoom === 'DM') {
-            query = query.ilike('group_id', `%DM_${user.n}%`);
-        } else {
-            query = query.eq('group_id', currentRoom);
-        }
-        const {data} = await query;
+        const {data} = await sb.from('messages').select('*').eq('group_id', currentRoom).order('created_at');
         if(data) data.forEach(render);
     }
 
@@ -144,12 +137,16 @@
         div.className = `msg ${isMe ? 'my' : ''}`;
         
         let c = m.content;
-        if(c.startsWith('VOICE:')) {
-            c = `<div onclick="new Audio('${c.replace('VOICE:','')}').play()" style="cursor:pointer">🔊 Səsli Mesaj</div>`;
+        // PROBLEMİN HƏLLİ: Burada kodun nə olduğunu yoxlayırıq
+        if(c.startsWith('IMG:')) {
+            c = `<img src="${c.replace('IMG:','')}" class="msg-img">`;
+        } else if(c.startsWith('VOICE:')) {
+            c = `<div class="bub" onclick="new Audio('${c.replace('VOICE:','')}').play()" style="cursor:pointer">🔊 Səsli Mesaj</div>`;
+        } else {
+            c = `<div class="bub">${c}</div>`;
         }
 
-        div.innerHTML = `<img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" style="width:30px; border-radius:50%">
-                         <div class="bub">${c}</div>`;
+        div.innerHTML = `<img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" style="width:25px; border-radius:50%"> ${c}`;
         document.getElementById('chat').appendChild(div);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
@@ -157,22 +154,23 @@
     async function sendMsg() {
         const i = document.getElementById('mInp');
         if(!i.value.trim()) return;
-        let gid = currentRoom;
-        if(currentRoom === 'DM') {
-            const target = prompt("Kiminlə yazışmaq istəyirsiniz? (Ləqəbi yazın)");
-            if(!target) return;
-            gid = `DM_${[user.n, target.toLowerCase()].sort().join('_')}`;
-        }
-        await sb.from('messages').insert([{ content: i.value, nickname: user.n, group_id: gid }]);
+        await sb.from('messages').insert([{ content: i.value, nickname: user.n, group_id: currentRoom }]);
         i.value = "";
+    }
+
+    function sImg(input) {
+        const r = new FileReader();
+        r.onload = async e => {
+            await sb.from('messages').insert([{ content: 'IMG:' + e.target.result, nickname: user.n, group_id: currentRoom }]);
+        };
+        r.readAsDataURL(input.files[0]);
     }
 
     async function toggleMic() {
         const btn = document.getElementById('micBtn');
         if(!mediaRec || mediaRec.state === 'inactive') {
             const s = await navigator.mediaDevices.getUserMedia({audio:true});
-            mediaRec = new MediaRecorder(s);
-            chunks = [];
+            mediaRec = new MediaRecorder(s); chunks = [];
             mediaRec.ondataavailable = e => chunks.push(e.data);
             mediaRec.onstop = () => {
                 const r = new FileReader();
@@ -185,6 +183,45 @@
         } else { mediaRec.stop(); btn.style.color = ''; }
     }
 
+    // --- OYUNLAR SİSTEMİ ---
+    function setRoom(r, el) {
+        currentRoom = r;
+        document.getElementById('roomTitle').innerText = r.toUpperCase();
+        document.querySelectorAll('.r-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('gameArea').style.display = (r === 'Gaming') ? 'block' : 'none';
+        if(r === 'Gaming') switchGame('click');
+        load();
+    }
+
+    function switchGame(g) {
+        document.querySelectorAll('.game-unit').forEach(u => u.style.display = 'none');
+        document.getElementById('g_' + g).style.display = 'block';
+        if(g === 'xo') initXO();
+        if(g === 'snake') startSnake();
+    }
+
+    function pClick() { 
+        const s = document.getElementById('scoreText');
+        s.innerText = parseInt(s.innerText) + 1;
+    }
+
+    // XO & Snake kodları bura daxildir (sadələşdirilmiş)
+    function initXO() {
+        const b = document.getElementById('xo-board'); b.innerHTML = "";
+        for(let i=0; i<9; i++) {
+            const c = document.createElement('div'); c.className = 'xo-cell';
+            c.onclick = () => { if(!c.innerText) c.innerText = "X"; };
+            b.appendChild(c);
+        }
+    }
+
+    function startSnake() {
+        const canvas = document.getElementById('snakeCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = "green"; ctx.fillRect(10, 10, 50, 50); // Test üçün
+    }
+
     function changeBg(input) {
         const r = new FileReader();
         r.onload = e => {
@@ -193,31 +230,7 @@
         };
         r.readAsDataURL(input.files[0]);
     }
-
-    function createNewRoom() {
-        const name = document.getElementById('newRoomName').value.trim();
-        if(!name) return;
-        const btn = document.createElement('div');
-        btn.className = 'r-btn';
-        btn.innerText = name[0].toUpperCase();
-        btn.onclick = () => setRoom(name, btn);
-        document.getElementById('roomList').appendChild(btn);
-        closeModal('roomModal');
-        setRoom(name, btn);
-    }
-
-    function setRoom(r, el) {
-        currentRoom = r;
-        document.getElementById('roomTitle').innerText = r.toUpperCase();
-        document.querySelectorAll('.r-btn').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
-        document.getElementById('gameArea').style.display = (r === 'General') ? 'block' : 'none';
-        loadMsgs();
-    }
-
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function pClick() { let s = document.getElementById('score'); s.innerText = parseInt(s.innerText)+1; }
 </script>
 </body>
 </html>
+ 
