@@ -3,47 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Elite Ultimate V5</title>
+    <title>X-Elite OS</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #050810; --panel: rgba(15, 23, 42, 0.95); --accent: #38bdf8; --text: #f1f5f9; --me: #0284c7; --other: #1e293b; --dm: #f43f5e; }
-        * { box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background: var(--bg); background-size: cover; background-position: center; background-attachment: fixed; color: var(--text); height: 100dvh; display: flex; overflow: hidden; }
-        
-        .sidebar { width: 65px; background: rgba(2, 6, 23, 0.9); display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 15px; border-right: 1px solid rgba(255,255,255,0.1); z-index: 100; }
-        .r-btn { width: 45px; height: 45px; border-radius: 12px; background: var(--panel); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; border: 1px solid transparent; position: relative; }
-        .r-btn.active { border-color: var(--accent); box-shadow: 0 0 10px var(--accent); }
+        :root { --bg: #020617; --accent: #38bdf8; --neon: #0ea5e9; --glass: rgba(15, 23, 42, 0.8); }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { margin: 0; background: var(--bg); background-size: cover; background-position: center; background-attachment: fixed; color: #fff; height: 100dvh; display: flex; }
 
+        /* Modern Sidebar */
+        .sidebar { width: 70px; background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 20px; border-right: 1px solid rgba(255,255,255,0.1); }
+        .r-btn { width: 48px; height: 48px; border-radius: 16px; background: var(--glass); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; transition: 0.3s; border: 1px solid rgba(255,255,255,0.05); }
+        .r-btn:hover { transform: scale(1.1); background: var(--accent); color: #000; }
+        .r-btn.active { border-color: var(--accent); box-shadow: 0 0 20px var(--neon); background: var(--accent); color: #000; }
+
+        /* Chat Area */
         .main { flex: 1; display: flex; flex-direction: column; position: relative; }
-        .header { padding: 12px; background: var(--panel); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .header { padding: 15px 20px; background: var(--glass); backdrop-filter: blur(10px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
         
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-        .msg { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; }
+        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .msg { display: flex; gap: 10px; max-width: 80%; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
         .msg.my { align-self: flex-end; flex-direction: row-reverse; }
-        .bub { padding: 10px 14px; border-radius: 18px; background: var(--other); font-size: 14px; line-height: 1.4; word-break: break-word; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .my .bub { background: var(--me); }
-        .bub.dm-style { border-left: 3px solid var(--dm); }
+        .bub { padding: 12px 18px; border-radius: 20px; background: var(--glass); border: 1px solid rgba(255,255,255,0.1); position: relative; font-size: 14px; line-height: 1.5; }
+        .my .bub { background: var(--accent); color: #000; font-weight: 500; }
         
-        .msg-img { max-width: 220px; border-radius: 12px; border: 2px solid var(--accent); margin: 5px 0; display: block; }
-        .ava { width: 30px; height: 30px; border-radius: 50%; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); }
+        /* Input Bar */
+        .input-bar { padding: 15px; background: var(--glass); display: flex; gap: 10px; align-items: center; backdrop-filter: blur(10px); }
+        #mInp { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 12px 20px; color: #fff; outline: none; transition: 0.3s; }
+        #mInp:focus { border-color: var(--accent); background: rgba(0,0,0,0.5); }
 
-        .input-bar { padding: 10px; background: var(--panel); display: flex; gap: 8px; align-items: center; }
-        #mInp { flex: 1; background: rgba(0,0,0,0.5); border: 1px solid #334155; border-radius: 20px; padding: 12px 15px; color: #fff; outline: none; }
+        .modal { position: fixed; inset: 0; background: #000; z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .card { background: #0f172a; padding: 30px; border-radius: 25px; width: 90%; max-width: 350px; text-align: center; border: 1px solid var(--accent); box-shadow: 0 0 30px rgba(56, 189, 248, 0.2); }
+        .p-inp { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 12px; background: #020617; color: #fff; border: 1px solid #1e293b; }
         
-        .game-panel { display: none; background: #020617; padding: 10px; border-bottom: 1px solid var(--accent); text-align: center; }
-        .modal { position: fixed; inset: 0; background: #050810; z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .card { background: #0f172a; padding: 25px; border-radius: 20px; width: 85%; max-width: 320px; text-align: center; border: 1px solid var(--accent); }
-        .p-inp { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; background: #050810; color: #fff; border: 1px solid #334155; outline: none; }
+        /* Online List UI */
+        #onlinePanel { position: absolute; right: 10px; top: 70px; background: var(--glass); padding: 10px; border-radius: 15px; font-size: 10px; display: none; z-index: 50; }
+        .online-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 8px #10b981; }
     </style>
 </head>
 <body>
 
 <div id="authBox" class="modal">
     <div class="card">
-        <h2 style="color:var(--accent); margin-top:0;">X-ELITE</h2>
-        <input type="text" id="uN" class="p-inp" placeholder="Ləqəbiniz">
-        <input type="password" id="uP" class="p-inp" placeholder="Şifrəniz">
-        <button onclick="handleLogin()" style="width:100%; padding:12px; background:var(--accent); border:none; border-radius:10px; color:#fff; font-weight:bold; cursor:pointer;">DAXİL OL</button>
+        <h1 style="color:var(--accent); letter-spacing: 2px;">X-ELITE</h1>
+        <input type="text" id="uN" class="p-inp" placeholder="İstifadəçi adı">
+        <input type="password" id="uP" class="p-inp" placeholder="Şifrə">
+        <button onclick="handleLogin()" style="width:100%; padding:14px; background:var(--accent); border:none; border-radius:12px; color:#000; font-weight:900; cursor:pointer;">SİSTEMƏ DAXİL OL</button>
     </div>
 </div>
 
@@ -51,32 +57,30 @@
     <div class="r-btn active" onclick="setRoom('General', this)">🌍</div>
     <div class="r-btn" onclick="setRoom('Gaming', this)">🎮</div>
     <div class="r-btn" onclick="setRoom('DM', this)">✉️</div>
-    <hr style="width:30px; opacity:0.1; margin: 5px 0;">
+    <hr style="width:30px; opacity:0.1;">
     <label class="r-btn">🖼️<input type="file" hidden onchange="changeBg(this)"></label>
+    <div class="r-btn" onclick="toggleOnline()">👥</div>
 </div>
 
 <div class="main">
     <div class="header">
-        <div id="uHead" style="font-weight:bold; font-size:14px;">...</div>
-        <div id="roomTitle" style="color:var(--accent); font-weight:bold; font-size:11px;">GENERAL</div>
+        <div id="uHead" style="font-weight:bold; color:var(--accent);">...</div>
+        <div id="roomTitle" style="font-size:12px; opacity:0.7;">GENERAL</div>
     </div>
 
-    <div id="gameArea" class="game-panel">
-        <div style="display:flex; justify-content:center; align-items:center; gap:15px;">
-            <button onclick="alert('Snake Yüklənir...')" style="background:none; border:none; font-size:20px;">🐍</button>
-            <button onclick="pClick()" style="background:var(--accent); border:none; border-radius:50%; width:40px; height:40px; font-size:20px;">⚡</button>
-            <span id="scoreText" style="font-size:14px; font-weight:bold; min-width:30px;">0</span>
-        </div>
+    <div id="onlinePanel">
+        <b>AKTİV:</b><br>
+        <div id="userList"><span class="online-dot"></span> Sən</div>
     </div>
 
     <div id="chat"></div>
 
     <div class="input-bar">
-        <button onclick="toggleMic()" id="micBtn" style="background:none; border:none; font-size:20px; cursor:pointer;">🎤</button>
-        <button onclick="document.getElementById('imgI').click()" style="background:none; border:none; font-size:20px; cursor:pointer;">📷</button>
+        <button onclick="toggleMic()" id="micBtn" style="background:none; border:none; font-size:22px; cursor:pointer;">🎤</button>
+        <button onclick="document.getElementById('imgI').click()" style="background:none; border:none; font-size:22px; cursor:pointer;">📷</button>
         <input type="file" id="imgI" hidden onchange="sImg(this)">
-        <input type="text" id="mInp" placeholder="Mesaj yaz..." onkeypress="if(event.key=='Enter') sendMsg()">
-        <button onclick="sendMsg()" style="background:var(--accent); border:none; border-radius:50%; width:40px; height:40px; color:#fff; display:flex; align-items:center; justify-content:center;">🚀</button>
+        <input type="text" id="mInp" placeholder="Bura bir şeylər yaz və ya /clear..." onkeypress="if(event.key=='Enter') sendMsg()">
+        <button onclick="sendMsg()" style="background:var(--accent); border:none; border-radius:15px; padding:10px 20px; color:#000; font-weight:bold; cursor:pointer;">GÖNDƏR</button>
     </div>
 </div>
 
@@ -85,7 +89,7 @@
     const K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(U, K);
 
-    let user = JSON.parse(localStorage.getItem('x_elite_v5'));
+    let user = JSON.parse(localStorage.getItem('x_elite_os'));
     let currentRoom = 'General';
     let mediaRec, chunks = [];
 
@@ -94,35 +98,29 @@
     async function handleLogin() {
         const n = document.getElementById('uN').value.trim().toLowerCase();
         const p = document.getElementById('uP').value.trim();
-        if(!n || !p) return alert("Məlumatları doldurun!");
-        
+        if(!n || !p) return;
         user = { n, a: `https://api.dicebear.com/7.x/bottts/svg?seed=${n}` };
-        localStorage.setItem('x_elite_v5', JSON.stringify(user));
+        localStorage.setItem('x_elite_os', JSON.stringify(user));
         location.reload();
     }
 
     function init() {
-        document.getElementById('uHead').innerText = `Elite: ${user.n}`;
-        const bg = localStorage.getItem('x_bg_v5');
+        document.getElementById('uHead').innerText = user.n.toUpperCase();
+        const bg = localStorage.getItem('x_bg_os');
         if(bg) document.body.style.backgroundImage = `url(${bg})`;
         load();
         
-        sb.channel('global_v5').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
-            const msg = p.new;
-            // Əgər mənə gələn DM-dirsə bildiriş ver
-            if (msg.group_id.startsWith('DM_') && msg.group_id.includes(user.n) && msg.group_id !== currentRoom) {
-                alert(`✉️ ${msg.nickname} sizə gizli mesaj göndərdi!`);
-            }
-            if(msg.group_id === currentRoom) render(msg);
+        sb.channel('os_live').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
+            if(p.new.group_id === currentRoom) render(p.new);
+            if(p.new.content === '/clear' && p.new.nickname === user.n) location.reload();
         }).subscribe();
     }
 
     async function load() {
         const chat = document.getElementById('chat');
-        chat.innerHTML = "<div style='text-align:center; opacity:0.5; font-size:10px;'>Yüklənir...</div>";
-        const {data} = await sb.from('messages').select('*').eq('group_id', currentRoom).order('created_at');
         chat.innerHTML = "";
-        if(data) data.forEach(render);
+        const {data} = await sb.from('messages').select('*').eq('group_id', currentRoom).order('created_at', {ascending:false}).limit(50);
+        if(data) data.reverse().forEach(render);
     }
 
     function render(m) {
@@ -133,60 +131,72 @@
         div.className = `msg ${isMe ? 'my' : ''}`;
         
         let c = m.content;
-        let contentHTML = "";
+        if(c === '/clear') return; // Komandaları göstərmə
 
+        let contentHTML = "";
         if(c.startsWith('IMG:')) {
-            contentHTML = `<img src="${c.replace('IMG:','')}" class="msg-img">`;
+            contentHTML = `<img src="${c.replace('IMG:','')}" class="msg-img" style="max-width:250px; border-radius:15px;">`;
         } else if(c.startsWith('VOICE:')) {
-            contentHTML = `<div class="bub" onclick="new Audio('${c.replace('VOICE:','')}').play()" style="cursor:pointer; display:flex; align-items:center; gap:8px;">🔊 <b>Səsli Mesaj</b></div>`;
+            contentHTML = `<div class="bub" onclick="new Audio('${c.replace('VOICE:','')}').play()" style="cursor:pointer">🔊 Səsli Mesaj</div>`;
         } else {
-            const dmClass = m.group_id.startsWith('DM_') ? 'dm-style' : '';
-            contentHTML = `<div class="bub ${dmClass}">${c}</div>`;
+            contentHTML = `<div class="bub">${c}</div>`;
         }
 
-        div.innerHTML = `<img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" class="ava">${contentHTML}`;
+        div.innerHTML = `<img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" style="width:30px; height:30px; border-radius:50%; margin-top:5px;"> ${contentHTML}`;
         document.getElementById('chat').appendChild(div);
         document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
     }
 
     async function sendMsg() {
         const i = document.getElementById('mInp');
-        if(!i.value.trim()) return;
-        const val = i.value; i.value = "";
-        await sb.from('messages').insert([{ content: val, nickname: user.n, group_id: currentRoom }]);
+        const v = i.value.trim();
+        if(!v) return;
+        
+        // ADMIN KOMANDASI: /clear
+        if(v === '/clear') {
+            const confirmClear = confirm("Bütün çat təmizlənsin?");
+            if(confirmClear) {
+                await sb.from('messages').delete().eq('group_id', currentRoom);
+                await sb.from('messages').insert([{ content: '/clear', nickname: user.n, group_id: currentRoom }]);
+            }
+            i.value = ""; return;
+        }
+
+        await sb.from('messages').insert([{ content: v, nickname: user.n, group_id: currentRoom }]);
+        i.value = "";
     }
 
-    function compress(file, callback) {
+    // Şəkil Sıxma və Göndərmə
+    function sImg(input) {
+        if(!input.files[0]) return;
         const r = new FileReader();
-        r.readAsDataURL(file);
+        r.readAsDataURL(input.files[0]);
         r.onload = e => {
-            const img = new Image();
-            img.src = e.target.result;
+            const img = new Image(); img.src = e.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
                 const scale = Math.min(800 / img.width, 1);
-                canvas.width = img.width * scale;
-                canvas.height = img.height * scale;
+                canvas.width = img.width * scale; canvas.height = img.height * scale;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                callback(canvas.toDataURL('image/jpeg', 0.6));
+                sb.from('messages').insert([{ content: 'IMG:'+canvas.toDataURL('image/jpeg', 0.5), nickname: user.n, group_id: currentRoom }]);
             };
         };
     }
 
-    function sImg(input) {
-        if(!input.files[0]) return;
-        compress(input.files[0], async (b64) => {
-            await sb.from('messages').insert([{ content: 'IMG:'+b64, nickname: user.n, group_id: currentRoom }]);
-        });
-    }
-
     function changeBg(input) {
         if(!input.files[0]) return;
-        compress(input.files[0], (b64) => {
-            document.body.style.backgroundImage = `url(${b64})`;
-            localStorage.setItem('x_bg_v5', b64);
-        });
+        const r = new FileReader();
+        r.onload = e => {
+            document.body.style.backgroundImage = `url(${e.target.result})`;
+            localStorage.setItem('x_bg_os', e.target.result);
+        };
+        r.readAsDataURL(input.files[0]);
+    }
+
+    function toggleOnline() {
+        const p = document.getElementById('onlinePanel');
+        p.style.display = p.style.display === 'none' ? 'block' : 'none';
     }
 
     async function toggleMic() {
@@ -202,30 +212,16 @@
                 };
                 r.readAsDataURL(new Blob(chunks));
             };
-            mediaRec.start(); btn.style.color = 'red';
+            mediaRec.start(); btn.style.color = '#f43f5e';
         } else { mediaRec.stop(); btn.style.color = ''; }
     }
 
     function setRoom(r, el) {
-        if(r === 'DM') {
-            const target = prompt("Kiminlə gizli yazışmaq istəyirsiz? (Ləqəbi yazın)");
-            if(!target) return;
-            const ids = [user.n, target.toLowerCase().trim()].sort();
-            currentRoom = `DM_${ids[0]}_${ids[1]}`;
-            document.getElementById('roomTitle').innerText = `📩 DM: ${target.toUpperCase()}`;
-        } else {
-            currentRoom = r;
-            document.getElementById('roomTitle').innerText = r.toUpperCase();
-        }
+        currentRoom = r;
+        document.getElementById('roomTitle').innerText = r.toUpperCase();
         document.querySelectorAll('.r-btn').forEach(b => b.classList.remove('active'));
         el.classList.add('active');
-        document.getElementById('gameArea').style.display = (r === 'Gaming') ? 'block' : 'none';
         load();
-    }
-
-    function pClick() {
-        const s = document.getElementById('scoreText');
-        s.innerText = parseInt(s.innerText) + 1;
     }
 </script>
 </body>
