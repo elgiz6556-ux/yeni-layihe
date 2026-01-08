@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>X-Elite Inferno</title>
+    <title>X-Elite Elements</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -11,7 +11,6 @@
         :root {
             --bg: #ffffff; --header: #fdfdfd; --accent: #007aff;
             --me: #007aff; --other: #f2f2f7; --text: #1c1c1e; --dim: #8e8e93;
-            --fire: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -23,12 +22,7 @@
         .auth-input { width: 100%; padding: 15px; background: #f2f2f7; border: none; border-radius: 12px; outline: none; font-size: 16px; margin-bottom: 10px; }
         .btn-main { background: #000; color: #fff; padding: 15px; border-radius: 12px; border: none; font-weight: bold; width: 100%; cursor: pointer; }
 
-        /* Header */
-        .app-header { height: 65px; padding: 0 20px; background: var(--header); border-bottom: 1px solid #efeff4; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
-        .user-info { display: flex; align-items: center; gap: 10px; }
-        .user-avatar { width: 35px; height: 35px; border-radius: 50%; background: #eee; }
-
-        /* Chat */
+        /* Chat Area */
         #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
         .msg-row { display: flex; gap: 8px; max-width: 85%; animation: slideUp 0.2s ease; }
         .msg-row.my { align-self: flex-end; flex-direction: row-reverse; }
@@ -36,67 +30,56 @@
         .bubble { padding: 10px 14px; border-radius: 18px; font-size: 15px; line-height: 1.4; position: relative; }
         .my .bubble { background: var(--me); color: #fff; border-bottom-right-radius: 4px; }
         .other .bubble { background: var(--other); color: #000; border-bottom-left-radius: 4px; }
-        
-        /* 🔥 ALOVLU MESAJ EFFEKTİ */
+
+        /* 🔥 ALOV EFFEKTİ */
         .fire-msg {
             background: linear-gradient(-45deg, #ff3d00, #ffea00, #ff3d00, #ffea00) !important;
             background-size: 400% 400% !important;
             animation: fireGradient 3s ease infinite, shake 0.5s infinite alternate !important;
-            color: white !important;
-            font-weight: bold;
-            text-shadow: 0 0 10px rgba(255, 61, 0, 0.8);
-            border: none !important;
+            color: white !important; font-weight: bold; border: none !important;
+            box-shadow: 0 0 15px rgba(255, 61, 0, 0.4);
         }
 
-        @keyframes fireGradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        /* ❄️ BUZ EFFEKTİ */
+        .ice-msg {
+            background: linear-gradient(135deg, #e0f7fa 0%, #80deea 50%, #e0f7fa 100%) !important;
+            background-size: 200% 200% !important;
+            animation: iceGlow 4s linear infinite !important;
+            color: #006064 !important; border: 1px solid #b2ebf2 !important;
+            font-weight: 600; text-shadow: 0 0 5px rgba(255,255,255,0.8);
         }
 
-        @keyframes shake {
-            from { transform: rotate(-1deg); }
-            to { transform: rotate(1deg); }
-        }
+        @keyframes fireGradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes iceGlow { 0% { background-position: 0% 0%; } 100% { background-position: 200% 200%; } }
+        @keyframes shake { from { transform: rotate(-1deg); } to { transform: rotate(1deg); } }
 
-        .gift-box { cursor: pointer; font-size: 24px; display: block; text-align: center; }
-        .ghost-hidden { filter: blur(5px); cursor: pointer; }
-        
         .time { font-size: 9px; opacity: 0.5; margin-top: 4px; display: block; }
         .my .time { text-align: right; color: #dae9ff; }
 
-        /* Input Area */
+        /* UI Elements */
         .input-box { padding: 10px 15px 30px; background: #fff; border-top: 1px solid #efeff4; display: flex; align-items: center; gap: 10px; }
         .field-wrap { flex: 1; background: #f2f2f7; border-radius: 22px; padding: 4px 15px; display: flex; align-items: center; }
         .field-wrap input { flex: 1; background: none; border: none; padding: 10px 0; outline: none; font-size: 16px; }
-
-        /* Nav Bar */
-        .nav-bar { height: 65px; background: #fafafa; border-top: 1px solid #efeff4; display: flex; justify-content: space-around; align-items: center; padding-bottom: 15px; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--dim); cursor: pointer; }
-        .nav-item.active { color: var(--accent); font-weight: bold; }
-        .nav-item span { font-size: 10px; margin-top: 2px; }
-
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .app-header { height: 65px; padding: 0 20px; background: var(--header); border-bottom: 1px solid #efeff4; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
 
 <div id="authBox" class="overlay">
     <div class="auth-card">
-        <h2 style="font-size: 32px; margin-bottom: 5px;">X-Elite</h2>
-        <p style="color:var(--dim); font-size:12px; margin-bottom:20px;">🔥 Inferno Edition Aktivdir</p>
+        <h2 style="font-size: 32px; margin-bottom: 20px;">X-Elite</h2>
         <input type="text" id="uN" class="auth-input" placeholder="Ləqəb">
         <input type="password" id="uP" class="auth-input" placeholder="Şifrə">
-        <button onclick="handleLogin()" class="btn-main">Başla</button>
+        <button onclick="handleLogin()" class="btn-main">Giriş</button>
     </div>
 </div>
 
 <header class="app-header">
-    <div class="user-info">
-        <img id="myAvatar" class="user-avatar" src="">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <img id="myAvatar" style="width:35px; border-radius:50%;">
         <b id="userName">...</b>
     </div>
-    <div style="font-size: 18px;">👻 🎁 🔥</div>
+    <div style="font-size: 16px;">🔥 ❄️ 🎁 👻</div>
 </header>
 
 <div id="chat"></div>
@@ -105,24 +88,17 @@
     <button onclick="document.getElementById('imgI').click()" style="background:none; border:none; font-size:24px;">🖼️</button>
     <input type="file" id="imgI" hidden onchange="uploadImg(this)">
     <div class="field-wrap">
-        <input type="text" id="mInp" placeholder="Mesaj... (🎁, 👻 və ya 🔥)" onkeypress="if(event.key=='Enter') send()">
+        <input type="text" id="mInp" placeholder="Mesaj... ❄️ 🔥 🎁 👻" onkeypress="if(event.key=='Enter') send()">
     </div>
     <button onclick="send()" style="background:none; border:none; color:var(--accent); font-size:26px;">🚀</button>
 </div>
-
-<nav class="nav-bar">
-    <div class="nav-item active" onclick="setRoom('General', this)">🏠<span>Ana Səhifə</span></div>
-    <div class="nav-item" onclick="setRoom('Gaming', this)">🎮<span>Oyunlar</span></div>
-    <div class="nav-item" onclick="setRoom('Direct', this)">✉️<span>Özəl</span></div>
-    <div class="nav-item" onclick="logout()">🚪<span>Çıxış</span></div>
-</nav>
 
 <script>
     const U = 'https://pyknspxnwnilhqsazidj.supabase.co';
     const K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(U, K);
 
-    let user = JSON.parse(localStorage.getItem('xe_inferno_v1'));
+    let user = JSON.parse(localStorage.getItem('xe_elements_v1'));
     let currentRoom = 'General';
 
     if(user) { document.getElementById('authBox').style.display='none'; init(); }
@@ -131,17 +107,15 @@
         const n = document.getElementById('uN').value.trim().toLowerCase();
         if(!n) return;
         user = { n: n, a: `https://api.dicebear.com/7.x/bottts/svg?seed=${n}` };
-        localStorage.setItem('xe_inferno_v1', JSON.stringify(user));
+        localStorage.setItem('xe_elements_v1', JSON.stringify(user));
         location.reload();
     }
-
-    function logout() { localStorage.removeItem('xe_inferno_v1'); location.reload(); }
 
     function init() {
         document.getElementById('userName').innerText = user.n;
         document.getElementById('myAvatar').src = user.a;
         load();
-        sb.channel('xe_inferno').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
+        sb.channel('xe_els').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
             if(p.new.group_id === currentRoom) render(p.new);
         }).on('postgres_changes', {event:'DELETE', schema:'public', table:'messages'}, p => {
             const el = document.getElementById('m-'+p.old.id); if(el) el.remove();
@@ -164,21 +138,22 @@
         div.className = `msg-row ${isMe ? 'my' : 'other'}`;
         
         let content = m.content;
-        let isFire = content.includes('🔥');
-        let bubbleClass = isFire ? "bubble fire-msg" : "bubble";
-        let bubbleContent = content;
+        let bClass = "bubble";
+        if(content.includes('🔥')) bClass += " fire-msg";
+        if(content.includes('❄️')) bClass += " ice-msg";
 
+        let bContent = content;
         if(content.includes('🎁')) {
-            bubbleContent = `<div class="gift-box" onclick="openGift('${m.id}', '${content.replace('🎁', '').replace(/'/g, "\\'")}')">🎁 Hədiyyəni aç</div>`;
+            bContent = `<div style="cursor:pointer; font-size:24px;" onclick="openGift('${m.id}', '${content.replace('🎁', '').replace(/'/g, "\\'")}')">🎁 Aç</div>`;
         } else if(content.includes('👻')) {
-            bubbleContent = `<div class="ghost-hidden" onclick="revealGhost('${m.id}', '${content.replace('👻', '').replace(/'/g, "\\'")}')">👻 Ruh mesaj (10s)</div>`;
+            bContent = `<div style="filter:blur(5px); cursor:pointer;" onclick="revealGhost('${m.id}', '${content.replace('👻', '').replace(/'/g, "\\'")}')">👻 Ruh (10s)</div>`;
         }
 
         div.innerHTML = `
             <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" style="width:28px; height:28px; border-radius:50%; margin-top:10px;">
-            <div class="${bubbleClass}" id="bubble-${m.id}">
+            <div class="${bClass}" id="bubble-${m.id}">
                 <div style="font-size:10px; font-weight:700; margin-bottom:2px; opacity:0.8">${m.nickname}</div>
-                <div class="text-content">${bubbleContent}</div>
+                <div class="txt">${bContent}</div>
                 <span class="time">${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
             </div>
         `;
@@ -186,15 +161,10 @@
         chat.scrollTop = chat.scrollHeight;
     }
 
-    function openGift(id, msg) {
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-        document.querySelector(`#m-${id} .text-content`).innerHTML = `✨ ${msg}`;
-    }
-
+    function openGift(id, msg) { confetti({ particleCount: 150 }); document.querySelector(`#m-${id} .txt`).innerHTML = `✨ ${msg}`; }
     function revealGhost(id, msg) {
-        const el = document.querySelector(`#m-${id} .text-content`);
-        el.innerHTML = `⏳ ${msg}`;
-        el.style.filter = "none";
+        const el = document.querySelector(`#m-${id} .txt`);
+        el.innerHTML = `⏳ ${msg}`; el.style.filter = "none";
         setTimeout(async () => { await sb.from('messages').delete().eq('id', id); }, 10000);
     }
 
@@ -220,13 +190,7 @@
             }
         }
     }
-
-    function setRoom(r, el) {
-        currentRoom = r;
-        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
-        load();
-    }
 </script>
 </body>
 </html>
+ 
