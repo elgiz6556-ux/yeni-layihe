@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>X-Elite Elements</title>
+    <title>X-Elite VIP Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -12,74 +12,71 @@
             --bg: #ffffff; --header: #fdfdfd; --accent: #007aff;
             --me: #007aff; --other: #f2f2f7; --text: #1c1c1e; --dim: #8e8e93;
         }
+        body.dark {
+            --bg: #000000; --header: #121212; --accent: #0a84ff;
+            --me: #0a84ff; --other: #1c1c1e; --text: #ffffff; --dim: #8e8e93;
+        }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.3s; }
         body { background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Auth */
-        .overlay { position: fixed; inset: 0; background: #fff; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 30px; }
-        .auth-card { width: 100%; max-width: 320px; text-align: center; }
-        .auth-input { width: 100%; padding: 15px; background: #f2f2f7; border: none; border-radius: 12px; outline: none; font-size: 16px; margin-bottom: 10px; }
-        .btn-main { background: #000; color: #fff; padding: 15px; border-radius: 12px; border: none; font-weight: bold; width: 100%; cursor: pointer; }
+        /* Header */
+        .app-header { height: 70px; padding: 0 20px; background: var(--header); border-bottom: 1px solid rgba(128,128,128,0.2); display: flex; justify-content: space-between; align-items: center; z-index: 100; }
+        .user-info { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--accent); }
+        .crown { color: #ffd700; font-size: 14px; margin-left: 4px; }
 
         /* Chat Area */
         #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-        .msg-row { display: flex; gap: 8px; max-width: 85%; animation: slideUp 0.2s ease; }
+        .msg-row { display: flex; gap: 8px; max-width: 85%; animation: slideUp 0.3s ease; }
         .msg-row.my { align-self: flex-end; flex-direction: row-reverse; }
         
-        .bubble { padding: 10px 14px; border-radius: 18px; font-size: 15px; line-height: 1.4; position: relative; }
+        .bubble { padding: 10px 14px; border-radius: 18px; font-size: 15px; line-height: 1.4; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .my .bubble { background: var(--me); color: #fff; border-bottom-right-radius: 4px; }
-        .other .bubble { background: var(--other); color: #000; border-bottom-left-radius: 4px; }
+        .other .bubble { background: var(--other); color: var(--text); border-bottom-left-radius: 4px; }
 
-        /* 🔥 ALOV EFFEKTİ */
-        .fire-msg {
-            background: linear-gradient(-45deg, #ff3d00, #ffea00, #ff3d00, #ffea00) !important;
-            background-size: 400% 400% !important;
-            animation: fireGradient 3s ease infinite, shake 0.5s infinite alternate !important;
-            color: white !important; font-weight: bold; border: none !important;
-            box-shadow: 0 0 15px rgba(255, 61, 0, 0.4);
-        }
-
-        /* ❄️ BUZ EFFEKTİ */
-        .ice-msg {
-            background: linear-gradient(135deg, #e0f7fa 0%, #80deea 50%, #e0f7fa 100%) !important;
-            background-size: 200% 200% !important;
-            animation: iceGlow 4s linear infinite !important;
-            color: #006064 !important; border: 1px solid #b2ebf2 !important;
-            font-weight: 600; text-shadow: 0 0 5px rgba(255,255,255,0.8);
-        }
-
-        @keyframes fireGradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-        @keyframes iceGlow { 0% { background-position: 0% 0%; } 100% { background-position: 200% 200%; } }
+        /* Effects */
+        .fire-msg { background: linear-gradient(-45deg, #ff3d00, #ffea00) !important; animation: shake 0.5s infinite alternate !important; color: #fff !important; }
+        .ice-msg { background: linear-gradient(135deg, #e0f7fa, #80deea) !important; color: #006064 !important; }
         @keyframes shake { from { transform: rotate(-1deg); } to { transform: rotate(1deg); } }
 
-        .time { font-size: 9px; opacity: 0.5; margin-top: 4px; display: block; }
-        .my .time { text-align: right; color: #dae9ff; }
+        /* Bio UI */
+        .bio-text { font-size: 11px; color: var(--dim); display: block; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* UI Elements */
-        .input-box { padding: 10px 15px 30px; background: #fff; border-top: 1px solid #efeff4; display: flex; align-items: center; gap: 10px; }
-        .field-wrap { flex: 1; background: #f2f2f7; border-radius: 22px; padding: 4px 15px; display: flex; align-items: center; }
-        .field-wrap input { flex: 1; background: none; border: none; padding: 10px 0; outline: none; font-size: 16px; }
-        .app-header { height: 65px; padding: 0 20px; background: var(--header); border-bottom: 1px solid #efeff4; display: flex; justify-content: space-between; align-items: center; }
+        /* Input Area */
+        .input-box { padding: 10px 15px 30px; background: var(--header); border-top: 1px solid rgba(128,128,128,0.2); display: flex; align-items: center; gap: 10px; }
+        .field-wrap { flex: 1; background: var(--other); border-radius: 22px; padding: 4px 15px; display: flex; align-items: center; }
+        .field-wrap input { flex: 1; background: none; border: none; padding: 10px 0; outline: none; font-size: 16px; color: var(--text); }
+
+        /* Modals */
+        .overlay { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 30px; }
+        .auth-card { width: 100%; max-width: 320px; text-align: center; }
+        .btn-main { background: var(--accent); color: #fff; padding: 15px; border-radius: 12px; border: none; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body>
-
-<div id="authBox" class="overlay">
+<body class="dark"> <div id="authBox" class="overlay">
     <div class="auth-card">
-        <h2 style="font-size: 32px; margin-bottom: 20px;">X-Elite</h2>
-        <input type="text" id="uN" class="auth-input" placeholder="Ləqəb">
-        <input type="password" id="uP" class="auth-input" placeholder="Şifrə">
-        <button onclick="handleLogin()" class="btn-main">Giriş</button>
+        <h2 style="font-size: 36px; margin-bottom: 10px;">X-Elite 👑</h2>
+        <input type="text" id="uN" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; border:none; background:#222; color:#fff;" placeholder="Ləqəb">
+        <input type="text" id="uB" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; border:none; background:#222; color:#fff;" placeholder="Bio (Məs: Gəncəli)">
+        <input type="password" id="uP" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; border:none; background:#222; color:#fff;" placeholder="Şifrə">
+        <button onclick="handleLogin()" class="btn-main">VIP Giriş</button>
     </div>
 </div>
 
 <header class="app-header">
-    <div style="display:flex; align-items:center; gap:10px;">
-        <img id="myAvatar" style="width:35px; border-radius:50%;">
-        <b id="userName">...</b>
+    <div class="user-info" onclick="toggleDarkMode()">
+        <img id="myAvatar" class="user-avatar" src="">
+        <div>
+            <div style="display:flex; align-items:center;">
+                <b id="userName">...</b><span id="vipCrown" class="crown" style="display:none;">👑</span>
+            </div>
+            <span id="userBio" class="bio-text">Bio yüklənir...</span>
+        </div>
     </div>
-    <div style="font-size: 16px;">🔥 ❄️ 🎁 👻</div>
+    <div style="font-size: 20px;">💎</div>
 </header>
 
 <div id="chat"></div>
@@ -88,7 +85,7 @@
     <button onclick="document.getElementById('imgI').click()" style="background:none; border:none; font-size:24px;">🖼️</button>
     <input type="file" id="imgI" hidden onchange="uploadImg(this)">
     <div class="field-wrap">
-        <input type="text" id="mInp" placeholder="Mesaj... ❄️ 🔥 🎁 👻" onkeypress="if(event.key=='Enter') send()">
+        <input type="text" id="mInp" placeholder="Mesaj... (❄️, 🔥, 🎁, 👻)" onkeypress="if(event.key=='Enter') send()">
     </div>
     <button onclick="send()" style="background:none; border:none; color:var(--accent); font-size:26px;">🚀</button>
 </div>
@@ -98,28 +95,37 @@
     const K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(U, K);
 
-    let user = JSON.parse(localStorage.getItem('xe_elements_v1'));
+    let user = JSON.parse(localStorage.getItem('xe_vip_v1'));
     let currentRoom = 'General';
 
     if(user) { document.getElementById('authBox').style.display='none'; init(); }
 
     function handleLogin() {
         const n = document.getElementById('uN').value.trim().toLowerCase();
+        const b = document.getElementById('uB').value.trim() || "X-Elite Üzvü";
         if(!n) return;
-        user = { n: n, a: `https://api.dicebear.com/7.x/bottts/svg?seed=${n}` };
-        localStorage.setItem('xe_elements_v1', JSON.stringify(user));
+        user = { n: n, b: b, a: `https://api.dicebear.com/7.x/bottts/svg?seed=${n}` };
+        localStorage.setItem('xe_vip_v1', JSON.stringify(user));
         location.reload();
     }
 
-    function init() {
+    function toggleDarkMode() { document.body.classList.toggle('dark'); }
+
+    async function init() {
         document.getElementById('userName').innerText = user.n;
+        document.getElementById('userBio').innerText = user.b;
         document.getElementById('myAvatar').src = user.a;
+        
         load();
-        sb.channel('xe_els').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
+        sb.channel('xe_vip').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
             if(p.new.group_id === currentRoom) render(p.new);
         }).on('postgres_changes', {event:'DELETE', schema:'public', table:'messages'}, p => {
-            const el = document.getElementById('m-'+p.old.id); if(el) el.remove();
+            document.getElementById('m-'+p.old.id)?.remove();
         }).subscribe();
+
+        // VIP (Crown) Yoxlanışı: Əgər istifadəçi 5-dən çox mesaj yazıbsa tac gəlsin
+        const { data: count } = await sb.from('messages').select('id', { count: 'exact' }).eq('nickname', user.n);
+        if(count && count.length > 5) document.getElementById('vipCrown').style.display = 'inline';
     }
 
     async function load() {
@@ -137,58 +143,37 @@
         div.id = 'm-'+m.id;
         div.className = `msg-row ${isMe ? 'my' : 'other'}`;
         
-        let content = m.content;
         let bClass = "bubble";
-        if(content.includes('🔥')) bClass += " fire-msg";
-        if(content.includes('❄️')) bClass += " ice-msg";
+        if(m.content.includes('🔥')) bClass += " fire-msg";
+        if(m.content.includes('❄️')) bClass += " ice-msg";
 
-        let bContent = content;
-        if(content.includes('🎁')) {
-            bContent = `<div style="cursor:pointer; font-size:24px;" onclick="openGift('${m.id}', '${content.replace('🎁', '').replace(/'/g, "\\'")}')">🎁 Aç</div>`;
-        } else if(content.includes('👻')) {
-            bContent = `<div style="filter:blur(5px); cursor:pointer;" onclick="revealGhost('${m.id}', '${content.replace('👻', '').replace(/'/g, "\\'")}')">👻 Ruh (10s)</div>`;
-        }
+        let content = m.content;
+        if(content.includes('🎁')) content = `<div onclick="openGift('${m.id}', '${content.replace('🎁','')}')">🎁 Hədiyyə (Aç)</div>`;
+        if(content.includes('👻')) content = `<div style="filter:blur(4px)" onclick="this.style.filter='none';setTimeout(()=>sb.from('messages').delete().eq('id','${m.id}'),5000)">👻 Ruh (5s)</div>`;
 
         div.innerHTML = `
-            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" style="width:28px; height:28px; border-radius:50%; margin-top:10px;">
-            <div class="${bClass}" id="bubble-${m.id}">
-                <div style="font-size:10px; font-weight:700; margin-bottom:2px; opacity:0.8">${m.nickname}</div>
-                <div class="txt">${bContent}</div>
-                <span class="time">${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" style="width:30px; height:30px; border-radius:50%; margin-top:10px;">
+            <div class="${bClass}" ondblclick="confetti({particleCount:30, origin:{x:0.5, y:0.5}})">
+                <div style="font-size:10px; font-weight:800; opacity:0.6;">${m.nickname}</div>
+                <div>${content}</div>
             </div>
         `;
         chat.appendChild(div);
         chat.scrollTop = chat.scrollHeight;
     }
 
-    function openGift(id, msg) { confetti({ particleCount: 150 }); document.querySelector(`#m-${id} .txt`).innerHTML = `✨ ${msg}`; }
-    function revealGhost(id, msg) {
-        const el = document.querySelector(`#m-${id} .txt`);
-        el.innerHTML = `⏳ ${msg}`; el.style.filter = "none";
-        setTimeout(async () => { await sb.from('messages').delete().eq('id', id); }, 10000);
-    }
+    function openGift(id, msg) { confetti(); document.querySelector(`#m-${id} .bubble`).innerHTML = "✨ " + msg; }
 
     async function send() {
         const inp = document.getElementById('mInp');
-        const v = inp.value.trim();
-        if(!v) return;
+        if(!inp.value.trim()) return;
+        await sb.from('messages').insert([{ content: inp.value, nickname: user.n, group_id: currentRoom }]);
         inp.value = "";
-        await sb.from('messages').insert([{ content: v, nickname: user.n, group_id: currentRoom }]);
     }
 
     function uploadImg(inp) {
-        if(!inp.files[0]) return;
         const r = new FileReader(); r.readAsDataURL(inp.files[0]);
-        r.onload = e => {
-            const img = new Image(); img.src = e.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const scale = Math.min(800 / img.width, 1);
-                canvas.width = img.width * scale; canvas.height = img.height * scale;
-                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                sb.from('messages').insert([{ content: 'IMG:'+canvas.toDataURL('image/jpeg', 0.6), nickname: user.n, group_id: currentRoom }]);
-            }
-        }
+        r.onload = e => sb.from('messages').insert([{ content: 'IMG:'+e.target.result, nickname: user.n, group_id: currentRoom }]);
     }
 </script>
 </body>
