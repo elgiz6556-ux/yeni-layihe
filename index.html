@@ -1,106 +1,178 @@
 <!DOCTYPE html>
 <html lang="az">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>X-Elite Universe PRO</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Şifrə sahəsi üçün əlavə stil */
-        .pass-inp { width: 100%; background: #050810; border: 1px solid #334155; border-radius: 12px; padding: 12px; color: #fff; text-align: center; margin-top: 10px; }
-        .lock-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1500; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        :root { --bg: #050810; --panel: #0f172a; --accent: #38bdf8; --text: #f1f5f9; --me: #0284c7; --other: #1e293b; --ghost: #f43f5e; }
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; transition: 0.2s; }
+        body { margin: 0; background: var(--bg); color: var(--text); height: 100dvh; display: flex; overflow: hidden; }
+        
+        .sidebar { width: 60px; background: #020617; display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 15px; border-right: 1px solid rgba(255,255,255,0.1); }
+        .r-btn { width: 40px; height: 40px; border-radius: 12px; background: var(--panel); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; border: 1px solid transparent; }
+        .r-btn.active { border-color: var(--accent); color: var(--accent); }
+
+        .main { flex: 1; display: flex; flex-direction: column; }
+        .header { padding: 12px 15px; background: rgba(15, 23, 42, 0.9); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+        .msg { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; }
+        .msg.my { align-self: flex-end; flex-direction: row-reverse; }
+        .bub { padding: 10px 14px; border-radius: 18px; font-size: 14px; background: var(--other); line-height: 1.4; }
+        .my .bub { background: var(--me); }
+        .ava { width: 30px; height: 30px; border-radius: 8px; }
+
+        .input-bar { padding: 12px; background: var(--panel); display: flex; gap: 8px; align-items: center; }
+        #mInp { flex: 1; background: var(--bg); border: 1px solid #334155; border-radius: 20px; padding: 10px 15px; color: #fff; outline: none; }
+        
+        .auth { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .card { background: var(--panel); padding: 30px; border-radius: 25px; text-align: center; width: 90%; max-width: 320px; }
+        .p-inp { width: 100%; padding: 12px; background: #050810; border: 1px solid #334155; border-radius: 10px; color: #fff; margin-bottom: 10px; text-align: center; }
+        
+        #gamePanel { background: #020617; padding: 10px; border-bottom: 1px solid var(--accent); display: none; }
     </style>
 </head>
 <body>
 
-<div id="roomLock" class="lock-overlay">
-    <h3 style="color:var(--accent)">🔒 Bu otaq şifrəlidir</h3>
-    <input type="password" id="rPass" class="pass-inp" style="width:200px" placeholder="Otaq kodu...">
-    <div style="margin-top:15px; display:flex; gap:10px;">
-        <button onclick="checkRoomPass()" style="padding:10px 20px; background:var(--accent); border:none; border-radius:10px; color:#fff;">AÇ</button>
-        <button onclick="cancelRoom()" style="padding:10px 20px; background:#444; border:none; border-radius:10px; color:#fff;">GERİ</button>
+<div id="authBox" class="auth">
+    <div class="card">
+        <h2 style="color:var(--accent)">X-ELITE</h2>
+        <input type="text" id="uN" class="p-inp" placeholder="İstifadəçi adı">
+        <input type="password" id="uP" class="p-inp" placeholder="Şifrə">
+        <p id="err" style="color:var(--ghost); font-size:11px;"></p>
+        <button onclick="handleLogin()" style="width:100%; padding:12px; background:var(--accent); color:#fff; border:none; border-radius:10px; font-weight:bold;">DAXİL OL</button>
     </div>
 </div>
 
-<div id="authBox" class="auth" style="display:none;">
-    <div class="card">
-        <h2 style="color:var(--accent)">X-ELITE</h2>
-        <input type="text" id="uN" class="pass-inp" placeholder="İstifadəçi adı...">
-        <input type="password" id="uP" class="pass-inp" placeholder="Şifrəniz...">
-        <p id="err" style="color:#f43f5e; font-size:10px; margin-top:10px;"></p>
-        <button onclick="handleLogin()" style="width:100%; padding:14px; background:var(--accent); color:#fff; border:none; border-radius:12px; font-weight:900; margin-top:15px;">GİRİŞ / QEYDİYYAT</button>
+<div class="sidebar">
+    <div class="r-btn active" onclick="setRoom('General', this)">🌍</div>
+    <div class="r-btn" onclick="setRoom('Gaming', this)">🎮</div>
+    <div class="r-btn" onclick="setRoom('VIP', this)">💎</div>
+</div>
+
+<div class="main">
+    <div class="header">
+        <div id="uHead" style="font-size:13px; font-weight:bold;"></div>
+        <div id="curRoom" style="color:var(--accent); font-weight:bold; font-size:12px;">GENERAL</div>
+    </div>
+    
+    <div id="gamePanel">
+       <div style="color:var(--accent); font-size:10px; text-align:center; margin-bottom:5px;">ELITE GAMES</div>
+       <div id="game_click" style="text-align:center;">
+           <button onclick="pClick()" style="background:var(--accent); border:none; border-radius:50%; width:40px; height:40px;">⚡</button>
+           <span id="scoreText" style="font-size:11px; margin-left:10px;">Xal: 0</span>
+       </div>
+    </div>
+
+    <div id="chat"></div>
+
+    <div class="input-bar">
+        <button onclick="document.getElementById('iI').click()" style="background:none; border:none; font-size:18px;">🖼️</button>
+        <input type="file" id="iI" hidden onchange="sImg(this)">
+        <input type="text" id="mInp" placeholder="Mesaj..." onkeypress="if(event.key=='Enter') sTxt()">
+        <button onclick="sTxt()" style="background:var(--accent); border:none; padding:8px 15px; border-radius:15px; color:#fff;">🚀</button>
     </div>
 </div>
 
 <script>
-    // ... Supabase Client init eyni qalır ...
+    const U = 'https://pyknspxnwnilhqsazidj.supabase.co';
+    const K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
+    const sb = supabase.createClient(U, K);
 
-    // Otaq şifrələri datası
-    const ROOM_PASSWORDS = {
-        'VIP': 'elite777', // VIP otağının şifrəsi
-        'Gaming': ''       // Boşdursa şifrə istəməyəcək
-    };
+    let user = JSON.parse(localStorage.getItem('x_elite_final'));
+    let room = 'General';
+    let myScore = 0;
 
-    let pendingRoom = '';
+    if(user) { 
+        document.getElementById('authBox').style.display='none'; 
+        init(); 
+    }
 
     async function handleLogin() {
         const n = document.getElementById('uN').value.trim().toLowerCase();
         const p = document.getElementById('uP').value.trim();
         if(!n || !p) return;
 
-        // Bazadan bu adda istifadəçini yoxla
-        const { data } = await sb.from('messages').select('nickname, content').eq('nickname', n).eq('group_id', 'SYS_AUTH').limit(1);
-
+        const { data } = await sb.from('messages').select('*').eq('nickname', n).eq('group_id', 'SYS_AUTH').limit(1);
+        
         if(data && data.length > 0) {
-            // İstifadəçi var, şifrəni yoxla
             if(data[0].content === p) {
-                saveAndGo(n);
+                go(n);
             } else {
                 document.getElementById('err').innerText = "Səhv şifrə!";
             }
         } else {
-            // Yeni istifadəçi yaradılır (İlk dəfə girirsə şifrəsi qeyd olunur)
             await sb.from('messages').insert([{ content: p, nickname: n, group_id: 'SYS_AUTH' }]);
-            saveAndGo(n);
+            go(n);
         }
     }
 
-    function saveAndGo(n) {
+    function go(n) {
         user = { n, a: `https://api.dicebear.com/7.x/bottts/svg?seed=${n}` };
-        localStorage.setItem('x_final_v1', JSON.stringify(user));
+        localStorage.setItem('x_elite_final', JSON.stringify(user));
         location.reload();
     }
 
-    // Otaq dəyişmə funksiyasını təkmilləşdiririk
+    function init() {
+        document.getElementById('uHead').innerText = user.n;
+        load();
+        sb.channel('realtime').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => {
+            if(p.new.group_id === room) render(p.new);
+        }).subscribe();
+    }
+
+    async function load() {
+        document.getElementById('chat').innerHTML = "";
+        const {data} = await sb.from('messages').select('*').eq('group_id', room).order('created_at');
+        if(data) data.forEach(render);
+    }
+
+    function render(m) {
+        if(document.getElementById('m-'+m.id)) return;
+        const isMe = m.nickname === user.n;
+        const div = document.createElement('div');
+        div.id = 'm-'+m.id;
+        div.className = `msg ${isMe ? 'my' : ''}`;
+        
+        let c = m.content;
+        if(c.startsWith('IMG:')) c = `<img src="${c.replace('IMG:','')}" class="msg-img" style="max-width:180px; border-radius:10px;">`;
+
+        div.innerHTML = `<img src="https://api.dicebear.com/7.x/bottts/svg?seed=${m.nickname}" class="ava">
+                         <div class="bub">${c}</div>`;
+        document.getElementById('chat').appendChild(div);
+        document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+    }
+
+    async function sTxt() {
+        const i = document.getElementById('mInp');
+        if(!i.value.trim()) return;
+        const v = i.value; i.value = "";
+        await sb.from('messages').insert([{ content: v, nickname: user.n, group_id: room }]);
+    }
+
+    function sImg(input) {
+        const reader = new FileReader();
+        reader.onload = async e => {
+            await sb.from('messages').insert([{ content: 'IMG:' + e.target.result, nickname: user.n, group_id: room }]);
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+
     function setRoom(r, el) {
-        if(ROOM_PASSWORDS[r]) {
-            pendingRoom = r;
-            document.getElementById('roomLock').style.display = 'flex';
-        } else {
-            enterRoom(r);
-        }
-    }
-
-    function checkRoomPass() {
-        const pass = document.getElementById('rPass').value;
-        if(pass === ROOM_PASSWORDS[pendingRoom]) {
-            document.getElementById('roomLock').style.display = 'none';
-            document.getElementById('rPass').value = '';
-            enterRoom(pendingRoom);
-        } else {
-            alert("Otaq şifrəsi səhvdir!");
-        }
-    }
-
-    function enterRoom(r) {
         room = r;
         document.getElementById('curRoom').innerText = r.toUpperCase();
-        load();
-        // UI-da aktiv otağı işarələ
         document.querySelectorAll('.r-btn').forEach(b => b.classList.remove('active'));
-        // (Sidebar düymələrinə id verərək rəngini dəyişə bilərsən)
+        el.classList.add('active');
+        document.getElementById('gamePanel').style.display = (r === 'Gaming') ? 'block' : 'none';
+        load();
     }
 
-    function cancelRoom() {
-        document.getElementById('roomLock').style.display = 'none';
+    function pClick() {
+        myScore++;
+        document.getElementById('scoreText').innerText = "Xal: " + myScore;
     }
 </script>
 </body>
 </html>
- 
