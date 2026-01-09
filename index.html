@@ -2,8 +2,8 @@
 <html lang="az">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Elite Chat V17 Final</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Elite Chat V18 Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -11,103 +11,109 @@
         :root { --bg: #000; --accent: #0a84ff; --card: #121212; --other: #1c1c1e; }
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        /* Ekranı daş kimi sabitləyən hissə */
-        html, body { height: 100%; width: 100%; overflow: hidden; position: fixed; background: #000; color: #fff; }
+        /* Ekran Sabitliyi - Klaviaturanı nəzərə alan struktur */
+        html, body { height: 100%; width: 100%; overflow: hidden; background: #000; color: #fff; position: fixed; }
         body { display: flex; flex-direction: column; }
 
         /* Giriş Ekranı */
-        .overlay { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .auth-card { width: 100%; max-width: 330px; text-align: center; }
-        .p-view { width: 100px; height: 100px; border-radius: 50%; background: #222; margin: 0 auto 20px; cursor: pointer; border: 2px solid var(--accent); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        #authBox { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .auth-card { width: 100%; max-width: 330px; text-align: center; background: #111; padding: 25px; border-radius: 20px; border: 1px solid #333; }
+        .p-view { width: 90px; height: 90px; border-radius: 50%; background: #222; margin: 0 auto 20px; cursor: pointer; border: 2px solid var(--accent); overflow: hidden; display: flex; align-items: center; justify-content: center; }
         .p-view img { width: 100%; height: 100%; object-fit: cover; }
-        .in { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #333; background: #111; color: #fff; outline: none; font-size: 16px; }
-        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; background: var(--accent); color: #fff; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .in { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #333; background: #000; color: #fff; outline: none; font-size: 16px; }
+        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; background: var(--accent); color: #fff; font-weight: bold; cursor: pointer; }
 
-        /* Header */
-        header { height: 65px; padding: 0 15px; background: var(--card); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #333; flex-shrink: 0; }
-        .u-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent); }
+        /* App */
+        header { height: 60px; padding: 0 15px; background: var(--card); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #333; flex-shrink: 0; }
+        .u-img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent); }
         
-        /* Çat sahəsi */
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; background: #000; scroll-behavior: smooth; }
-        .row { display: flex; gap: 10px; max-width: 85%; }
+        /* Chat - Scroll və sabitlik */
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; -webkit-overflow-scrolling: touch; }
+        .row { display: flex; gap: 10px; max-width: 85%; align-items: flex-end; }
         .row.my { align-self: flex-end; flex-direction: row-reverse; }
-        .bub { padding: 12px 16px; border-radius: 20px; font-size: 15px; background: var(--other); position: relative; color: #fff; line-height: 1.4; }
+        .bub { padding: 10px 14px; border-radius: 18px; font-size: 14px; background: var(--other); position: relative; color: #fff; word-break: break-word; }
         .my .bub { background: var(--accent); }
 
         /* 🔥 & ❄️ Effektləri */
-        .fire { border: 2px solid #ff4500; box-shadow: 0 0 15px #ff4500; animation: shake 0.3s infinite; }
-        .ice { border: 2px solid #00f2ff; box-shadow: 0 0 15px #00f2ff; }
-        @keyframes shake { 0% {transform:translateX(0)} 50% {transform:translateX(1px)} 100% {transform:translateX(-1px)} }
+        .fire { border: 2px solid #ff4500; box-shadow: 0 0 10px #ff4500; animation: shake 0.3s infinite alternate; }
+        .ice { border: 2px solid #00f2ff; box-shadow: 0 0 10px #00f2ff; }
+        @keyframes shake { from { transform: rotate(-1deg); } to { transform: rotate(1deg); } }
 
         /* 🎁 Hədiyyə */
-        .gift { background: linear-gradient(45deg, #f09, #f00); padding: 12px; border-radius: 15px; cursor: pointer; text-align: center; font-weight: bold; }
+        .gift { background: linear-gradient(45deg, #ff0055, #ff4500); padding: 12px; border-radius: 15px; text-align: center; cursor: pointer; font-weight: bold; }
 
-        /* Input */
+        /* Input Sahəsi */
         .inputs { padding: 10px 15px 30px; background: var(--card); display: flex; align-items: center; gap: 10px; border-top: 1px solid #333; flex-shrink: 0; }
-        .f-wrap { flex: 1; background: #1c1c1e; border-radius: 25px; padding: 5px 15px; display: flex; align-items: center; border: 1px solid #333; }
-        .f-wrap input { flex: 1; background: none; border: none; padding: 10px 0; color: #fff; outline: none; font-size: 16px; }
+        .f-wrap { flex: 1; background: #1c1c1e; border-radius: 20px; padding: 5px 15px; display: flex; align-items: center; border: 1px solid #333; }
+        .f-wrap input { flex: 1; background: none; border: none; padding: 8px 0; color: #fff; outline: none; font-size: 16px; }
     </style>
 </head>
 <body>
 
-<div id="authBox" class="overlay">
+<div id="authBox">
     <div class="auth-card">
-        <h1 style="margin-bottom:25px; color: var(--accent);">ELITE VIP</h1>
+        <h2 style="margin-bottom:20px">Elite Chat Giriş</h2>
         <div class="p-view" onclick="document.getElementById('f').click()">
             <img id="pv" style="display:none">
-            <span id="pt" style="color:#666">FOTO SEÇ</span>
+            <span id="pt" style="color:#888; font-size: 12px;">Şəkil Seç</span>
         </div>
-        <input type="file" id="f" hidden accept="image/*" onchange="hImg(this)">
+        <input type="file" id="f" hidden accept="image/*" onchange="processImg(this)">
         <input type="text" id="n" class="in" placeholder="Ləqəb">
         <input type="password" id="p" class="in" placeholder="Parol">
-        <input type="text" id="b" class="in" placeholder="Bio (Məs: Gəncəli)">
-        <button class="btn" onclick="login()">DAXİL OL</button>
-        <p id="err" style="color:red; font-size:12px; margin-top:10px; display:none;">Parol səhvdir!</p>
+        <button class="btn" onclick="handleLogin()">Daxil Ol</button>
     </div>
 </div>
 
 <header>
-    <div style="display:flex; align-items:center; gap:10px;">
+    <div style="display:flex; align-items:center; gap:8px;">
         <img id="ma" class="u-img">
-        <div><b id="un">...</b><div id="ub" style="font-size:10px; color:#888;">...</div></div>
+        <b id="un" style="font-size:14px">...</b>
     </div>
-    <div onclick="localStorage.clear(); location.reload();" style="font-size:20px; cursor:pointer;">🚪</div>
+    <div onclick="logout()" style="cursor:pointer">🚪</div>
 </header>
 
 <div id="chat"></div>
 
 <div class="inputs">
-    <button style="font-size:24px; border:none; background:none;" onclick="document.getElementById('if').click()">🖼️</button>
-    <input type="file" id="if" hidden accept="image/*" onchange="hImg(this, true)">
+    <button style="font-size:20px; background:none; border:none" onclick="document.getElementById('if').click()">🖼️</button>
+    <input type="file" id="if" hidden accept="image/*" onchange="processImg(this, true)">
     <div class="f-wrap">
-        <input type="text" id="mi" placeholder="Mesaj yaz..." onkeypress="if(event.key=='Enter') send()">
+        <input type="text" id="mi" placeholder="Mesaj yaz..." onkeypress="if(event.key=='Enter') sendMsg()">
     </div>
-    <button onclick="send()" style="font-size:26px; color:var(--accent); border:none; background:none;">🚀</button>
+    <button onclick="sendMsg()" style="font-size:24px; color:var(--accent); background:none; border:none">🚀</button>
 </div>
 
 <script>
+    // Supabase Bağlantısı
     const U = 'https://pyknspxnwnilhqsazidj.supabase.co';
     const K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(U, K);
 
-    let user = JSON.parse(localStorage.getItem('elite_auth_final'));
-    let tAv = "";
+    let user = JSON.parse(localStorage.getItem('elite_v18_session'));
+    let tempImg = "https://api.dicebear.com/7.x/bottts/svg";
 
     if(user) { document.getElementById('authBox').style.display='none'; init(); }
 
-    function hImg(i, direct=false) {
+    function processImg(input, isChat = false) {
+        const file = input.files[0];
+        if(!file) return;
         const reader = new FileReader();
         reader.onload = (e) => {
             const img = new Image();
             img.onload = () => {
                 const cv = document.createElement('canvas');
-                const s = 150 / Math.max(img.width, img.height);
-                cv.width = img.width * s; cv.height = img.height * s;
-                cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+                const max = 150;
+                let w = img.width, h = img.height;
+                if(w > h) { if(w > max) { h *= max/w; w = max; } }
+                else { if(h > max) { w *= max/h; h = max; } }
+                cv.width = w; cv.height = h;
+                cv.getContext('2d').drawImage(img, 0, 0, w, h);
                 const b64 = cv.toDataURL('image/jpeg', 0.6);
-                if(direct) sb.from('messages').insert([{ content: 'IMG:'+b64, nickname: user.n, avatar: user.a, group_id: user.p }]);
-                else {
-                    tAv = b64;
+                
+                if(isChat) {
+                    sb.from('messages').insert([{ content: 'IMG:'+b64, nickname: user.n, avatar: user.a, group_id: user.p }]);
+                } else {
+                    tempImg = b64;
                     document.getElementById('pv').src = b64;
                     document.getElementById('pv').style.display = 'block';
                     document.getElementById('pt').style.display = 'none';
@@ -115,81 +121,78 @@
             };
             img.src = e.target.result;
         };
-        reader.readAsDataURL(i.files[0]);
+        reader.readAsDataURL(file);
     }
 
-    async function login() {
+    async function handleLogin() {
         const n = document.getElementById('n').value.trim();
         const p = document.getElementById('p').value.trim();
-        const b = document.getElementById('b').value.trim() || "Elite User";
-        if(!n || !p) return alert("Ləqəb və Parol vacibdir!");
+        if(!n || !p) return alert("Ləqəb və Parol yazın!");
 
-        // Köhnə profili yoxla
-        const { data: ex } = await sb.from('messages').select('*').eq('nickname', n).order('created_at', {ascending: false}).limit(1);
-        
-        if(ex && ex.length > 0) {
-            if(ex[0].group_id !== p) {
-                document.getElementById('err').style.display = 'block';
-                return;
-            }
-            // Tapıldısa, köhnə profil məlumatlarını götür
-            user = { n, p, b: ex[0].content.includes('Bio:') ? ex[0].content.split('Bio:')[1] : b, a: ex[0].avatar };
-        } else {
-            user = { n, p, b, a: tAv || "https://api.dicebear.com/7.x/bottts/svg" };
-            // İlk dəfə girəndə bazaya iz qoyuruq
-            await sb.from('messages').insert([{ content: 'Sistem: Giriş edildi. Bio:'+b, nickname: n, avatar: user.a, group_id: p }]);
+        // Parol Yoxlaması
+        const { data: check } = await sb.from('messages').select('group_id, avatar').eq('nickname', n).limit(1);
+        if(check && check.length > 0 && check[0].group_id !== p) {
+            return alert("Səhv parol! Bu ləqəb artıq istifadə olunub.");
         }
 
-        localStorage.setItem('elite_auth_final', JSON.stringify(user));
+        user = { n, p, a: (check && check.length > 0) ? check[0].avatar : tempImg };
+        localStorage.setItem('elite_v18_session', JSON.stringify(user));
         location.reload();
     }
 
-    async function init() {
+    function init() {
         document.getElementById('un').innerText = user.n;
-        document.getElementById('ub').innerText = user.b;
         document.getElementById('ma').src = user.a;
-        load();
-        sb.channel('v17').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => render(p.new)).subscribe();
-        sb.channel('v17_del').on('postgres_changes', {event:'DELETE', schema:'public', table:'messages'}, p => document.getElementById('m-'+p.old.id)?.remove()).subscribe();
-    }
+        
+        // Mesajları yüklə
+        sb.from('messages').select('*').order('created_at', {ascending: false}).limit(50).then(({data}) => {
+            if(data) data.reverse().forEach(render);
+        });
 
-    async function load() {
-        const {data} = await sb.from('messages').select('*').order('created_at', {ascending: false}).limit(50);
-        if(data) data.reverse().forEach(render);
+        // Canlı qoşulma
+        sb.channel('global').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => render(p.new)).subscribe();
     }
 
     function render(m) {
         if(document.getElementById('m-'+m.id)) return;
-        if(m.content.startsWith('Sistem:')) return; // Sistem mesajlarını göstərmə
-        const isMe = m.nickname === user.n;
         const chat = document.getElementById('chat');
+        const isMe = m.nickname === user.n;
         const div = document.createElement('div');
         div.id = 'm-'+m.id; div.className = `row ${isMe ? 'my' : ''}`;
 
-        let c = m.content;
+        let content = m.content;
         let bCl = "bub";
 
-        if(c.includes('🔥')) bCl += " fire";
-        if(c.includes('❄️')) bCl += " ice";
+        if(content.includes('🔥')) bCl += " fire";
+        if(content.includes('❄️')) bCl += " ice";
         
-        if(c.includes('🎁')) {
-            const t = c.replace('🎁','');
-            c = `<div class="gift" onclick="confetti(); this.innerHTML='🎁 '+this.getAttribute('d')" d="${t}">HƏDİYYƏNİ AÇ</div>`;
-        } else if(c.startsWith('IMG:')) {
-            c = `<img src="${c.replace('IMG:','')}" style="max-width:100%; border-radius:12px;">`;
+        if(content.includes('🎁')) {
+            const txt = content.replace('🎁','');
+            content = `<div class="gift" onclick="confetti(); this.innerText='✨ '+this.getAttribute('d')" d="${txt}">HƏDİYYƏNİ AÇ</div>`;
+        } else if(content.startsWith('IMG:')) {
+            content = `<img src="${content.replace('IMG:','')}" style="max-width:100%; border-radius:10px; display:block">`;
         }
 
-        div.innerHTML = `<img src="${m.avatar}" class="u-img" style="width:28px;height:28px;margin-top:5px"><div class="${bCl}"><div style="font-size:9px;opacity:0.5;font-weight:bold">${m.nickname}</div>${c}</div>`;
+        div.innerHTML = `
+            <img src="${m.avatar}" class="u-img" style="width:25px; height:25px; margin-bottom:5px">
+            <div class="${bCl}">
+                <div style="font-size:10px; opacity:0.5; font-weight:bold">${m.nickname}</div>
+                ${content}
+            </div>
+        `;
         chat.appendChild(div);
         chat.scrollTop = chat.scrollHeight;
     }
 
-    async function send() {
+    async function sendMsg() {
         const i = document.getElementById('mi');
-        if(!i.value.trim()) return;
-        await sb.from('messages').insert([{ content: i.value.trim(), nickname: user.n, avatar: user.a, group_id: user.p }]);
+        const val = i.value.trim();
+        if(!val) return;
         i.value = "";
+        await sb.from('messages').insert([{ content: val, nickname: user.n, avatar: user.a, group_id: user.p }]);
     }
+
+    function logout() { localStorage.clear(); location.reload(); }
 </script>
 </body>
 </html>
