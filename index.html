@@ -2,8 +2,8 @@
 <html lang="az">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elite Chat V18 Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Elite Chat V20</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -11,86 +11,89 @@
         :root { --bg: #000; --accent: #0a84ff; --card: #121212; --other: #1c1c1e; }
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        /* Ekran Sabitliyi - Klaviaturanı nəzərə alan struktur */
-        html, body { height: 100%; width: 100%; overflow: hidden; background: #000; color: #fff; position: fixed; }
+        /* Ekran Sabitliyi - Videodakı titrəməni kəsən hissə */
+        html, body { height: 100%; width: 100%; overflow: hidden; position: fixed; background: #000; color: #fff; }
         body { display: flex; flex-direction: column; }
 
         /* Giriş Ekranı */
         #authBox { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .auth-card { width: 100%; max-width: 330px; text-align: center; background: #111; padding: 25px; border-radius: 20px; border: 1px solid #333; }
-        .p-view { width: 90px; height: 90px; border-radius: 50%; background: #222; margin: 0 auto 20px; cursor: pointer; border: 2px solid var(--accent); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .auth-card { width: 100%; max-width: 330px; text-align: center; }
+        .p-view { width: 100px; height: 100px; border-radius: 50%; background: #222; margin: 0 auto 20px; cursor: pointer; border: 2px solid var(--accent); overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px var(--accent); }
         .p-view img { width: 100%; height: 100%; object-fit: cover; }
-        .in { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #333; background: #000; color: #fff; outline: none; font-size: 16px; }
+        .in { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #333; background: #111; color: #fff; outline: none; font-size: 16px; }
         .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; background: var(--accent); color: #fff; font-weight: bold; cursor: pointer; }
 
-        /* App */
-        header { height: 60px; padding: 0 15px; background: var(--card); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #333; flex-shrink: 0; }
-        .u-img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent); }
+        /* App Structure */
+        header { height: 65px; padding: 0 15px; background: var(--card); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #333; flex-shrink: 0; }
+        .u-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent); }
         
-        /* Chat - Scroll və sabitlik */
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; -webkit-overflow-scrolling: touch; }
-        .row { display: flex; gap: 10px; max-width: 85%; align-items: flex-end; }
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; background: #000; -webkit-overflow-scrolling: touch; }
+        .row { display: flex; gap: 10px; max-width: 85%; align-items: flex-end; animation: msgIn 0.3s ease-out; }
         .row.my { align-self: flex-end; flex-direction: row-reverse; }
-        .bub { padding: 10px 14px; border-radius: 18px; font-size: 14px; background: var(--other); position: relative; color: #fff; word-break: break-word; }
+        .bub { padding: 12px 16px; border-radius: 20px; font-size: 15px; background: var(--other); color: #fff; position: relative; word-wrap: break-word; }
         .my .bub { background: var(--accent); }
 
-        /* 🔥 & ❄️ Effektləri */
-        .fire { border: 2px solid #ff4500; box-shadow: 0 0 10px #ff4500; animation: shake 0.3s infinite alternate; }
-        .ice { border: 2px solid #00f2ff; box-shadow: 0 0 10px #00f2ff; }
-        @keyframes shake { from { transform: rotate(-1deg); } to { transform: rotate(1deg); } }
+        /* Effektlər */
+        .fire { border: 2px solid #ff4500; box-shadow: 0 0 15px #ff4500; animation: shake 0.3s infinite; }
+        .ice { border: 2px solid #00f2ff; box-shadow: 0 0 15px #00f2ff; background: rgba(0,242,255,0.1) !important; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(1px); } }
+        @keyframes msgIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* 🎁 Hədiyyə */
-        .gift { background: linear-gradient(45deg, #ff0055, #ff4500); padding: 12px; border-radius: 15px; text-align: center; cursor: pointer; font-weight: bold; }
+        .gift { background: linear-gradient(45deg, #f09, #f00); padding: 15px; border-radius: 15px; cursor: pointer; font-weight: bold; text-align: center; color: #fff; }
 
-        /* Input Sahəsi */
-        .inputs { padding: 10px 15px 30px; background: var(--card); display: flex; align-items: center; gap: 10px; border-top: 1px solid #333; flex-shrink: 0; }
-        .f-wrap { flex: 1; background: #1c1c1e; border-radius: 20px; padding: 5px 15px; display: flex; align-items: center; border: 1px solid #333; }
-        .f-wrap input { flex: 1; background: none; border: none; padding: 8px 0; color: #fff; outline: none; font-size: 16px; }
+        /* 👻 Ghost */
+        .ghost { filter: blur(6px); cursor: pointer; transition: 0.3s; }
+        .ghost:active { filter: blur(0); }
+
+        /* Input */
+        .inputs { padding: 10px 15px 35px; background: var(--card); display: flex; align-items: center; gap: 10px; border-top: 1px solid #333; flex-shrink: 0; }
+        .f-wrap { flex: 1; background: #1c1c1e; border-radius: 25px; padding: 5px 15px; display: flex; align-items: center; border: 1px solid #333; }
+        .f-wrap input { flex: 1; background: none; border: none; padding: 10px 0; color: #fff; outline: none; font-size: 16px; }
     </style>
 </head>
 <body>
 
 <div id="authBox">
     <div class="auth-card">
-        <h2 style="margin-bottom:20px">Elite Chat Giriş</h2>
+        <h1 style="margin-bottom:30px; color: var(--accent);">ELITE VIP</h1>
         <div class="p-view" onclick="document.getElementById('f').click()">
             <img id="pv" style="display:none">
-            <span id="pt" style="color:#888; font-size: 12px;">Şəkil Seç</span>
+            <span id="pt" style="color:#888; font-size: 12px;">FOTO SEÇ</span>
         </div>
         <input type="file" id="f" hidden accept="image/*" onchange="processImg(this)">
         <input type="text" id="n" class="in" placeholder="Ləqəb">
-        <input type="password" id="p" class="in" placeholder="Parol">
-        <button class="btn" onclick="handleLogin()">Daxil Ol</button>
+        <input type="password" id="p" class="in" placeholder="Özəl Parol">
+        <button class="btn" onclick="handleLogin()">SİSTEMƏ GİR</button>
     </div>
 </div>
 
 <header>
-    <div style="display:flex; align-items:center; gap:8px;">
+    <div style="display:flex; align-items:center; gap:10px;">
         <img id="ma" class="u-img">
-        <b id="un" style="font-size:14px">...</b>
+        <b id="un">...</b>
     </div>
-    <div onclick="logout()" style="cursor:pointer">🚪</div>
+    <div onclick="logout()" style="cursor:pointer; font-size: 20px;">🚪</div>
 </header>
 
 <div id="chat"></div>
 
 <div class="inputs">
-    <button style="font-size:20px; background:none; border:none" onclick="document.getElementById('if').click()">🖼️</button>
+    <button style="font-size:24px; border:none; background:none;" onclick="document.getElementById('if').click()">🖼️</button>
     <input type="file" id="if" hidden accept="image/*" onchange="processImg(this, true)">
     <div class="f-wrap">
         <input type="text" id="mi" placeholder="Mesaj yaz..." onkeypress="if(event.key=='Enter') sendMsg()">
     </div>
-    <button onclick="sendMsg()" style="font-size:24px; color:var(--accent); background:none; border:none">🚀</button>
+    <button onclick="sendMsg()" style="font-size:28px; color:var(--accent); border:none; background:none;">🚀</button>
 </div>
 
 <script>
-    // Supabase Bağlantısı
     const U = 'https://pyknspxnwnilhqsazidj.supabase.co';
     const K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(U, K);
 
-    let user = JSON.parse(localStorage.getItem('elite_v18_session'));
-    let tempImg = "https://api.dicebear.com/7.x/bottts/svg";
+    let user = JSON.parse(localStorage.getItem('elite_v20_save'));
+    let tempAv = "https://api.dicebear.com/7.x/bottts/svg";
 
     if(user) { document.getElementById('authBox').style.display='none'; init(); }
 
@@ -104,16 +107,15 @@
                 const cv = document.createElement('canvas');
                 const max = 150;
                 let w = img.width, h = img.height;
-                if(w > h) { if(w > max) { h *= max/w; w = max; } }
-                else { if(h > max) { w *= max/h; h = max; } }
-                cv.width = w; cv.height = h;
-                cv.getContext('2d').drawImage(img, 0, 0, w, h);
+                const s = max / Math.max(w, h);
+                cv.width = w * s; cv.height = h * s;
+                cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
                 const b64 = cv.toDataURL('image/jpeg', 0.6);
                 
                 if(isChat) {
                     sb.from('messages').insert([{ content: 'IMG:'+b64, nickname: user.n, avatar: user.a, group_id: user.p }]);
                 } else {
-                    tempImg = b64;
+                    tempAv = b64;
                     document.getElementById('pv').src = b64;
                     document.getElementById('pv').style.display = 'block';
                     document.getElementById('pt').style.display = 'none';
@@ -129,71 +131,70 @@
         const p = document.getElementById('p').value.trim();
         if(!n || !p) return alert("Ləqəb və Parol yazın!");
 
-        // Parol Yoxlaması
-        const { data: check } = await sb.from('messages').select('group_id, avatar').eq('nickname', n).limit(1);
-        if(check && check.length > 0 && check[0].group_id !== p) {
-            return alert("Səhv parol! Bu ləqəb artıq istifadə olunub.");
+        // Parol yoxlaması - Eyni ləqəblə girənin parolu düz olmalıdır
+        const { data: ex } = await sb.from('messages').select('group_id, avatar').eq('nickname', n).order('created_at', {ascending: false}).limit(1);
+        
+        if(ex && ex.length > 0 && ex[0].group_id !== p) {
+            return alert("Bu ləqəbin parolu səhvdir!");
         }
 
-        user = { n, p, a: (check && check.length > 0) ? check[0].avatar : tempImg };
-        localStorage.setItem('elite_v18_session', JSON.stringify(user));
+        user = { n, p, a: (ex && ex.length > 0) ? ex[0].avatar : tempAv };
+        localStorage.setItem('elite_v20_save', JSON.stringify(user));
         location.reload();
     }
 
     function init() {
         document.getElementById('un').innerText = user.n;
         document.getElementById('ma').src = user.a;
-        
-        // Mesajları yüklə
-        sb.from('messages').select('*').order('created_at', {ascending: false}).limit(50).then(({data}) => {
-            if(data) data.reverse().forEach(render);
-        });
+        load();
+        // Canlı qoşulma kanalı
+        sb.channel('v20_realtime').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => render(p.new))
+        .on('postgres_changes', {event:'DELETE', schema:'public', table:'messages'}, p => document.getElementById('m-'+p.old.id)?.remove()).subscribe();
+    }
 
-        // Canlı qoşulma
-        sb.channel('global').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => render(p.new)).subscribe();
+    async function load() {
+        const {data} = await sb.from('messages').select('*').order('created_at', {ascending: false}).limit(50);
+        if(data) data.reverse().forEach(render);
     }
 
     function render(m) {
         if(document.getElementById('m-'+m.id)) return;
-        const chat = document.getElementById('chat');
         const isMe = m.nickname === user.n;
+        const chat = document.getElementById('chat');
         const div = document.createElement('div');
         div.id = 'm-'+m.id; div.className = `row ${isMe ? 'my' : ''}`;
 
-        let content = m.content;
+        let c = m.content;
         let bCl = "bub";
 
-        if(content.includes('🔥')) bCl += " fire";
-        if(content.includes('❄️')) bCl += " ice";
+        if(c.includes('🔥')) bCl += " fire";
+        if(c.includes('❄️')) bCl += " ice";
         
-        if(content.includes('🎁')) {
-            const txt = content.replace('🎁','');
-            content = `<div class="gift" onclick="confetti(); this.innerText='✨ '+this.getAttribute('d')" d="${txt}">HƏDİYYƏNİ AÇ</div>`;
-        } else if(content.startsWith('IMG:')) {
-            content = `<img src="${content.replace('IMG:','')}" style="max-width:100%; border-radius:10px; display:block">`;
+        if(c.includes('🎁')) {
+            const t = c.replace('🎁','');
+            c = `<div class="gift" onclick="confetti(); this.innerHTML='🎁 '+this.getAttribute('d')" d="${t}">HƏDİYYƏNİ AÇ</div>`;
+        } else if(c.includes('👻')) {
+            const t = c.replace('👻','');
+            c = `<div class="ghost" onclick="this.style.filter='none';this.innerText='⏳ '+this.getAttribute('d');setTimeout(()=>sb.from('messages').delete().eq('id','${m.id}'),10000)" d="${t}">👻 RUH MESAJI</div>`;
+        } else if(c.startsWith('IMG:')) {
+            c = `<img src="${c.replace('IMG:','')}" style="max-width:100%; border-radius:12px; display:block">`;
         }
 
-        div.innerHTML = `
-            <img src="${m.avatar}" class="u-img" style="width:25px; height:25px; margin-bottom:5px">
-            <div class="${bCl}">
-                <div style="font-size:10px; opacity:0.5; font-weight:bold">${m.nickname}</div>
-                ${content}
-            </div>
-        `;
+        div.innerHTML = `<img src="${m.avatar}" class="u-img" style="width:28px; height:28px; margin-bottom:5px"><div class="${bCl}"><div style="font-size:9px; opacity:0.5; font-weight:bold">${m.nickname}</div>${c}</div>`;
         chat.appendChild(div);
         chat.scrollTop = chat.scrollHeight;
     }
 
     async function sendMsg() {
         const i = document.getElementById('mi');
-        const val = i.value.trim();
-        if(!val) return;
+        const v = i.value.trim();
+        if(!v) return;
         i.value = "";
-        await sb.from('messages').insert([{ content: val, nickname: user.n, avatar: user.a, group_id: user.p }]);
+        const { error } = await sb.from('messages').insert([{ content: v, nickname: user.n, avatar: user.a, group_id: user.p }]);
+        if(error) console.error("Xəta:", error);
     }
 
     function logout() { localStorage.clear(); location.reload(); }
 </script>
 </body>
 </html>
- 
