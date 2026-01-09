@@ -3,90 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Elite Chat V12 Pro</title>
+    <title>Elite Chat V14</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #ffffff; --header: #fdfdfd; --accent: #007aff; --me: #007aff; --other: #f2f2f7; --text: #1c1c1e; --dim: #8e8e93; }
-        body.dark { --bg: #000000; --header: #121212; --accent: #0a84ff; --me: #0a84ff; --other: #1c1c1e; --text: #ffffff; --dim: #8e8e93; }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.2s, color 0.2s; }
-        body { background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
-
-        /* Auth Screen */
-        .overlay { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 25px; }
-        .auth-card { width: 100%; max-width: 340px; text-align: center; animation: fadeIn 0.5s; }
-        .auth-input { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #333; background: transparent; color: var(--text); outline: none; font-size: 16px; }
+        :root { --bg: #000; --card: #121212; --accent: #0a84ff; --text: #fff; --other: #1c1c1e; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; position: fixed; width: 100%; }
         
-        /* Header */
-        .app-header { height: 75px; padding: 0 15px; background: var(--header); border-bottom: 1px solid rgba(128,128,128,0.2); display: flex; align-items: center; justify-content: space-between; z-index: 100; }
-        .user-info { display: flex; align-items: center; gap: 10px; }
-        .user-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #2b2c33; border: 2px solid var(--accent); cursor: pointer; }
+        /* Auth Screen */
+        .overlay { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 25px; }
+        .auth-card { width: 100%; max-width: 320px; text-align: center; }
+        .p-view { width: 100px; height: 100px; border-radius: 50%; background: #222; margin: 0 auto 20px; cursor: pointer; border: 2px solid var(--accent); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .p-view img { width: 100%; height: 100%; object-fit: cover; }
+        .in { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 12px; border: none; background: #1c1c1e; color: #fff; outline: none; font-size: 16px; }
+        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; background: var(--accent); color: #fff; font-weight: bold; cursor: pointer; font-size: 16px; }
 
-        /* Chat Area */
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; }
-        .msg-row { display: flex; gap: 10px; max-width: 85%; position: relative; }
-        .msg-row.my { align-self: flex-end; flex-direction: row-reverse; }
-        .bubble { padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; background: var(--other); color: var(--text); }
-        .my .bubble { background: var(--me); color: #fff; }
+        /* App Layout */
+        header { height: 70px; padding: 0 15px; background: var(--card); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #333; z-index: 100; }
+        .u-box { display: flex; align-items: center; gap: 10px; }
+        .u-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #222; border: 1.5px solid var(--accent); }
+        
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; background: #000; }
+        .row { display: flex; gap: 10px; max-width: 85%; animation: slideIn 0.3s ease; }
+        .row.my { align-self: flex-end; flex-direction: row-reverse; }
+        
+        .bub { padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.5; background: var(--other); position: relative; color: #fff; }
+        .my .bub { background: var(--accent); }
 
-        /* Special Effects */
-        .fire-msg { box-shadow: 0 0 15px #ff4500; border: 1px solid #ff4500; animation: shake 0.5s infinite; }
-        .ice-msg { box-shadow: 0 0 15px #00f2ff; border: 1px solid #00f2ff; }
-        @keyframes shake { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(1.5deg); } }
+        /* 🔥 & ❄️ Efektləri */
+        .fire { border: 2px solid #ff4500; box-shadow: 0 0 15px #ff4500; animation: shake 0.4s infinite; }
+        .ice { border: 2px solid #00f2ff; box-shadow: 0 0 15px #00f2ff; }
+        @keyframes shake { 0% { transform:rotate(0); } 50% { transform:rotate(1deg); } 100% { transform:rotate(-1deg); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 🎁 Hədiyyə */
+        .gift { background: linear-gradient(45deg, #ff416c, #ff4b2b); padding: 12px; border-radius: 15px; text-align: center; cursor: pointer; font-weight: bold; color: #fff; }
 
         /* Input Area */
-        .input-box { padding: 10px 15px 35px; background: var(--header); display: flex; align-items: center; gap: 10px; border-top: 1px solid rgba(128,128,128,0.2); }
-        .field-wrap { flex: 1; background: var(--other); border-radius: 25px; padding: 5px 15px; display: flex; align-items: center; gap: 10px; }
-        .field-wrap input { flex: 1; background: none; border: none; padding: 10px 0; color: var(--text); outline: none; }
-        
-        .btn-icon { background: none; border: none; font-size: 22px; cursor: pointer; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .inputs { padding: 10px 15px 35px; background: var(--card); display: flex; align-items: center; gap: 10px; border-top: 1px solid #333; }
+        .f-wrap { flex: 1; background: var(--other); border-radius: 25px; padding: 5px 15px; display: flex; align-items: center; }
+        .f-wrap input { flex: 1; background: none; border: none; padding: 10px 0; color: #fff; outline: none; font-size: 16px; }
+        button { background: none; border: none; cursor: pointer; transition: 0.2s; }
+        button:active { transform: scale(0.9); }
     </style>
 </head>
-<body class="dark">
+<body>
 
 <div id="authBox" class="overlay">
     <div class="auth-card">
-        <h1 style="margin-bottom: 20px; font-size: 30px;">Elite Chat</h1>
-        <div id="pUpload" style="width:90px; height:90px; border-radius:50%; background:#2b2c33; margin:0 auto 20px; cursor:pointer; display:flex; align-items:center; justify-content:center; overflow:hidden; border:2px solid var(--accent);" onclick="document.getElementById('pImg').click()">
-            <img id="pPreview" src="" style="display:none; width:100%; height:100%; object-fit:cover;">
-            <span id="pText" style="color:#888; font-size: 12px;">Foto 📸</span>
+        <h1 style="margin-bottom:25px; letter-spacing: 2px;">ELITE CHAT</h1>
+        <div class="p-view" onclick="document.getElementById('f').click()">
+            <img id="pv" style="display:none">
+            <span id="pt" style="color:#888; font-size: 14px;">FOTO 📸</span>
         </div>
-        <input type="file" id="pImg" hidden accept="image/*" onchange="processFile(this, 'temp')">
-        
-        <input type="text" id="uN" class="auth-input" placeholder="Ləqəbiniz">
-        <input type="password" id="uP" class="auth-input" placeholder="Parolunuz (PIN)">
-        <input type="text" id="uB" class="auth-input" placeholder="Bio / Status">
-        
-        <button id="lBtn" onclick="handleLogin()" style="width:100%; padding:16px; border-radius:12px; border:none; background:var(--accent); color:#fff; font-weight:bold; cursor:pointer; font-size: 16px;">Daxil Ol</button>
-        <p id="errorMsg" style="color: #ff4500; font-size: 12px; margin-top: 10px; display: none;">Ləqəb və ya parol səhvdir!</p>
+        <input type="file" id="f" hidden accept="image/*" onchange="hImg(this)">
+        <input type="text" id="n" class="in" placeholder="Ləqəb">
+        <input type="password" id="p" class="in" placeholder="Giriş Parolu">
+        <input type="text" id="b" class="in" placeholder="Bio / Status">
+        <button class="btn" onclick="login()">DAXİL OL</button>
     </div>
 </div>
 
-<header class="app-header">
-    <div class="user-info">
-        <img id="myAvatar" class="user-avatar" onclick="document.getElementById('changeAvatar').click()">
-        <input type="file" id="changeAvatar" hidden accept="image/*" onchange="processFile(this, 'change')">
-        <div>
-            <b id="userName">...</b>
-            <div id="userBio" style="font-size:10px; color:var(--dim);">...</div>
-        </div>
+<header>
+    <div class="u-box">
+        <img id="ma" class="u-img" src="">
+        <div><b id="un">...</b><div id="ub" style="font-size:10px;color:#888">...</div></div>
     </div>
-    <button class="btn-icon" onclick="toggleTheme()">🌓</button>
+    <div style="font-weight: bold; color: var(--accent);">V14 PRO</div>
 </header>
 
 <div id="chat"></div>
 
-<div class="input-box">
-    <button class="btn-icon" onclick="document.getElementById('imgInp').click()">🖼️</button>
-    <input type="file" id="imgInp" hidden accept="image/*" onchange="processFile(this, 'chat')">
-    <div class="field-wrap">
-        <input type="text" id="mInp" placeholder="Mesaj..." onkeypress="if(event.key=='Enter') sendMsg()">
-        <button id="micBtn" class="btn-icon" style="font-size:18px;" onclick="toggleMic()">🎤</button>
+<div class="inputs">
+    <button style="font-size:22px" onclick="document.getElementById('if').click()">🖼️</button>
+    <input type="file" id="if" hidden accept="image/*" onchange="hImg(this, true)">
+    <div class="f-wrap">
+        <input type="text" id="mi" placeholder="Mesaj yazın..." onkeypress="if(event.key=='Enter') send()">
+        <button id="mc" style="font-size:20px" onclick="tMic()">🎤</button>
     </div>
-    <button onclick="sendMsg()" class="btn-icon" style="color:var(--accent);">🚀</button>
+    <button onclick="send()" style="font-size:28px; color:var(--accent)">🚀</button>
 </div>
 
 <script>
@@ -94,85 +91,61 @@
     const K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(U, K);
 
-    let user = JSON.parse(localStorage.getItem('elite_v12_auth'));
-    let tempAvatarData = "";
+    let user = JSON.parse(localStorage.getItem('elite_v14_save'));
+    let tAv = "";
     let mediaRec, chunks = [];
 
-    const DEFAULT_IMG = "data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjYjFiM2I1IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEyIDEyYzIuMjEgMCA0LTEuNzkgNC00cy0xLjc5LTQtNC00LTQgMS43OS00IDQgMS43OSA0IDQgNHptMCAyYy0yLjY3IDAtOCAxLjM0LTggNHYyaDE2di0yYzAtMi42Ni01LjMzLTQtOC00eiIvPjwvc3ZnPg==";
+    const DEF = "data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjYjFiM2I1IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEyIDEyYzIuMjEgMCA0LTEuNzkgNC00cy0xLjc5LTQtNC00LTQgMS43OS00IDQgMS43OSA0IDQgNHptMCAyYy0yLjY3IDAtOCAxLjM0LTggNHYyaDE2di0yYzAtMi42Ni01LjMzLTQtOC00eiIvPjwvc3ZnPg==";
 
     if(user) { document.getElementById('authBox').style.display='none'; init(); }
 
-    function toggleTheme() { document.body.classList.toggle('dark'); }
-
-    async function processFile(inp, mode) {
-        const file = inp.files[0];
-        if(!file) return;
+    function hImg(i, direct=false) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = (e) => {
             const img = new Image();
-            img.onload = async function() {
-                const canvas = document.createElement('canvas');
-                const MAX = 180;
-                let w = img.width, h = img.height;
-                if(w > h) { if(w > MAX){ h *= MAX/w; w = MAX; } }
-                else { if(h > MAX){ w *= MAX/h; h = MAX; } }
-                canvas.width = w; canvas.height = h;
-                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                const b64 = canvas.toDataURL('image/jpeg', 0.6);
-                
-                if(mode === 'temp') {
-                    tempAvatarData = b64;
-                    document.getElementById('pPreview').src = b64;
-                    document.getElementById('pPreview').style.display = 'block';
-                    document.getElementById('pText').style.display = 'none';
-                } else if(mode === 'change') {
-                    user.a = b64;
-                    localStorage.setItem('elite_v12_auth', JSON.stringify(user));
-                    location.reload();
-                } else if(mode === 'chat') {
-                    await sb.from('messages').insert([{ content: 'IMG:'+b64, nickname: user.n, avatar: user.a, group_id: user.p }]); // Parolu qrup id kimi istifadə edirik (təhlükəsizlik üçün)
+            img.onload = () => {
+                const cv = document.createElement('canvas');
+                const s = 150 / Math.max(img.width, img.height);
+                cv.width = img.width * s; cv.height = img.height * s;
+                cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+                const b64 = cv.toDataURL('image/jpeg', 0.6);
+                if(direct) sb.from('messages').insert([{ content: 'IMG:'+b64, nickname: user.n, avatar: user.a, group_id: user.p }]);
+                else {
+                    tAv = b64;
+                    document.getElementById('pv').src = b64;
+                    document.getElementById('pv').style.display = 'block';
+                    document.getElementById('pt').style.display = 'none';
                 }
             };
             img.src = e.target.result;
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(i.files[0]);
     }
 
-    async function handleLogin() {
-        const n = document.getElementById('uN').value.trim();
-        const p = document.getElementById('uP').value.trim();
-        const b = document.getElementById('uB').value.trim() || "Elite User";
-        const err = document.getElementById('errorMsg');
+    async function login() {
+        const n = document.getElementById('n').value.trim();
+        const p = document.getElementById('p').value.trim();
+        const b = document.getElementById('b').value.trim() || "Elite User";
+        if(!n || !p) return alert("Ad və Parol mütləqdir!");
 
-        if(!n || !p) return alert("Ləqəb və Parol mütləqdir!");
+        const { data: ex } = await sb.from('messages').select('group_id').eq('nickname', n).limit(1);
+        if(ex && ex.length > 0 && ex[0].group_id !== p) return alert("Bu adın parolu səhvdir!");
 
-        // AD VƏ PAROL ANALİZİ
-        const { data: users } = await sb.from('messages').select('nickname, group_id').eq('nickname', n).limit(1);
-        
-        if(users && users.length > 0) {
-            // İstifadəçi var, parolu yoxla (group_id sütununda parolu saxlayırıq)
-            if(users[0].group_id !== p) {
-                err.style.display = 'block';
-                return;
-            }
-        }
-
-        user = { n: n, p: p, b: b, a: tempAvatarData || DEFAULT_IMG };
-        localStorage.setItem('elite_v12_auth', JSON.stringify(user));
+        user = { n, p, b, a: tAv || DEF };
+        localStorage.setItem('elite_v14_save', JSON.stringify(user));
         location.reload();
     }
 
     async function init() {
-        document.getElementById('userName').innerText = user.n;
-        document.getElementById('userBio').innerText = user.b;
-        document.getElementById('myAvatar').src = user.a;
-        
-        loadMsgs();
-        sb.channel('v12_final').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => render(p.new))
+        document.getElementById('un').innerText = user.n;
+        document.getElementById('ub').innerText = user.b;
+        document.getElementById('ma').src = user.a;
+        load();
+        sb.channel('v14').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, p => render(p.new))
         .on('postgres_changes', {event:'DELETE', schema:'public', table:'messages'}, p => document.getElementById('m-'+p.old.id)?.remove()).subscribe();
     }
 
-    async function loadMsgs() {
+    async function load() {
         const {data} = await sb.from('messages').select('*').order('created_at', {ascending: false}).limit(50);
         if(data) data.reverse().forEach(render);
     }
@@ -182,46 +155,42 @@
         const isMe = m.nickname === user.n;
         const chat = document.getElementById('chat');
         const div = document.createElement('div');
-        div.id = 'm-'+m.id;
-        div.className = `msg-row ${isMe ? 'my' : ''}`;
+        div.id = 'm-'+m.id; div.className = `row ${isMe ? 'my' : ''}`;
 
-        let content = m.content;
-        let bClass = "bubble";
+        let c = m.content;
+        let bCl = "bub";
 
-        if(content.includes('🔥')) bClass += " fire-msg";
-        if(content.includes('❄️')) bClass += " ice-msg";
-
-        if(content.includes('👻')) {
-            const txt = content.replace('👻','');
-            content = `<div style="filter:blur(6px); cursor:pointer;" onclick="this.style.filter='none'; this.innerHTML='⏳ '+this.getAttribute('d'); setTimeout(()=>sb.from('messages').delete().eq('id','${m.id}'),10000)" d="${txt}">👻 Ghost (10s)</div>`;
-        } else if(content.startsWith('IMG:')) {
-            content = `<img src="${content.replace('IMG:','')}" style="max-width:100%; border-radius:12px;">`;
-        } else if(content.startsWith('VOICE:')) {
-            content = `<div onclick="new Audio('${content.replace('VOICE:','')}').play()" style="cursor:pointer">🔊 Səsli Mesaj</div>`;
+        if(c.includes('🔥')) bCl += " fire";
+        if(c.includes('❄️')) bCl += " ice";
+        
+        if(c.includes('🎁')) {
+            const t = c.replace('🎁','');
+            c = `<div class="gift" onclick="confetti(); this.innerHTML='✨ '+this.getAttribute('d'); this.style.background='#ffd700'; this.style.color='#000'" d="${t}">🎁 HƏDİYYƏNİ AÇ</div>`;
+        } else if(c.includes('👻')) {
+            const t = c.replace('👻','');
+            c = `<div style="filter:blur(6px); cursor:pointer" onclick="this.style.filter='none';this.innerText='⏳ '+this.getAttribute('d');setTimeout(()=>sb.from('messages').delete().eq('id','${m.id}'),10000)" d="${t}">👻 RUH MESAJI (10s)</div>`;
+        } else if(c.startsWith('IMG:')) {
+            c = `<img src="${c.replace('IMG:','')}" style="max-width:100%; border-radius:12px; display:block">`;
+        } else if(c.startsWith('VOICE:')) {
+            c = `<div onclick="new Audio('${c.replace('VOICE:','')}').play()" style="cursor:pointer">🔊 SƏSLİ MESAJ</div>`;
         }
 
-        div.innerHTML = `
-            <img src="${m.avatar || DEFAULT_IMG}" class="user-avatar" style="width:32px; height:32px; border:none; margin-top:5px;">
-            <div class="${bClass}">
-                <div style="font-size:9px; opacity:0.5; margin-bottom:2px;">${m.nickname}</div>
-                <div>${content}</div>
-            </div>
-        `;
+        div.innerHTML = `<img src="${m.avatar || DEF}" class="u-img" style="width:30px;height:30px;margin-top:5px"><div class="${bCl}"><div style="font-size:10px;opacity:0.6;font-weight:bold;margin-bottom:3px">${m.nickname}</div>${c}</div>`;
         chat.appendChild(div);
         chat.scrollTop = chat.scrollHeight;
     }
 
-    async function sendMsg() {
-        const inp = document.getElementById('mInp');
-        const val = inp.value.trim();
-        if(!val) return;
-        inp.value = "";
-        // Mesajı göndərəndə parolu (p) group_id kimi istifadə edirik ki, gələcəkdə girişi yoxlaya bilək
-        await sb.from('messages').insert([{ content: val, nickname: user.n, avatar: user.a, group_id: user.p }]);
+    async function send() {
+        const i = document.getElementById('mi');
+        const v = i.value.trim();
+        if(!v) return;
+        i.value = "";
+        const {error} = await sb.from('messages').insert([{ content: v, nickname: user.n, avatar: user.a, group_id: user.p }]);
+        if(error) console.log(error);
     }
 
-    async function toggleMic() {
-        const btn = document.getElementById('micBtn');
+    async function tMic() {
+        const b = document.getElementById('mc');
         if(!mediaRec || mediaRec.state === 'inactive') {
             const s = await navigator.mediaDevices.getUserMedia({audio:true});
             mediaRec = new MediaRecorder(s); chunks = [];
@@ -230,9 +199,10 @@
                 const r = new FileReader(); r.readAsDataURL(new Blob(chunks));
                 r.onloadend = () => sb.from('messages').insert([{ content: 'VOICE:'+r.result, nickname: user.n, avatar: user.a, group_id: user.p }]);
             };
-            mediaRec.start(); btn.innerText = "🛑";
-        } else { mediaRec.stop(); btn.innerText = "🎤"; }
+            mediaRec.start(); b.innerText = "🛑";
+        } else { mediaRec.stop(); b.innerText = "🎤"; }
     }
 </script>
 </body>
 </html>
+ 
