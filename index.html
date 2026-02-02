@@ -4,260 +4,431 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>X-Chat Ultimate</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src='https://meet.jit.si/external_api.js'></script>
+
     <style>
         :root {
-            --primary: #00d2ff;
-            --danger: #ff4757;
-            --bg: #0b0f1a;
-            --surface: #151a28;
-            --glass: rgba(255, 255, 255, 0.08);
-            --text: #ffffff;
+            --primary: #4e54c8;
+            --secondary: #8f94fb;
+            --bg: #1a1a2e;
+            --surface: #16213e;
+            --text: #fff;
+            --my-msg: #4e54c8;
+            --glass: rgba(255, 255, 255, 0.1);
         }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; background-size: cover; background-position: center; transition: 0.3s; }
+
+        /* --- LOGIN --- */
+        #auth-screen { position: fixed; inset: 0; background: #0f3460; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .card { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); padding: 30px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .inp { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: none; background: rgba(0,0,0,0.3); color: white; outline: none; font-size: 16px; }
+        .btn { width: 100%; padding: 15px; background: linear-gradient(to right, var(--primary), var(--secondary)); border: none; color: white; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
+
+        /* --- APP HEADER --- */
+        .header { padding: 15px; background: rgba(22, 33, 62, 0.95); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); z-index: 100; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); cursor: pointer; }
+        .status-dot { width: 10px; height: 10px; background: #00b894; border-radius: 50%; display: inline-block; margin-right: 5px; }
         
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
-
-        /* --- LOGIN EKRANI --- */
-        #login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(20px); }
-        .login-card { background: var(--surface); padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
-        .login-card h2 { margin: 0 0 20px 0; color: var(--primary); letter-spacing: 1px; }
-        .login-inp { width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: #fff; outline: none; transition: 0.3s; }
-        .login-inp:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
-        .login-btn { width: 100%; padding: 14px; margin-top: 15px; border-radius: 12px; border: none; background: linear-gradient(135deg, #00d2ff, #3a7bd5); color: #000; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
-        .login-btn:active { transform: scale(0.98); }
-
-        /* --- HEADER --- */
-        .header { padding: 12px 16px; background: rgba(21, 26, 40, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 12px; z-index: 100; }
+        .header-actions { display: flex; gap: 10px; }
+        .icon-btn { background: var(--glass); border: none; color: white; width: 40px; height: 40px; border-radius: 12px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
         
-        .room-search { flex: 1; position: relative; }
-        .room-search input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 16px; color: #fff; font-size: 14px; text-align: center; outline: none; transition: 0.3s; }
-        .room-search input:focus { border-color: var(--primary); background: rgba(255,255,255,0.1); }
+        /* --- SIDEBAR & ROOMS --- */
+        #room-panel { position: fixed; top: 0; left: -100%; width: 80%; height: 100%; background: var(--surface); z-index: 200; transition: 0.3s; padding: 20px; box-shadow: 5px 0 20px rgba(0,0,0,0.5); }
+        #room-panel.active { left: 0; }
+        .room-item { padding: 15px; margin-bottom: 10px; background: var(--glass); border-radius: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .room-item.active { background: var(--primary); }
+
+        /* --- CHAT --- */
+        #chat-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; }
+        .msg-row { display: flex; flex-direction: column; max-width: 80%; position: relative; }
+        .msg-row.my { align-self: flex-end; align-items: flex-end; }
         
-        .avatar-container { width: 42px; height: 42px; position: relative; flex-shrink: 0; cursor: pointer; }
-        .avatar-img { width: 100%; height: 100%; border-radius: 14px; object-fit: cover; border: 2px solid var(--primary); transition: 0.2s; }
-        .avatar-img:active { transform: scale(0.9); }
+        .msg-bubble { padding: 12px 16px; border-radius: 18px; background: var(--surface); position: relative; font-size: 15px; line-height: 1.4; min-width: 100px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .msg-row.my .msg-bubble { background: linear-gradient(135deg, var(--primary), var(--secondary)); border-bottom-right-radius: 4px; }
+        .msg-row:not(.my) .msg-bubble { border-bottom-left-radius: 4px; background: #242b3d; }
 
-        /* --- CHAT SAHƏSİ --- */
-        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
+        .sender { font-size: 11px; opacity: 0.7; margin-bottom: 4px; display: block; }
+        .meta { font-size: 10px; opacity: 0.5; display: flex; justify-content: flex-end; margin-top: 5px; gap: 5px; }
         
-        .msg-wrap { display: flex; flex-direction: column; max-width: 80%; animation: popIn 0.2s ease-out; }
-        .msg-wrap.my { align-self: flex-end; align-items: flex-end; }
-        @keyframes popIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Multimedia */
+        .msg-img { max-width: 100%; border-radius: 10px; margin-top: 5px; }
+        audio { height: 30px; width: 200px; filter: invert(1); margin-top: 5px; }
 
-        .sender-name { font-size: 11px; margin-bottom: 4px; color: rgba(255,255,255,0.5); margin-left: 10px; }
-        .my .sender-name { display: none; }
+        /* Reaksiyalar */
+        .reactions { position: absolute; bottom: -10px; right: 0; background: #2d3436; border-radius: 10px; padding: 2px 6px; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: none; }
+        .has-reaction .reactions { display: block; }
 
-        .msg-box { padding: 12px 16px; border-radius: 20px; background: var(--surface); border: 1px solid rgba(255,255,255,0.05); position: relative; word-wrap: break-word; font-size: 15px; line-height: 1.4; }
-        .my .msg-box { background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%); color: #000; font-weight: 500; border: none; border-bottom-right-radius: 4px; }
-        .msg-wrap:not(.my) .msg-box { border-bottom-left-radius: 4px; }
-
-        .msg-img { max-width: 100%; border-radius: 12px; margin-top: 5px; display: block; }
-        audio { height: 32px; max-width: 220px; filter: invert(1); margin-top: 5px; }
-
-        /* --- INPUT SAHƏSİ --- */
-        .input-area { padding: 12px; background: var(--surface); display: flex; align-items: center; gap: 8px; border-top: 1px solid rgba(255,255,255,0.05); }
+        /* --- INPUT --- */
+        .input-bar { padding: 10px; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); display: flex; align-items: center; gap: 8px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .input-wrap { flex: 1; background: rgba(255,255,255,0.1); border-radius: 25px; padding: 5px 15px; display: flex; align-items: center; }
+        .input-wrap input { flex: 1; background: transparent; border: none; color: white; padding: 10px 0; outline: none; font-size: 16px; }
         
-        .icon-btn { width: 44px; height: 44px; border-radius: 50%; border: none; background: rgba(255,255,255,0.05); color: #fff; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex-shrink: 0; }
-        .icon-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.1); }
-        
-        .mic-active { background: var(--danger) !important; color: white; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 71, 87, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); } }
+        /* Zəng Modal */
+        #call-frame { position: fixed; inset: 0; z-index: 1000; background: #000; display: none; }
+        .close-call { position: absolute; top: 20px; right: 20px; z-index: 1001; background: red; color: white; border: none; padding: 10px 20px; border-radius: 20px; }
 
-        .text-input-wrap { flex: 1; background: rgba(0,0,0,0.3); border-radius: 24px; padding: 4px 16px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.1); }
-        .text-input-wrap input { flex: 1; background: transparent; border: none; color: #fff; padding: 10px 0; font-size: 16px; outline: none; }
+        /* Tools Menu */
+        .tools-menu { position: fixed; bottom: 80px; left: 10px; background: var(--surface); padding: 15px; border-radius: 15px; display: none; flex-direction: column; gap: 10px; border: 1px solid var(--glass); }
         
-        .send-btn { color: var(--primary); background: none; border: none; font-size: 22px; cursor: pointer; padding: 0 5px; }
+        .mic-active { animation: pulse 1s infinite; background: #ff4757 !important; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
-<div id="login-screen">
-    <div class="login-card">
-        <h2>X-CHAT PRO</h2>
-        <input type="text" id="logNick" class="login-inp" placeholder="İstifadəçi adı">
-        <input type="password" id="logPass" class="login-inp" placeholder="Şifrə">
-        <button class="login-btn" onclick="auth()">SİSTEMƏ GİRİŞ</button>
+<div id="auth-screen">
+    <div class="card">
+        <h2 style="color:var(--secondary)">X-CHAT ID</h2>
+        <input type="text" id="logNick" class="inp" placeholder="Adınız">
+        <input type="password" id="logPass" class="inp" placeholder="Şifrə">
+        <button class="btn" onclick="login()">GİRİŞ</button>
     </div>
 </div>
 
-<div class="header">
-    <button class="icon-btn" style="width:38px; height:38px; font-size:16px;" onclick="location.reload()">🔄</button>
+<div id="app" style="display:none; height:100%;">
     
-    <div class="room-search">
-        <input type="text" id="roomInput" placeholder="Otaq: General" onkeypress="if(event.key=='Enter') changeRoom()">
+    <div class="header">
+        <div class="user-info" onclick="toggleSidebar()">
+            <img id="myAvatar" class="avatar" src="">
+            <div>
+                <h3 style="margin:0; font-size:16px;" id="headerRoomName">General</h3>
+                <span style="font-size:12px; color:#00b894;">● <span id="onlineCount">1</span> Online</span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" onclick="startCall()">📞</button>
+            <button class="icon-btn" onclick="toggleTools()">⚙️</button>
+        </div>
     </div>
 
-    <div class="avatar-container" onclick="document.getElementById('avatarUpload').click()">
-        <img id="myAvatar" class="avatar-img" src="https://ui-avatars.com/api/?name=U&background=00d2ff&color=fff">
+    <div id="room-panel">
+        <h3 style="margin-top:0">Otaqlar</h3>
+        <div class="room-item active" onclick="switchRoom('General')">🌐 General</div>
+        <div class="room-item" onclick="createPrivateRoom()">🔒 Şəxsi Otaq (+Kod)</div>
+        <hr style="border-color:rgba(255,255,255,0.1)">
+        <h3>Fon Dəyiş</h3>
+        <input type="file" id="bgInput" onchange="changeBackground(this)" style="color:white">
     </div>
-    <input type="file" id="avatarUpload" hidden accept="image/*" onchange="updateAvatar(this)">
+
+    <div id="chat-area" onclick="document.getElementById('room-panel').classList.remove('active')"></div>
+
+    <div class="input-bar">
+        <button class="icon-btn" onclick="document.getElementById('fileInput').click()">📎</button>
+        <button class="icon-btn" id="micBtn" onclick="toggleMic()">🎤</button>
+        <div class="input-wrap">
+            <input type="text" id="msgInp" placeholder="Mesaj..." onkeypress="if(event.key=='Enter') sendMsg('text')">
+        </div>
+        <button class="icon-btn" style="background:var(--primary)" onclick="sendMsg('text')">🚀</button>
+    </div>
+
+    <input type="file" id="fileInput" hidden onchange="sendFile(this)">
+    <input type="file" id="avatarInput" hidden accept="image/*" onchange="uploadAvatar(this)">
+    
+    <div class="tools-menu" id="toolsMenu">
+        <button class="btn" onclick="document.getElementById('avatarInput').click()">Profil Şəklini Dəyiş</button>
+        <button class="btn" onclick="logout()" style="background:#ff4757">Çıxış</button>
+    </div>
 </div>
 
-<div id="chat"></div>
-
-<div class="input-area">
-    <input type="file" id="imgUpload" hidden accept="image/*" onchange="sendImage(this)">
-    <button class="icon-btn" onclick="document.getElementById('imgUpload').click()">🖼️</button>
-    
-    <button id="micBtn" class="icon-btn" onclick="toggleMic()">🎤</button>
-    
-    <div class="text-input-wrap">
-        <input type="text" id="msgInput" placeholder="Mesaj yaz..." onkeypress="if(event.key=='Enter') sendText()">
-        <button class="send-btn" onclick="sendText()">🚀</button>
-    </div>
+<div id="call-frame">
+    <button class="close-call" onclick="endCall()">Zəngi Bitir</button>
+    <div id="jitsi-container" style="height:100%; width:100%;"></div>
 </div>
 
 <script>
-    // 1. SUPABASE INIT
+    // --- SUPABASE CONFIG ---
     const SB_URL = 'https://pyknspxnwnilhqsazidj.supabase.co';
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
-    const _sb = supabase.createClient(SB_URL, SB_KEY);
+    const sb = supabase.createClient(SB_URL, SB_KEY);
 
-    // 2. DƏYİŞƏNLƏR
-    let user = JSON.parse(localStorage.getItem('xchat_user')) || null;
+    let user = JSON.parse(localStorage.getItem('x_user')) || null;
     let room = 'General';
+    let roomPass = null; // Otaq şifrəsi
     let mediaRec, chunks = [];
 
-    // 3. AUTH (GİRİŞ) SİSTEMİ
-    if (user) {
-        document.getElementById('login-screen').style.display = 'none';
-        initApp();
-    }
+    // --- 1. GİRİŞ SİSTEMİ ---
+    if(user) startApp();
 
-    async function auth() {
+    function login() {
         const nick = document.getElementById('logNick').value.trim();
         const pass = document.getElementById('logPass').value.trim();
-        if(!nick || !pass) return alert("Ad və şifrə yaz!");
+        if(!nick || !pass) return alert('Məlumatları doldur!');
         
-        user = { 
-            nick, 
-            pass, 
-            avatar: user?.avatar || `https://ui-avatars.com/api/?name=${nick}&background=random`
-        };
-        localStorage.setItem('xchat_user', JSON.stringify(user));
-        document.getElementById('login-screen').style.display = 'none';
-        initApp();
+        user = { nick, pass, avatar: `https://ui-avatars.com/api/?name=${nick}&background=random` };
+        localStorage.setItem('x_user', JSON.stringify(user));
+        startApp();
     }
 
-    function initApp() {
+    function startApp() {
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
         document.getElementById('myAvatar').src = user.avatar;
-        document.getElementById('roomInput').value = room;
+        
+        // Arxa fonu bərpa et
+        const bg = localStorage.getItem('x_bg');
+        if(bg) document.body.style.backgroundImage = `url(${bg})`;
+        
         loadMessages();
-        
-        // Realtime Dinləmə
-        _sb.channel('public:messages')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                if(payload.new.group_id === room) renderMessage(payload.new);
-            })
-            .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, payload => {
-                document.getElementById('msg-'+payload.old.id)?.remove();
-            })
-            .subscribe();
+        setupRealtime();
     }
 
-    // 4. MESAJ YÜKLƏMƏ VƏ GÖSTƏRMƏ
+    function logout() {
+        localStorage.removeItem('x_user');
+        location.reload();
+    }
+
+    // --- 2. REALTIME & MESSAGING ---
+    function setupRealtime() {
+        // Mesajları izlə
+        sb.channel('public:messages')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
+            if(payload.eventType === 'INSERT' && payload.new.group_id === room) renderMsg(payload.new);
+            if(payload.eventType === 'DELETE') document.getElementById(`row-${payload.old.id}`)?.remove();
+            if(payload.eventType === 'UPDATE') updateMsgUI(payload.new); // Reaksiya üçün
+        })
+        .subscribe();
+
+        // Online İnsanlar (Presence)
+        const presence = sb.channel('online_users');
+        presence.on('presence', { event: 'sync' }, () => {
+            const count = Object.keys(presence.presenceState()).length;
+            document.getElementById('onlineCount').innerText = count;
+        }).subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') await presence.track({ user: user.nick });
+        });
+    }
+
     async function loadMessages() {
-        document.getElementById('chat').innerHTML = '';
-        const { data } = await _sb.from('messages').select('*').eq('group_id', room).order('created_at', { ascending: true });
-        if(data) data.forEach(renderMessage);
+        document.getElementById('chat-area').innerHTML = '';
+        const { data } = await sb.from('messages').select('*').eq('group_id', room).order('created_at', {ascending:true});
+        if(data) data.forEach(renderMsg);
     }
 
-    function renderMessage(msg) {
-        const isMe = msg.nickname === user.nick;
-        const div = document.createElement('div');
-        div.id = 'msg-' + msg.id;
-        div.className = `msg-wrap ${isMe ? 'my' : ''}`;
+    // Mesaj Render (Çox Funksiyalı)
+    function renderMsg(msg) {
+        if(document.getElementById(`row-${msg.id}`)) return;
         
-        // Məzmunu yoxla (Mətn, Şəkil, Səs)
-        let contentHtml = msg.content;
-        if (msg.content.startsWith('http') && msg.content.includes('/audio_messages/')) {
-            if(msg.content.includes('.webm')) contentHtml = `<audio src="${msg.content}" controls></audio>`;
-            else if(msg.content.includes('.jpg') || msg.content.includes('.png')) contentHtml = `<img src="${msg.content}" class="msg-img">`;
+        // Köhnə vs Yeni formatı dəstəkləmək üçün
+        let content = msg.content; 
+        let type = 'text';
+        let reaction = '';
+
+        // JSON formatını yoxlayırıq (Əgər yeni mesajdırsa)
+        try {
+            const parsed = JSON.parse(msg.content);
+            if(parsed.text) {
+                content = parsed.text;
+                type = parsed.type || 'text';
+                reaction = parsed.reaction || '';
+            }
+        } catch(e) {
+            // Köhnə düz mətn mesajı
         }
 
+        // Şifrəli Otaq Məntiqi (Client Side)
+        if(roomPass && msg.group_id === room && type === 'system_pass') {
+             // Sistem mesajlarını gizlət
+             return;
+        }
+
+        const isMy = msg.nickname === user.nick;
+        const div = document.createElement('div');
+        div.id = `row-${msg.id}`;
+        div.className = `msg-row ${isMy ? 'my' : ''}`;
+        
+        // Məzmunu hazırla
+        let bodyHtml = content;
+        if(type === 'image') bodyHtml = `<img src="${content}" class="msg-img" onclick="window.open(this.src)">`;
+        if(type === 'audio') bodyHtml = `<audio src="${content}" controls></audio>`;
+        if(content.startsWith('http') && !type) bodyHtml = `<a href="${content}" target="_blank" style="color:#fff">Link</a>`;
+
         div.innerHTML = `
-            <div class="sender-name">${msg.nickname}</div>
-            <div class="msg-box">${contentHtml}</div>
+            <div class="msg-bubble" ondblclick="addReaction('${msg.id}', '${msg.content}')" oncontextmenu="deleteMsg('${msg.id}', '${msg.nickname}'); return false;">
+                <span class="sender">${msg.nickname}</span>
+                ${bodyHtml}
+                <div class="meta">
+                    ${new Date(msg.created_at).getHours()}:${String(new Date(msg.created_at).getMinutes()).padStart(2,'0')}
+                    ${isMy ? '✓✓' : ''}
+                </div>
+                <div class="reactions ${reaction ? 'has-reaction' : ''}">${reaction}</div>
+            </div>
         `;
         
-        // Silmə funksiyası (Admin və ya öz mesajın)
-        div.onclick = async () => {
-            if(isMe || user.nick === 'Admin') {
-                if(confirm('Mesaj silinsin?')) await _sb.from('messages').delete().eq('id', msg.id);
-            }
-        };
-
-        document.getElementById('chat').appendChild(div);
-        document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+        document.getElementById('chat-area').appendChild(div);
+        document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
     }
 
-    // 5. GÖNDƏRMƏ FUNKSİYALARI (Mətn, Səs, Şəkil)
-    async function sendText() {
-        const inp = document.getElementById('msgInput');
-        const txt = inp.value.trim();
-        if(!txt) return;
-        inp.value = '';
-        await _sb.from('messages').insert([{ nickname: user.nick, content: txt, group_id: room }]);
+    // --- 3. GÖNDƏRMƏ (Mətn, Şəkil, Səs) ---
+    async function sendMsg(type, payload = null) {
+        let content = payload;
+        if(type === 'text') {
+            const inp = document.getElementById('msgInp');
+            if(!inp.value.trim()) return;
+            content = inp.value;
+            inp.value = '';
+        }
+
+        // Bütün məlumatı JSON kimi paketləyirik
+        const msgData = JSON.stringify({
+            text: content,
+            type: type,
+            reaction: ''
+        });
+
+        await sb.from('messages').insert([{
+            nickname: user.nick,
+            group_id: room,
+            content: msgData // Bazada 'content' sütununa JSON yazırıq
+        }]);
     }
 
-    async function sendImage(el) {
+    // Fayl Yükləmə (Şəkil)
+    async function sendFile(el) {
         const file = el.files[0];
         if(!file) return;
-        const url = await uploadFile(file);
-        if(url) await _sb.from('messages').insert([{ nickname: user.nick, content: url, group_id: room }]);
+        const url = await uploadToStorage(file);
+        if(url) sendMsg('image', url);
     }
 
+    // Səsli Mesaj
     async function toggleMic() {
         const btn = document.getElementById('micBtn');
-        if (!mediaRec || mediaRec.state === 'inactive') {
+        if(!mediaRec || mediaRec.state === 'inactive') {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const stream = await navigator.mediaDevices.getUserMedia({audio:true});
                 mediaRec = new MediaRecorder(stream);
                 chunks = [];
                 mediaRec.ondataavailable = e => chunks.push(e.data);
                 mediaRec.onstop = async () => {
-                    const blob = new Blob(chunks, { type: 'audio/webm' });
-                    const url = await uploadFile(blob, 'voice.webm');
-                    if(url) await _sb.from('messages').insert([{ nickname: user.nick, content: url, group_id: room }]);
+                    const blob = new Blob(chunks, {type:'audio/webm'});
+                    const url = await uploadToStorage(blob, 'voice.webm');
+                    if(url) sendMsg('audio', url);
+                    btn.classList.remove('mic-active');
                 };
                 mediaRec.start();
                 btn.classList.add('mic-active');
-            } catch(e) { alert("Mikrofon xətası!"); }
+            } catch(e) { alert('Mikrofon icazəsi yoxdur!'); }
         } else {
             mediaRec.stop();
-            btn.classList.remove('mic-active');
         }
     }
 
-    // 6. KÖMƏKÇİ FUNKSİYALAR (Profil, Otaq, Upload)
-    async function updateAvatar(el) {
-        const file = el.files[0];
-        if(!file) return;
-        const url = await uploadFile(file);
+    async function uploadToStorage(file, name = null) {
+        const fileName = name || `file_${Date.now()}_${Math.random()}.jpg`;
+        const { data, error } = await sb.storage.from('audio_messages').upload(fileName, file);
+        if(data) return `${SB_URL}/storage/v1/object/public/audio_messages/${fileName}`;
+        return null;
+    }
+
+    // --- 4. FUNKSİONALLIQLAR (Silmə, Reaksiya, Zəng, Otaq) ---
+    
+    // Mesaj Silmə (Üstünə basıb saxlayanda)
+    async function deleteMsg(id, sender) {
+        if(sender === user.nick && confirm('Mesaj silinsin?')) {
+            await sb.from('messages').delete().eq('id', id);
+        }
+    }
+
+    // Reaksiya (İki dəfə toxunanda)
+    async function addReaction(id, oldContentStr) {
+        try {
+            let data = JSON.parse(oldContentStr);
+            // Sadə toggle: ❤️ varrsa sil, yoxdursa qoy
+            data.reaction = data.reaction === '❤️' ? '' : '❤️';
+            
+            await sb.from('messages').update({ content: JSON.stringify(data) }).eq('id', id);
+        } catch(e) {
+            // Köhnə mesajlara reaksiya verilə bilmir (schema fərqi)
+        }
+    }
+    
+    // UI Update (Reaksiya üçün)
+    function updateMsgUI(newMsg) {
+        const row = document.getElementById(`row-${newMsg.id}`);
+        if(row) {
+            row.remove(); // Köhnəni silib yenisini render edirik
+            renderMsg(newMsg);
+        }
+    }
+
+    // Zəng (Jitsi Meet)
+    function startCall() {
+        const domain = 'meet.jit.si';
+        const options = {
+            roomName: 'XChat_' + room + '_' + Date.now(), // Unikal otaq adı
+            width: '100%',
+            height: '100%',
+            parentNode: document.querySelector('#jitsi-container'),
+            userInfo: { displayName: user.nick }
+        };
+        document.getElementById('call-frame').style.display = 'block';
+        new JitsiMeetExternalAPI(domain, options);
+    }
+
+    function endCall() {
+        document.getElementById('jitsi-container').innerHTML = ''; // Zəngi öldür
+        document.getElementById('call-frame').style.display = 'none';
+    }
+
+    // Profil Şəkli
+    async function uploadAvatar(el) {
+        const url = await uploadToStorage(el.files[0]);
         if(url) {
             user.avatar = url;
-            localStorage.setItem('xchat_user', JSON.stringify(user));
+            localStorage.setItem('x_user', JSON.stringify(user));
             document.getElementById('myAvatar').src = url;
         }
     }
 
-    function changeRoom() {
-        const val = document.getElementById('roomInput').value.trim();
-        if(val && val !== room) {
-            room = val;
-            loadMessages();
+    // Arxa Fon
+    function changeBackground(el) {
+        const file = el.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.body.style.backgroundImage = `url(${e.target.result})`;
+            localStorage.setItem('x_bg', e.target.result);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Otaq Dəyişmə və Şifrəli Otaq
+    function switchRoom(newRoom) {
+        room = newRoom;
+        roomPass = null;
+        document.getElementById('headerRoomName').innerText = room;
+        document.getElementById('room-panel').classList.remove('active');
+        loadMessages();
+    }
+
+    function createPrivateRoom() {
+        const name = prompt("Otaq adı:");
+        const pass = prompt("Otaq üçün şifrə təyin edin:");
+        if(name && pass) {
+            // Şifrəni yoxlamaq üçün (Sadə versiya)
+            const entered = prompt(`"${name}" otağına girmək üçün şifrə:`);
+            if(entered === pass) {
+                switchRoom(name);
+                roomPass = pass;
+                alert("Otağa daxil oldunuz. Başqaları şifrəni bilmədən girə bilməz (Simulyasiya).");
+            } else {
+                alert("Şifrə səhvdir!");
+            }
         }
     }
 
-    async function uploadFile(file, nameOverride) {
-        const name = nameOverride || `file_${Date.now()}_${Math.random()}.jpg`;
-        const { data, error } = await _sb.storage.from('audio_messages').upload(name, file);
-        if(error) { console.error(error); return null; }
-        return `${SB_URL}/storage/v1/object/public/audio_messages/${name}`;
+    // UI Tools
+    function toggleSidebar() { document.getElementById('room-panel').classList.toggle('active'); }
+    function toggleTools() { 
+        const m = document.getElementById('toolsMenu');
+        m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
     }
 </script>
 
 </body>
 </html>
+ 
