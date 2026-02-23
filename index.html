@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="#0f1115">
     <title>X-Chat Mobile</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -18,15 +18,17 @@
             --border: rgba(255,255,255,0.08); 
         }
         
-        /* MOBİL SIFIRLAMA VƏ ANTI-BOUNCE */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        
+        /* BU HİSSƏ DÜZƏLDİLDİ: Flex əlavə olundu */
         html, body { 
             margin: 0; padding: 0; background: var(--bg); color: var(--text); 
             height: 100dvh; width: 100vw; overflow: hidden; overscroll-behavior-y: none; 
-            user-select: none; /* Mətnlərin təsadüfən seçilməsinin qarşısını alır */
+            user-select: none;
+            display: flex; 
+            flex-direction: column; 
         }
         
-        /* HEADER (Safe Area daxil) */
         header { 
             background: rgba(24, 26, 32, 0.85); backdrop-filter: blur(10px);
             padding: max(10px, env(safe-area-inset-top)) 15px 10px 15px;
@@ -38,14 +40,12 @@
         .h-info h2 { margin: 0; font-size: 16px; font-weight: 600; }
         .h-info span { font-size: 12px; color: #10b981; }
 
-        /* CHAT AREA */
         #chat { 
             flex: 1; overflow-y: auto; padding: 15px; display: flex; 
             flex-direction: column; gap: 6px; -webkit-overflow-scrolling: touch;
             background-size: cover; background-position: center;
         }
         
-        /* MESAJ DİZAYNI (Telegram Stili) */
         .msg-wrap { display: flex; flex-direction: column; max-width: 82%; position: relative; user-select: text; }
         .msg-wrap.me { align-self: flex-end; }
         .msg-wrap.other { align-self: flex-start; }
@@ -63,13 +63,12 @@
         .chat-img { width: 100%; max-width: 250px; border-radius: 12px; margin-top: 4px; }
         audio { height: 35px; max-width: 220px; filter: invert(1); }
 
-        /* REAKSİYALAR */
         .react-badge { 
             position: absolute; bottom: -10px; right: 10px; background: #1e293b; 
             border-radius: 12px; padding: 2px 6px; font-size: 12px; border: 1px solid var(--border);
         }
 
-        /* BOTTOM INPUT PANEL (Safe Area daxil) */
+        /* INPUT PANEL ARTIQ HƏMİŞƏ GÖRÜNƏCƏK */
         .input-area { 
             background: var(--panel); padding: 8px 12px; display: flex; align-items: flex-end; gap: 8px;
             padding-bottom: max(12px, env(safe-area-inset-bottom)); border-top: 1px solid var(--border);
@@ -97,7 +96,6 @@
             border: none; font-size: 18px; box-shadow: 0 2px 8px rgba(59,130,246,0.4);
         }
 
-        /* BOTTOM SHEET MODAL (Mobil menyu) */
         .sheet-overlay { 
             position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; 
             display: none; flex-direction: column; justify-content: flex-end;
@@ -120,7 +118,6 @@
 
         .react-row { display: flex; justify-content: space-between; padding: 10px 20px 20px 20px; font-size: 28px; }
 
-        /* FULL SCREEN IMAGE VIEWER */
         #img-viewer { 
             position: fixed; inset: 0; background: #000; z-index: 3000; 
             display: none; align-items: center; justify-content: center;
@@ -128,7 +125,6 @@
         #img-viewer img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .close-viewer { position: absolute; top: max(20px, env(safe-area-inset-top)); right: 20px; color: #fff; font-size: 30px; background: rgba(0,0,0,0.5); width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
 
-        /* LOGIN SCREEN */
         #auth { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .auth-card { width: 100%; max-width: 320px; }
         .auth-inp { width: 100%; padding: 16px; border-radius: 16px; background: var(--panel); border: 1px solid var(--border); color: #fff; font-size: 16px; margin-bottom: 12px; }
@@ -163,7 +159,7 @@
         <button class="icon-btn" onclick="openAttachSheet()">📎</button>
         <button class="icon-btn" id="micBtn" onclick="toggleMic()" style="color:var(--blue)">🎙️</button>
         <div class="text-wrap">
-            <input type="text" id="mInp" placeholder="Mesaj..." onkeypress="if(event.key==='Enter') sendText()">
+            <input type="text" id="mInp" placeholder="Mesaj yaz..." onkeypress="if(event.key==='Enter') sendText()">
         </div>
         <button class="send-btn" onclick="sendText()">▲</button>
     </div>
@@ -212,7 +208,6 @@
     </div>
 
 <script>
-    // SUPABASE
     const SB_URL = 'https://pyknspxnwnilhqsazidj.supabase.co';
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(SB_URL, SB_KEY);
@@ -259,7 +254,6 @@
             const wrap = document.createElement('div');
             wrap.className = `msg-wrap ${isMe ? 'me' : 'other'}`;
             
-            // XÜSUSİ MOBİL LONG PRESS MƏNTİQİ
             wrap.innerHTML = `
                 <div class="msg" 
                     oncontextmenu="event.preventDefault();" 
@@ -286,7 +280,6 @@
         await sb.from('messages').insert([{ nickname: user.nick, group_id: room, content: JSON.stringify({text:txt, type:'text'}) }]);
     }
 
-    // MULTIMEDIA
     async function upFile(el, mode) {
         closeSheets();
         const f = el.files[0]; if(!f) return;
@@ -317,25 +310,23 @@
         } else { rec.stop(); }
     }
 
-    // MOBİL LONG PRESS (Basıb saxlamaq)
     function startHold(id, sender) {
         holdTimer = setTimeout(() => {
             selectedMsg = { id, sender };
             document.getElementById('delBtn').style.display = (sender === user.nick) ? 'flex' : 'none';
             openSheet('msgSheet');
-            navigator.vibrate && navigator.vibrate(50); // Haptik reaksiya (Android)
-        }, 500); // Yarım saniyə basıb saxlayanda açılır
+            navigator.vibrate && navigator.vibrate(50);
+        }, 500); 
     }
     function endHold() { clearTimeout(holdTimer); }
 
-    // REAKSİYA VƏ SİLMƏ
     async function addReaction(emoji) {
         closeSheets();
         const { data } = await sb.from('messages').select('content').eq('id', selectedMsg.id).single();
         let c = JSON.parse(data.content);
         if(!c.reactions) c.reactions = [];
         if(!c.reactions.includes(emoji)) c.reactions.push(emoji);
-        else c.reactions = c.reactions.filter(e => e !== emoji); // Eyni emojiyə basanda silinir
+        else c.reactions = c.reactions.filter(e => e !== emoji); 
         await sb.from('messages').update({ content: JSON.stringify(c) }).eq('id', selectedMsg.id);
         loadMsgs();
     }
@@ -348,16 +339,10 @@
         }
     }
 
-    // UTILS VƏ UI İDARƏSİ
     function openMenuSheet() { openSheet('menuSheet'); }
     function openAttachSheet() { openSheet('attachSheet'); }
-    
-    function openSheet(id) { 
-        document.getElementById(id).classList.add('show'); 
-    }
-    function closeSheets() { 
-        document.querySelectorAll('.sheet-overlay').forEach(s => s.classList.remove('show')); 
-    }
+    function openSheet(id) { document.getElementById(id).classList.add('show'); }
+    function closeSheets() { document.querySelectorAll('.sheet-overlay').forEach(s => s.classList.remove('show')); }
 
     function openImg(src) {
         document.getElementById('viewer-img').src = src;
@@ -377,7 +362,6 @@
         r.readAsDataURL(el.files[0]);
     }
 
-    // CALL
     function startCall() {
         document.getElementById('call-ui').style.display = 'block';
         new JitsiMeetExternalAPI("meet.jit.si", { roomName: "XChat_Call_"+room, parentNode: document.querySelector('#jitsi'), userInfo: { displayName: user.nick } });
