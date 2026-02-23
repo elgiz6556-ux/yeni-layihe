@@ -3,167 +3,276 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>X-Chat Ultra</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <title>X-Chat Mobile</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src='https://meet.jit.si/external_api.js'></script>
+    
     <style>
         :root { 
-            --bg: #0b0e14; --panel: #161b22; --accent: #238636; 
-            --blue: #2f81f7; --text: #e6edf3; --me: #21262d; 
+            --bg: #0f1115; --panel: #181a20; --blue: #3b82f6; 
+            --me-bg: #2b5278; --other-bg: #222831; --text: #ffffff; 
+            --border: rgba(255,255,255,0.08); 
         }
+        
+        /* MOBİL SIFIRLAMA VƏ ANTI-BOUNCE */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { margin: 0; background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
-
-        /* HEADER */
-        header { 
-            height: 65px; background: var(--panel); display: flex; align-items: center; 
-            justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #30363d;
-            z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        html, body { 
+            margin: 0; padding: 0; background: var(--bg); color: var(--text); 
+            height: 100dvh; width: 100vw; overflow: hidden; overscroll-behavior-y: none; 
+            user-select: none; /* Mətnlərin təsadüfən seçilməsinin qarşısını alır */
         }
-        .status-info { font-size: 11px; color: #7d8590; }
+        
+        /* HEADER (Safe Area daxil) */
+        header { 
+            background: rgba(24, 26, 32, 0.85); backdrop-filter: blur(10px);
+            padding: max(10px, env(safe-area-inset-top)) 15px 10px 15px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border); z-index: 100; position: relative;
+        }
+        .h-left { display: flex; align-items: center; gap: 12px; }
+        .h-ava { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; }
+        .h-info h2 { margin: 0; font-size: 16px; font-weight: 600; }
+        .h-info span { font-size: 12px; color: #10b981; }
 
         /* CHAT AREA */
         #chat { 
             flex: 1; overflow-y: auto; padding: 15px; display: flex; 
-            flex-direction: column; gap: 8px; scroll-behavior: smooth;
-            background-image: radial-gradient(#1f242c 1px, transparent 1px); background-size: 20px 20px;
+            flex-direction: column; gap: 6px; -webkit-overflow-scrolling: touch;
+            background-size: cover; background-position: center;
         }
-
-        /* MESSAGES */
-        .msg-container { display: flex; flex-direction: column; max-width: 85%; animation: slideIn 0.2s ease-out; position: relative; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .msg { padding: 10px 14px; border-radius: 18px; font-size: 15px; position: relative; line-height: 1.4; transition: 0.2s; }
-        .me { align-self: flex-end; }
-        .me .msg { background: var(--blue); border-bottom-right-radius: 4px; color: #fff; }
-        .other { align-self: flex-start; }
-        .other .msg { background: var(--me); border-bottom-left-radius: 4px; border: 1px solid #30363d; }
+        /* MESAJ DİZAYNI (Telegram Stili) */
+        .msg-wrap { display: flex; flex-direction: column; max-width: 82%; position: relative; user-select: text; }
+        .msg-wrap.me { align-self: flex-end; }
+        .msg-wrap.other { align-self: flex-start; }
         
-        .sender { font-size: 11px; font-weight: 600; margin-bottom: 4px; color: #8b949e; margin-left: 5px; }
-        .msg-time { font-size: 10px; opacity: 0.6; margin-top: 4px; text-align: right; display: block; }
-
-        /* REACTIONS */
-        .react-bar { 
-            display: flex; gap: 5px; position: absolute; bottom: -12px; 
-            right: 10px; background: #30363d; border-radius: 10px; padding: 2px 5px; font-size: 12px;
-            border: 1px solid #484f58; box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        .msg { 
+            padding: 8px 12px; border-radius: 16px; font-size: 15px; line-height: 1.4; 
+            position: relative; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
-
-        /* TYPING INDICATOR */
-        #typing { font-size: 12px; color: var(--blue); padding: 5px 15px; height: 20px; font-style: italic; }
-
-        /* FOOTER INPUT */
-        .footer { 
-            background: var(--panel); padding: 10px 15px; display: flex; 
-            align-items: center; gap: 10px; border-top: 1px solid #30363d;
-            padding-bottom: max(10px, env(safe-area-inset-bottom));
-        }
-        .input-box { 
-            flex: 1; background: #0d1117; border-radius: 25px; padding: 5px 15px; 
-            display: flex; align-items: center; border: 1px solid #30363d;
-        }
-        input { flex: 1; background: transparent; border: none; color: #fff; padding: 10px 0; outline: none; font-size: 16px; }
+        .msg-wrap.me .msg { background: var(--me-bg); border-bottom-right-radius: 4px; }
+        .msg-wrap.other .msg { background: var(--other-bg); border-bottom-left-radius: 4px; }
         
-        .btn-icon { font-size: 22px; cursor: pointer; transition: 0.2s; }
-        .btn-icon:active { transform: scale(0.9); }
-        .send-btn { color: var(--blue); font-weight: bold; }
+        .sender-name { font-size: 12px; color: #818cf8; font-weight: 600; margin-bottom: 2px; }
+        .msg-time { font-size: 10px; opacity: 0.6; float: right; margin: 6px 0 -4px 8px; }
 
-        /* MODALS */
-        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; }
-        .reaction-picker { background: var(--panel); display: flex; gap: 15px; padding: 15px; border-radius: 50px; border: 1px solid #30363d; }
+        .chat-img { width: 100%; max-width: 250px; border-radius: 12px; margin-top: 4px; }
+        audio { height: 35px; max-width: 220px; filter: invert(1); }
+
+        /* REAKSİYALAR */
+        .react-badge { 
+            position: absolute; bottom: -10px; right: 10px; background: #1e293b; 
+            border-radius: 12px; padding: 2px 6px; font-size: 12px; border: 1px solid var(--border);
+        }
+
+        /* BOTTOM INPUT PANEL (Safe Area daxil) */
+        .input-area { 
+            background: var(--panel); padding: 8px 12px; display: flex; align-items: flex-end; gap: 8px;
+            padding-bottom: max(12px, env(safe-area-inset-bottom)); border-top: 1px solid var(--border);
+        }
+        
+        .icon-btn { 
+            width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; color: #94a3b8; background: none; border: none; padding: 0; cursor: pointer;
+        }
+        .icon-btn:active { opacity: 0.5; }
+
+        .text-wrap { 
+            flex: 1; background: #0f1115; border-radius: 20px; 
+            min-height: 40px; display: flex; align-items: center; padding: 0 15px; 
+            border: 1px solid var(--border);
+        }
+        .text-wrap input { 
+            width: 100%; background: transparent; border: none; color: #fff; 
+            font-size: 16px; outline: none; padding: 10px 0;
+        }
+        
+        .send-btn { 
+            background: var(--blue); color: #fff; width: 40px; height: 40px; 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            border: none; font-size: 18px; box-shadow: 0 2px 8px rgba(59,130,246,0.4);
+        }
+
+        /* BOTTOM SHEET MODAL (Mobil menyu) */
+        .sheet-overlay { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; 
+            display: none; flex-direction: column; justify-content: flex-end;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .sheet { 
+            background: var(--panel); border-radius: 24px 24px 0 0; padding: 20px; 
+            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.1, 0.8, 0.2, 1);
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+        }
+        .sheet-overlay.show { display: flex; opacity: 1; }
+        .sheet-overlay.show .sheet { transform: translateY(0); }
+        
+        .sheet-btn { 
+            width: 100%; padding: 16px; background: rgba(255,255,255,0.05); 
+            border: none; color: #fff; font-size: 16px; border-radius: 14px; 
+            margin-bottom: 10px; text-align: left; display: flex; align-items: center; gap: 12px;
+        }
+        .sheet-btn.danger { color: #ef4444; }
+
+        .react-row { display: flex; justify-content: space-between; padding: 10px 20px 20px 20px; font-size: 28px; }
+
+        /* FULL SCREEN IMAGE VIEWER */
+        #img-viewer { 
+            position: fixed; inset: 0; background: #000; z-index: 3000; 
+            display: none; align-items: center; justify-content: center;
+        }
+        #img-viewer img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .close-viewer { position: absolute; top: max(20px, env(safe-area-inset-top)); right: 20px; color: #fff; font-size: 30px; background: rgba(0,0,0,0.5); width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+
+        /* LOGIN SCREEN */
+        #auth { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .auth-card { width: 100%; max-width: 320px; }
+        .auth-inp { width: 100%; padding: 16px; border-radius: 16px; background: var(--panel); border: 1px solid var(--border); color: #fff; font-size: 16px; margin-bottom: 12px; }
+        .auth-btn { width: 100%; padding: 16px; border-radius: 16px; background: var(--blue); color: #fff; font-size: 16px; font-weight: bold; border: none; }
     </style>
 </head>
 <body>
 
+    <div id="auth">
+        <div class="auth-card">
+            <h1 style="text-align:center; color:var(--blue); margin-bottom:30px;">X-CHAT</h1>
+            <input type="text" id="a_nick" class="auth-inp" placeholder="Adınız">
+            <input type="password" id="a_pass" class="auth-inp" placeholder="Şifrə">
+            <button class="auth-btn" onclick="login()">Daxil Ol</button>
+        </div>
+    </div>
+
     <header>
-        <div onclick="toggleMenu()" style="display:flex; align-items:center; gap:12px">
-            <img id="myAva" src="" style="width:40px; height:40px; border-radius:50%; object-fit: cover; border: 1px solid var(--blue)">
-            <div>
-                <div id="roomLabel" style="font-weight:700">General</div>
-                <div id="status" class="status-info">● Onlayn</div>
+        <div class="h-left" onclick="openMenuSheet()">
+            <img id="myAva" class="h-ava" src="">
+            <div class="h-info">
+                <h2 id="roomTitle">General</h2>
+                <span>Onlayn</span>
             </div>
         </div>
-        <div style="display:flex; gap:20px; font-size:22px">
-            <span onclick="startCall()">📞</span>
-            <span onclick="toggleMenu()">☰</span>
-        </div>
+        <div style="font-size: 22px; color: var(--blue);" onclick="startCall()">📞</div>
     </header>
 
     <div id="chat"></div>
-    <div id="typing"></div>
 
-    <div class="footer">
-        <span class="btn-icon" onclick="document.getElementById('fInp').click()">📎</span>
-        <span class="btn-icon" id="mic" onclick="toggleMic()">🎙️</span>
-        <div class="input-box">
-            <input type="text" id="mInp" placeholder="Mesaj yaz..." oninput="broadcastTyping()">
+    <div class="input-area">
+        <button class="icon-btn" onclick="openAttachSheet()">📎</button>
+        <button class="icon-btn" id="micBtn" onclick="toggleMic()" style="color:var(--blue)">🎙️</button>
+        <div class="text-wrap">
+            <input type="text" id="mInp" placeholder="Mesaj..." onkeypress="if(event.key==='Enter') sendText()">
         </div>
-        <span class="btn-icon send-btn" onclick="sendText()">➤</span>
+        <button class="send-btn" onclick="sendText()">▲</button>
     </div>
 
-    <div id="overlay" onclick="this.style.display='none'">
-        <div class="reaction-picker" onclick="event.stopPropagation()">
-            <span onclick="addReaction('❤️')">❤️</span>
-            <span onclick="addReaction('😂')">😂</span>
-            <span onclick="addReaction('👍')">👍</span>
-            <span onclick="addReaction('🔥')">🔥</span>
-            <span onclick="addReaction('😮')">😮</span>
+    <input type="file" id="fInp" hidden accept="image/*" onchange="upFile(this, 'image')">
+    <input type="file" id="bgInp" hidden accept="image/*" onchange="setBg(this)">
+    <input type="file" id="avaInp" hidden accept="image/*" onchange="upFile(this, 'avatar')">
+
+    <div id="menuSheet" class="sheet-overlay" onclick="closeSheets()">
+        <div class="sheet" onclick="event.stopPropagation()">
+            <button class="sheet-btn" onclick="changeRoom()">🔒 Otağı Dəyiş / Şifrəli Otaq</button>
+            <button class="sheet-btn" onclick="document.getElementById('bgInp').click()">🖼 Arxa Fonu Dəyiş</button>
+            <button class="sheet-btn" onclick="document.getElementById('avaInp').click()">👤 Profil Şəklini Dəyiş</button>
+            <button class="sheet-btn danger" onclick="logout()">🛑 Çıxış Et</button>
         </div>
+    </div>
+
+    <div id="attachSheet" class="sheet-overlay" onclick="closeSheets()">
+        <div class="sheet" onclick="event.stopPropagation()">
+            <button class="sheet-btn" onclick="document.getElementById('fInp').click()">🖼 Qalereyadan Şəkil Seç</button>
+            <button class="sheet-btn" onclick="closeSheets()">❌ İmtina</button>
+        </div>
+    </div>
+
+    <div id="msgSheet" class="sheet-overlay" onclick="closeSheets()">
+        <div class="sheet" onclick="event.stopPropagation()">
+            <div class="react-row">
+                <span onclick="addReaction('❤️')">❤️</span>
+                <span onclick="addReaction('😂')">😂</span>
+                <span onclick="addReaction('👍')">👍</span>
+                <span onclick="addReaction('🔥')">🔥</span>
+                <span onclick="addReaction('😮')">😮</span>
+            </div>
+            <button id="delBtn" class="sheet-btn danger" onclick="deleteSelectedMsg()">🗑 Mesajı Sil</button>
+        </div>
+    </div>
+
+    <div id="img-viewer" onclick="this.style.display='none'">
+        <div class="close-viewer">×</div>
+        <img id="viewer-img" src="">
+    </div>
+
+    <div id="call-ui" style="position:fixed; inset:0; z-index:4000; display:none; background:#000;">
+        <div id="jitsi" style="height:100%"></div>
+        <button onclick="endCall()" style="position:absolute; bottom:max(30px, env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); background:#ef4444; color:#fff; border:none; padding:15px 40px; border-radius:30px; font-weight:bold; box-shadow:0 4px 10px rgba(0,0,0,0.5);">Zəngi Bitir</button>
     </div>
 
 <script>
+    // SUPABASE
     const SB_URL = 'https://pyknspxnwnilhqsazidj.supabase.co';
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(SB_URL, SB_KEY);
 
     let user = JSON.parse(localStorage.getItem('x_user'));
     let room = 'General';
-    let rec, selectedMsgId;
+    let rec, chunks = [], selectedMsg = null, holdTimer;
 
-    function init() {
-        if(!user) { location.reload(); return; }
+    if(user) startApp();
+
+    function login() {
+        const n = document.getElementById('a_nick').value;
+        const p = document.getElementById('a_pass').value;
+        if(!n || !p) return;
+        user = { nick: n, pass: p, ava: `https://ui-avatars.com/api/?name=${n}&background=3b82f6&color=fff` };
+        localStorage.setItem('x_user', JSON.stringify(user));
+        startApp();
+    }
+
+    function startApp() {
+        document.getElementById('auth').style.display = 'none';
         document.getElementById('myAva').src = user.ava;
-        loadMsgs();
+        if(localStorage.getItem('x_bg')) document.getElementById('chat').style.backgroundImage = `url(${localStorage.getItem('x_bg')})`;
         
-        // REALTIME
-        const channel = sb.channel(room);
-        channel
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => loadMsgs())
-        .on('broadcast', { event: 'typing' }, ({ payload }) => {
-            if(payload.nick !== user.nick) {
-                const t = document.getElementById('typing');
-                t.innerText = `${payload.nick} yazır...`;
-                setTimeout(() => t.innerText = '', 2000);
-            }
-        })
-        .subscribe();
+        loadMsgs();
+        sb.channel('db-changes').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, () => loadMsgs()).subscribe();
     }
 
     async function loadMsgs() {
         const { data } = await sb.from('messages').select('*').eq('group_id', room).order('created_at', {ascending:true});
         const c = document.getElementById('chat');
         c.innerHTML = '';
-        data.forEach(m => {
-            let body = m.content;
-            let reactions = [];
+        if(data) data.forEach(m => {
+            let body = m.content, reactions = [];
             try { 
                 const j = JSON.parse(m.content); 
-                if(j.type==='image') body = `<img src="${j.url}" class="chat-img" onclick="window.open('${j.url}')">`;
-                else if(j.type==='audio') body = `<audio src="${j.url}" controls></audio>`;
+                if(j.type==='image') body = `<img src="${j.url}" class="chat-img" onclick="openImg('${j.url}')">`;
+                else if(j.type==='audio') body = `<audio src="${j.url}" controls preload="metadata"></audio>`;
                 else body = j.text;
                 reactions = j.reactions || [];
             } catch(e){}
 
             const isMe = m.nickname === user.nick;
             const wrap = document.createElement('div');
-            wrap.className = `msg-container ${isMe ? 'me' : 'other'}`;
+            wrap.className = `msg-wrap ${isMe ? 'me' : 'other'}`;
+            
+            // XÜSUSİ MOBİL LONG PRESS MƏNTİQİ
             wrap.innerHTML = `
-                ${!isMe ? `<span class="sender">${m.nickname}</span>` : ''}
-                <div class="msg" oncontextmenu="openReact('${m.id}'); return false;" ontouchstart="handleTouchStart('${m.id}')">
+                <div class="msg" 
+                    oncontextmenu="event.preventDefault();" 
+                    ontouchstart="startHold('${m.id}', '${m.nickname}')" 
+                    ontouchend="endHold()" 
+                    onmousedown="startHold('${m.id}', '${m.nickname}')" 
+                    onmouseup="endHold()" 
+                    onmouseleave="endHold()">
+                    ${!isMe ? `<div class="sender-name">${m.nickname}</div>` : ''}
                     ${body}
-                    <span class="msg-time">${new Date(m.created_at).getHours()}:${String(new Date(m.created_at).getMinutes()).padStart(2,'0')} ${isMe?'✓✓':''}</span>
+                    <div class="msg-time">${new Date(m.created_at).getHours()}:${String(new Date(m.created_at).getMinutes()).padStart(2,'0')} ${isMe?'✓✓':''}</div>
+                    ${reactions.length ? `<div class="react-badge">${reactions.join('')}</div>` : ''}
                 </div>
-                ${reactions.length ? `<div class="react-bar">${reactions.join('')}</div>` : ''}
             `;
             c.appendChild(wrap);
         });
@@ -174,37 +283,23 @@
         const i = document.getElementById('mInp');
         if(!i.value.trim()) return;
         const txt = i.value; i.value = '';
-        await sb.from('messages').insert([{ nickname: user.nick, group_id: room, content: JSON.stringify({text:txt, type:'text', reactions:[]}) }]);
+        await sb.from('messages').insert([{ nickname: user.nick, group_id: room, content: JSON.stringify({text:txt, type:'text'}) }]);
     }
 
-    // TYPING BROADCAST
-    function broadcastTyping() {
-        sb.channel(room).send({ type: 'broadcast', event: 'typing', payload: { nick: user.nick } });
+    // MULTIMEDIA
+    async function upFile(el, mode) {
+        closeSheets();
+        const f = el.files[0]; if(!f) return;
+        const name = `${Date.now()}_${f.name}`;
+        await sb.storage.from('audio_messages').upload(name, f);
+        const url = `${SB_URL}/storage/v1/object/public/audio_messages/${name}`;
+        
+        if(mode === 'image') await sb.from('messages').insert([{ nickname: user.nick, group_id: room, content: JSON.stringify({url:url, type:'image'}) }]);
+        else if(mode === 'avatar') { user.ava = url; localStorage.setItem('x_user', JSON.stringify(user)); location.reload(); }
     }
 
-    // REACTIONS
-    let touchTimer;
-    function handleTouchStart(id) {
-        touchTimer = setTimeout(() => openReact(id), 500);
-    }
-    function openReact(id) {
-        selectedMsgId = id;
-        document.getElementById('overlay').style.display = 'flex';
-    }
-
-    async function addReaction(emoji) {
-        document.getElementById('overlay').style.display = 'none';
-        const { data } = await sb.from('messages').select('content').eq('id', selectedMsgId).single();
-        let content = JSON.parse(data.content);
-        if(!content.reactions) content.reactions = [];
-        if(!content.reactions.includes(emoji)) content.reactions.push(emoji);
-        await sb.from('messages').update({ content: JSON.stringify(content) }).eq('id', selectedMsgId);
-        loadMsgs();
-    }
-
-    // ... (Səs yazma və digər funksiyalar əvvəlki kimi qalır) ...
     async function toggleMic() {
-        const btn = document.getElementById('mic');
+        const btn = document.getElementById('micBtn');
         if(!rec || rec.state === 'inactive') {
             const s = await navigator.mediaDevices.getUserMedia({audio:true});
             rec = new MediaRecorder(s); chunks = [];
@@ -214,15 +309,81 @@
                 const name = `voice_${Date.now()}.webm`;
                 await sb.storage.from('audio_messages').upload(name, blob);
                 const url = `${SB_URL}/storage/v1/object/public/audio_messages/${name}`;
-                await sb.from('messages').insert([{ nickname: user.nick, content: JSON.stringify({url:url, type:'audio'}), group_id: room }]);
-                btn.style.color = '#fff';
+                await sb.from('messages').insert([{ nickname: user.nick, group_id: room, content: JSON.stringify({url:url, type:'audio'}) }]);
+                btn.style.color = 'var(--blue)'; btn.style.transform = 'scale(1)';
             };
-            rec.start(); btn.style.color = '#f85149';
+            rec.start(); 
+            btn.style.color = '#ef4444'; btn.style.transform = 'scale(1.2)';
         } else { rec.stop(); }
     }
 
-    init();
-    document.getElementById('mInp').onkeypress = (e) => { if(e.key==='Enter') sendText() };
+    // MOBİL LONG PRESS (Basıb saxlamaq)
+    function startHold(id, sender) {
+        holdTimer = setTimeout(() => {
+            selectedMsg = { id, sender };
+            document.getElementById('delBtn').style.display = (sender === user.nick) ? 'flex' : 'none';
+            openSheet('msgSheet');
+            navigator.vibrate && navigator.vibrate(50); // Haptik reaksiya (Android)
+        }, 500); // Yarım saniyə basıb saxlayanda açılır
+    }
+    function endHold() { clearTimeout(holdTimer); }
+
+    // REAKSİYA VƏ SİLMƏ
+    async function addReaction(emoji) {
+        closeSheets();
+        const { data } = await sb.from('messages').select('content').eq('id', selectedMsg.id).single();
+        let c = JSON.parse(data.content);
+        if(!c.reactions) c.reactions = [];
+        if(!c.reactions.includes(emoji)) c.reactions.push(emoji);
+        else c.reactions = c.reactions.filter(e => e !== emoji); // Eyni emojiyə basanda silinir
+        await sb.from('messages').update({ content: JSON.stringify(c) }).eq('id', selectedMsg.id);
+        loadMsgs();
+    }
+
+    async function deleteSelectedMsg() {
+        closeSheets();
+        if(confirm('Mesaj silinsin?')) {
+            await sb.from('messages').delete().eq('id', selectedMsg.id);
+            loadMsgs();
+        }
+    }
+
+    // UTILS VƏ UI İDARƏSİ
+    function openMenuSheet() { openSheet('menuSheet'); }
+    function openAttachSheet() { openSheet('attachSheet'); }
+    
+    function openSheet(id) { 
+        document.getElementById(id).classList.add('show'); 
+    }
+    function closeSheets() { 
+        document.querySelectorAll('.sheet-overlay').forEach(s => s.classList.remove('show')); 
+    }
+
+    function openImg(src) {
+        document.getElementById('viewer-img').src = src;
+        document.getElementById('img-viewer').style.display = 'flex';
+    }
+
+    function changeRoom() {
+        closeSheets();
+        const n = prompt("Otaq adını daxil edin:");
+        if(n) { room = n; document.getElementById('roomTitle').innerText = n; loadMsgs(); }
+    }
+
+    function setBg(el) {
+        closeSheets();
+        const r = new FileReader();
+        r.onload = e => { document.getElementById('chat').style.backgroundImage = `url(${e.target.result})`; localStorage.setItem('x_bg', e.target.result); };
+        r.readAsDataURL(el.files[0]);
+    }
+
+    // CALL
+    function startCall() {
+        document.getElementById('call-ui').style.display = 'block';
+        new JitsiMeetExternalAPI("meet.jit.si", { roomName: "XChat_Call_"+room, parentNode: document.querySelector('#jitsi'), userInfo: { displayName: user.nick } });
+    }
+    function endCall() { document.getElementById('call-ui').style.display = 'none'; document.getElementById('jitsi').innerHTML = ''; }
+    function logout() { localStorage.clear(); location.reload(); }
 </script>
 </body>
 </html>
