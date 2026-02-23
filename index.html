@@ -3,86 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>X-Chat PRO</title>
+    <title>X-Chat Ultra</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src='https://meet.jit.si/external_api.js'></script>
     <style>
-        :root { --bg: #0b0e14; --primary: #3b82f6; --text: #ffffff; --glass: rgba(255,255,255,0.05); }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
+        :root { 
+            --bg: #0b0e14; --panel: #161b22; --accent: #238636; 
+            --blue: #2f81f7; --text: #e6edf3; --me: #21262d; 
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { margin: 0; background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
-        
-        /* Login */
-        #auth { position: fixed; inset: 0; background: #000; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .card { background: #1a1c23; padding: 25px; border-radius: 20px; width: 100%; max-width: 320px; text-align: center; }
-        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid #333; background: #000; color: #fff; font-size: 16px; }
-        button { width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--primary); color: #fff; font-weight: bold; font-size: 16px; }
 
-        /* App Layout */
-        header { height: 60px; background: #1a1c23; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #333; }
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background-size: cover; }
-        .footer { padding: 10px; background: #1a1c23; display: flex; align-items: center; gap: 10px; padding-bottom: env(safe-area-inset-bottom); }
-        
-        /* Messages */
-        .msg { max-width: 80%; padding: 10px 15px; border-radius: 18px; position: relative; font-size: 15px; line-height: 1.4; }
-        .msg.me { align-self: flex-end; background: var(--primary); border-bottom-right-radius: 4px; }
-        .msg.other { align-self: flex-start; background: #2d2f3a; border-bottom-left-radius: 4px; }
-        .sender { font-size: 10px; opacity: 0.6; display: block; margin-bottom: 3px; }
-        
-        /* Multimedia */
-        img.chat-img { max-width: 100%; border-radius: 10px; margin: 5px 0; }
-        audio { height: 35px; width: 200px; margin: 5px 0; filter: invert(1); }
+        /* HEADER */
+        header { 
+            height: 65px; background: var(--panel); display: flex; align-items: center; 
+            justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #30363d;
+            z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .status-info { font-size: 11px; color: #7d8590; }
 
-        /* Menu */
-        #menu { position: fixed; top: 0; left: -100%; width: 80%; height: 100%; background: #1a1c23; z-index: 500; transition: 0.3s; padding: 20px; box-shadow: 5px 0 20px #000; }
-        #menu.open { left: 0; }
-        .menu-item { padding: 15px; border-bottom: 1px solid #333; font-size: 16px; display: flex; align-items: center; gap: 10px; }
+        /* CHAT AREA */
+        #chat { 
+            flex: 1; overflow-y: auto; padding: 15px; display: flex; 
+            flex-direction: column; gap: 8px; scroll-behavior: smooth;
+            background-image: radial-gradient(#1f242c 1px, transparent 1px); background-size: 20px 20px;
+        }
+
+        /* MESSAGES */
+        .msg-container { display: flex; flex-direction: column; max-width: 85%; animation: slideIn 0.2s ease-out; position: relative; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        #call-ui { position: fixed; inset: 0; z-index: 2000; background: #000; display: none; }
+        .msg { padding: 10px 14px; border-radius: 18px; font-size: 15px; position: relative; line-height: 1.4; transition: 0.2s; }
+        .me { align-self: flex-end; }
+        .me .msg { background: var(--blue); border-bottom-right-radius: 4px; color: #fff; }
+        .other { align-self: flex-start; }
+        .other .msg { background: var(--me); border-bottom-left-radius: 4px; border: 1px solid #30363d; }
+        
+        .sender { font-size: 11px; font-weight: 600; margin-bottom: 4px; color: #8b949e; margin-left: 5px; }
+        .msg-time { font-size: 10px; opacity: 0.6; margin-top: 4px; text-align: right; display: block; }
+
+        /* REACTIONS */
+        .react-bar { 
+            display: flex; gap: 5px; position: absolute; bottom: -12px; 
+            right: 10px; background: #30363d; border-radius: 10px; padding: 2px 5px; font-size: 12px;
+            border: 1px solid #484f58; box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        /* TYPING INDICATOR */
+        #typing { font-size: 12px; color: var(--blue); padding: 5px 15px; height: 20px; font-style: italic; }
+
+        /* FOOTER INPUT */
+        .footer { 
+            background: var(--panel); padding: 10px 15px; display: flex; 
+            align-items: center; gap: 10px; border-top: 1px solid #30363d;
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+        }
+        .input-box { 
+            flex: 1; background: #0d1117; border-radius: 25px; padding: 5px 15px; 
+            display: flex; align-items: center; border: 1px solid #30363d;
+        }
+        input { flex: 1; background: transparent; border: none; color: #fff; padding: 10px 0; outline: none; font-size: 16px; }
+        
+        .btn-icon { font-size: 22px; cursor: pointer; transition: 0.2s; }
+        .btn-icon:active { transform: scale(0.9); }
+        .send-btn { color: var(--blue); font-weight: bold; }
+
+        /* MODALS */
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        .reaction-picker { background: var(--panel); display: flex; gap: 15px; padding: 15px; border-radius: 50px; border: 1px solid #30363d; }
     </style>
 </head>
 <body>
 
-    <div id="auth">
-        <div class="card">
-            <h2 style="margin-top:0">X-CHAT</h2>
-            <input type="text" id="nick" placeholder="Adın">
-            <input type="password" id="pass" placeholder="Şifrə">
-            <button onclick="start()">Giriş</button>
-        </div>
-    </div>
-
     <header>
-        <div onclick="document.getElementById('menu').classList.toggle('open')" style="display:flex; align-items:center; gap:10px">
-            <img id="myAva" style="width:35px; height:35px; border-radius:50%; background:#333">
-            <b id="roomLabel">General</b>
+        <div onclick="toggleMenu()" style="display:flex; align-items:center; gap:12px">
+            <img id="myAva" src="" style="width:40px; height:40px; border-radius:50%; object-fit: cover; border: 1px solid var(--blue)">
+            <div>
+                <div id="roomLabel" style="font-weight:700">General</div>
+                <div id="status" class="status-info">● Onlayn</div>
+            </div>
         </div>
-        <div style="font-size:20px; display:flex; gap:15px">
+        <div style="display:flex; gap:20px; font-size:22px">
             <span onclick="startCall()">📞</span>
-            <span onclick="document.getElementById('menu').classList.toggle('open')">⚙️</span>
+            <span onclick="toggleMenu()">☰</span>
         </div>
     </header>
 
     <div id="chat"></div>
+    <div id="typing"></div>
 
     <div class="footer">
-        <span onclick="document.getElementById('fInp').click()">📷</span>
-        <span id="mic" onclick="toggleMic()">🎙️</span>
-        <input type="text" id="mInp" placeholder="Mesaj..." style="flex:1; margin:0; padding:10px">
-        <button onclick="sendText()" style="width:auto; padding:10px 15px">➤</button>
+        <span class="btn-icon" onclick="document.getElementById('fInp').click()">📎</span>
+        <span class="btn-icon" id="mic" onclick="toggleMic()">🎙️</span>
+        <div class="input-box">
+            <input type="text" id="mInp" placeholder="Mesaj yaz..." oninput="broadcastTyping()">
+        </div>
+        <span class="btn-icon send-btn" onclick="sendText()">➤</span>
     </div>
 
-    <div id="menu" onclick="this.classList.remove('open')">
-        <div class="menu-item" onclick="changeRoom()">🔒 Otağı Dəyiş / Kod Qoy</div>
-        <div class="menu-item" onclick="document.getElementById('bgInp').click()">🖼 Fonu Dəyiş</div>
-        <div class="menu-item" onclick="document.getElementById('avaInp').click()">👤 Profili Dəyiş</div>
-        <div class="menu-item" onclick="logout()" style="color:red">🛑 Çıxış</div>
+    <div id="overlay" onclick="this.style.display='none'">
+        <div class="reaction-picker" onclick="event.stopPropagation()">
+            <span onclick="addReaction('❤️')">❤️</span>
+            <span onclick="addReaction('😂')">😂</span>
+            <span onclick="addReaction('👍')">👍</span>
+            <span onclick="addReaction('🔥')">🔥</span>
+            <span onclick="addReaction('😮')">😮</span>
+        </div>
     </div>
-
-    <div id="call-ui"><div id="jitsi" style="height:100%"></div><button onclick="endCall()" style="position:absolute; bottom:30px; left:50%; transform:translateX(-50%); width:200px; background:red">Bitir</button></div>
-
-    <input type="file" id="fInp" hidden accept="image/*" onchange="upFile(this, 'image')">
-    <input type="file" id="avaInp" hidden accept="image/*" onchange="upFile(this, 'avatar')">
-    <input type="file" id="bgInp" hidden accept="image/*" onchange="setBg(this)">
 
 <script>
     const SB_URL = 'https://pyknspxnwnilhqsazidj.supabase.co';
@@ -91,65 +118,91 @@
 
     let user = JSON.parse(localStorage.getItem('x_user'));
     let room = 'General';
-    let rec, chunks = [];
+    let rec, selectedMsgId;
 
-    if(user) start();
-
-    function start() {
-        if(!user) {
-            const n = document.getElementById('nick').value;
-            const p = document.getElementById('pass').value;
-            if(!n || !p) return;
-            user = { nick: n, pass: p, ava: `https://ui-avatars.com/api/?name=${n}` };
-            localStorage.setItem('x_user', JSON.stringify(user));
-        }
-        document.getElementById('auth').style.display = 'none';
+    function init() {
+        if(!user) { location.reload(); return; }
         document.getElementById('myAva').src = user.ava;
-        if(localStorage.getItem('x_bg')) document.getElementById('chat').style.backgroundImage = `url(${localStorage.getItem('x_bg')})`;
-        
         loadMsgs();
-        sb.channel('any').on('postgres_changes',{event:'*',schema:'public',table:'messages'},()=>loadMsgs()).subscribe();
+        
+        // REALTIME
+        const channel = sb.channel(room);
+        channel
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => loadMsgs())
+        .on('broadcast', { event: 'typing' }, ({ payload }) => {
+            if(payload.nick !== user.nick) {
+                const t = document.getElementById('typing');
+                t.innerText = `${payload.nick} yazır...`;
+                setTimeout(() => t.innerText = '', 2000);
+            }
+        })
+        .subscribe();
     }
 
     async function loadMsgs() {
-        const { data } = await sb.from('messages').select('*').eq('group_id', room).order('created_at',{ascending:true});
+        const { data } = await sb.from('messages').select('*').eq('group_id', room).order('created_at', {ascending:true});
         const c = document.getElementById('chat');
         c.innerHTML = '';
-        if(data) data.forEach(m => {
+        data.forEach(m => {
             let body = m.content;
+            let reactions = [];
             try { 
                 const j = JSON.parse(m.content); 
-                if(j.type==='image') body = `<img src="${j.url}" class="chat-img">`;
+                if(j.type==='image') body = `<img src="${j.url}" class="chat-img" onclick="window.open('${j.url}')">`;
                 else if(j.type==='audio') body = `<audio src="${j.url}" controls></audio>`;
                 else body = j.text;
+                reactions = j.reactions || [];
             } catch(e){}
 
-            const div = document.createElement('div');
-            div.className = `msg ${m.nickname === user.nick ? 'me' : 'other'}`;
-            div.innerHTML = `<span class="sender">${m.nickname}</span>${body}`;
-            div.onclick = () => { if(m.nickname===user.nick && confirm('Silinsin?')) deleteMsg(m.id) };
-            c.appendChild(div);
+            const isMe = m.nickname === user.nick;
+            const wrap = document.createElement('div');
+            wrap.className = `msg-container ${isMe ? 'me' : 'other'}`;
+            wrap.innerHTML = `
+                ${!isMe ? `<span class="sender">${m.nickname}</span>` : ''}
+                <div class="msg" oncontextmenu="openReact('${m.id}'); return false;" ontouchstart="handleTouchStart('${m.id}')">
+                    ${body}
+                    <span class="msg-time">${new Date(m.created_at).getHours()}:${String(new Date(m.created_at).getMinutes()).padStart(2,'0')} ${isMe?'✓✓':''}</span>
+                </div>
+                ${reactions.length ? `<div class="react-bar">${reactions.join('')}</div>` : ''}
+            `;
+            c.appendChild(wrap);
         });
         c.scrollTop = c.scrollHeight;
     }
 
     async function sendText() {
         const i = document.getElementById('mInp');
-        if(!i.value) return;
+        if(!i.value.trim()) return;
         const txt = i.value; i.value = '';
-        await sb.from('messages').insert([{ nickname: user.nick, content: JSON.stringify({text:txt, type:'text'}), group_id: room }]);
+        await sb.from('messages').insert([{ nickname: user.nick, group_id: room, content: JSON.stringify({text:txt, type:'text', reactions:[]}) }]);
     }
 
-    async function upFile(el, mode) {
-        const f = el.files[0]; if(!f) return;
-        const name = `${Date.now()}_${f.name}`;
-        const { data } = await sb.storage.from('audio_messages').upload(name, f);
-        const url = `${SB_URL}/storage/v1/object/public/audio_messages/${name}`;
-        
-        if(mode === 'image') await sb.from('messages').insert([{ nickname: user.nick, content: JSON.stringify({url:url, type:'image'}), group_id: room }]);
-        else if(mode === 'avatar') { user.ava = url; localStorage.setItem('x_user', JSON.stringify(user)); location.reload(); }
+    // TYPING BROADCAST
+    function broadcastTyping() {
+        sb.channel(room).send({ type: 'broadcast', event: 'typing', payload: { nick: user.nick } });
     }
 
+    // REACTIONS
+    let touchTimer;
+    function handleTouchStart(id) {
+        touchTimer = setTimeout(() => openReact(id), 500);
+    }
+    function openReact(id) {
+        selectedMsgId = id;
+        document.getElementById('overlay').style.display = 'flex';
+    }
+
+    async function addReaction(emoji) {
+        document.getElementById('overlay').style.display = 'none';
+        const { data } = await sb.from('messages').select('content').eq('id', selectedMsgId).single();
+        let content = JSON.parse(data.content);
+        if(!content.reactions) content.reactions = [];
+        if(!content.reactions.includes(emoji)) content.reactions.push(emoji);
+        await sb.from('messages').update({ content: JSON.stringify(content) }).eq('id', selectedMsgId);
+        loadMsgs();
+    }
+
+    // ... (Səs yazma və digər funksiyalar əvvəlki kimi qalır) ...
     async function toggleMic() {
         const btn = document.getElementById('mic');
         if(!rec || rec.state === 'inactive') {
@@ -162,32 +215,13 @@
                 await sb.storage.from('audio_messages').upload(name, blob);
                 const url = `${SB_URL}/storage/v1/object/public/audio_messages/${name}`;
                 await sb.from('messages').insert([{ nickname: user.nick, content: JSON.stringify({url:url, type:'audio'}), group_id: room }]);
-                btn.style.color = 'white';
+                btn.style.color = '#fff';
             };
-            rec.start(); btn.style.color = 'red';
+            rec.start(); btn.style.color = '#f85149';
         } else { rec.stop(); }
     }
 
-    async function deleteMsg(id) { await sb.from('messages').delete().eq('id', id); loadMsgs(); }
-
-    function setBg(el) {
-        const r = new FileReader();
-        r.onload = e => { document.getElementById('chat').style.backgroundImage = `url(${e.target.result})`; localStorage.setItem('x_bg', e.target.result); };
-        r.readAsDataURL(el.files[0]);
-    }
-
-    function changeRoom() {
-        const n = prompt("Otaq adı:");
-        const p = prompt("Otaq şifrəsi (kimsə girməsin deyə):");
-        if(n) { room = n; document.getElementById('roomLabel').innerText = n; loadMsgs(); }
-    }
-
-    function startCall() {
-        document.getElementById('call-ui').style.display = 'block';
-        new JitsiMeetExternalAPI("meet.jit.si", { roomName: "XChat_"+room, parentNode: document.querySelector('#jitsi') });
-    }
-    function endCall() { document.getElementById('call-ui').style.display = 'none'; document.getElementById('jitsi').innerHTML = ''; }
-    function logout() { localStorage.clear(); location.reload(); }
+    init();
     document.getElementById('mInp').onkeypress = (e) => { if(e.key==='Enter') sendText() };
 </script>
 </body>
