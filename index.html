@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>X-Chat Ultimate PRO</title>
+    <title>X-Chat Ultimate PRO + Settings</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { 
@@ -18,101 +18,103 @@
         body { margin: 0; background: var(--bg); color: var(--text); height: 100dvh; overflow: hidden; transition: 0.3s; }
 
         /* GİRİŞ EKRANI */
-        #loginPage { 
-            position: fixed; inset: 0; background: var(--bg); z-index: 5000; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px;
-        }
-        .login-card { background: var(--panel); width: 100%; max-width: 400px; padding: 30px; border-radius: 28px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
-        .ava-picker { width: 100px; height: 100px; border-radius: 50%; background: #000; margin: 0 auto 20px; border: 2px dashed var(--blue); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; cursor: pointer; }
-        .ava-picker img { width: 100%; height: 100%; object-fit: cover; }
-        .ava-picker span { font-size: 30px; }
+        #loginPage { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
+        .card { background: var(--panel); width: 100%; max-width: 400px; padding: 30px; border-radius: 28px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        
+        .ava-box { width: 90px; height: 90px; border-radius: 50%; background: #000; margin: 0 auto 15px; border: 2px dashed var(--blue); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; position: relative; }
+        .ava-box img { width: 100%; height: 100%; object-fit: cover; }
 
-        .login-card input { width: 100%; background: #000; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 14px; border-radius: 12px; margin-bottom: 20px; outline: none; font-size: 16px; }
-        .login-btn { width: 100%; background: var(--blue); color: #fff; border: none; padding: 16px; border-radius: 12px; font-weight: bold; font-size: 16px; }
+        input { width: 100%; background: #000; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 14px; border-radius: 12px; margin-bottom: 15px; outline: none; }
+        .main-btn { width: 100%; background: var(--blue); color: #fff; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; }
 
-        /* ƏSAS TƏTBİQ */
+        /* APP STRUCTURE */
         #mainApp { display: none; height: 100%; flex-direction: column; }
         header { background: var(--panel); padding: max(10px, env(safe-area-inset-top)) 15px 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-        .msg-box { max-width: 82%; padding: 10px 14px; border-radius: 18px; position: relative; }
+        
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .msg-box { max-width: 80%; padding: 10px 14px; border-radius: 18px; position: relative; animation: fadeIn 0.3s; }
         .me { align-self: flex-end; background: var(--me); border-bottom-right-radius: 4px; }
         .other { align-self: flex-start; background: var(--other); border-bottom-left-radius: 4px; }
 
-        .footer { background: var(--panel); padding: 10px 10px calc(env(safe-area-inset-bottom) + 10px); display: flex; align-items: center; gap: 8px; border-top: 1px solid rgba(255,255,255,0.05); }
-        .inp-wrap { flex: 1; background: #000; border-radius: 24px; padding: 0 15px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; }
-        input#mInp { flex: 1; background: transparent; border: none; color: #fff; padding: 12px 0; outline: none; }
+        .footer { background: var(--panel); padding: 10px 10px calc(env(safe-area-inset-bottom) + 10px); display: flex; align-items: center; gap: 8px; }
+        .inp-wrap { flex: 1; background: #000; border-radius: 24px; padding: 0 15px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.1); }
+        #mInp { border: none; background: transparent; color: #fff; padding: 10px 0; flex: 1; outline: none; }
 
-        .btn { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; }
+        /* SHEETS */
         .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; align-items: flex-end; }
         .sheet-overlay.active { display: flex; }
-        .sheet { width: 100%; background: var(--panel); border-radius: 20px 20px 0 0; padding: 20px; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
-        .sheet-btn { width: 100%; padding: 16px; background: rgba(255,255,255,0.05); border: none; color: #fff; border-radius: 14px; margin-bottom: 10px; text-align: left; }
-        
-        audio { width: 200px; height: 35px; filter: invert(1); }
-        img.msg-img { max-width: 100%; border-radius: 12px; }
+        .sheet { width: 100%; background: var(--panel); border-radius: 24px 24px 0 0; padding: 20px; transform: translateY(100%); transition: 0.3s; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+        .sheet-overlay.active .sheet { transform: translateY(0); }
+        .sheet-btn { width: 100%; padding: 15px; background: rgba(255,255,255,0.05); border: none; color: #fff; border-radius: 12px; margin-bottom: 8px; text-align: left; font-size: 15px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        img.msg-img { max-width: 100%; border-radius: 12px; margin-top: 5px; }
     </style>
 </head>
 <body>
 
     <div id="loginPage">
-        <div class="login-card">
-            <h2>X-Chat-ə Xoş Gəldin</h2>
-            
-            <div class="ava-picker" onclick="document.getElementById('avaFile').click()">
+        <div class="card">
+            <h2>X-Chat</h2>
+            <div class="ava-box" onclick="document.getElementById('avaFile').click()">
                 <img id="avaPrev" style="display:none">
-                <span id="avaPlus">+</span>
+                <span id="avaPlus">📸</span>
             </div>
-            <input type="file" id="avaFile" hidden accept="image/*" onchange="previewAva()">
-            
-            <input type="text" id="nickInp" placeholder="Adınız (Nickname)">
-            <button class="login-btn" id="loginBtn" onclick="handleLogin()">Daxil Ol</button>
-            <p id="loadingText" style="display:none; font-size:12px; margin-top:10px; opacity:0.7">Şəkil yüklənir...</p>
+            <input type="file" id="avaFile" hidden accept="image/*" onchange="uploadAva(true)">
+            <input type="text" id="nickInp" placeholder="Adınız">
+            <button class="main-btn" id="loginBtn" onclick="handleLogin()">Daxil Ol</button>
         </div>
     </div>
 
     <div id="mainApp">
         <header>
-            <div style="display:flex; align-items:center; gap:10px" onclick="openSheet('menuSheet')">
-                <img id="myAva" style="width:36px; height:36px; border-radius:50%; border:1px solid var(--blue); object-fit:cover">
-                <b id="roomTitle">General</b>
+            <div style="display:flex; align-items:center; gap:10px" onclick="openSheet('settingsSheet')">
+                <img id="myAva" style="width:38px; height:38px; border-radius:50%; border:1px solid var(--blue); object-fit:cover">
+                <div>
+                    <b id="roomTitle">General</b>
+                    <div style="font-size:10px; opacity:0.6">Ayarlar üçün toxun</div>
+                </div>
             </div>
-            <div style="display:flex; gap:15px; font-size:22px">
-                <span onclick="openSheet('themeSheet')">🎨</span>
-            </div>
+            <div style="font-size:22px" onclick="openSheet('themeSheet')">🎨</div>
         </header>
 
         <div id="chat"></div>
 
         <div class="footer">
-            <span onclick="openSheet('attachSheet')" style="font-size:25px; padding:0 8px; color:var(--blue)">+</span>
-            <button class="btn" id="micBtn" style="background:#1e2126; color:var(--blue)" onclick="handleVoice()">🎙️</button>
+            <span onclick="openSheet('attachSheet')" style="font-size:25px; padding:0 8px">+</span>
             <div class="inp-wrap">
                 <input type="text" id="mInp" placeholder="Mesaj..." onkeypress="if(event.key==='Enter') sendText()">
             </div>
-            <button class="btn" style="background:var(--blue); color:#fff" onclick="sendText()">➤</button>
+            <button onclick="sendText()" style="background:var(--blue); border:none; color:#fff; width:40px; height:40px; border-radius:50%">➤</button>
         </div>
     </div>
 
-    <div id="menuSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet">
-        <button class="sheet-btn" style="background:var(--blue)" onclick="goGlobal()">🌐 Qlobal Çat</button>
+    <div id="settingsSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet" onclick="event.stopPropagation()">
+        <h3 style="margin-top:0">Profil Ayarları</h3>
+        <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px">
+            <div class="ava-box" style="margin:0; width:70px; height:70px" onclick="document.getElementById('changeAvaFile').click()">
+                <img id="settingsAva" src="">
+                <input type="file" id="changeAvaFile" hidden accept="image/*" onchange="uploadAva(false)">
+            </div>
+            <div style="flex:1">
+                <input type="text" id="changeNickInp" style="margin:0; padding:8px" placeholder="Yeni ad">
+                <button class="main-btn" style="padding:8px; margin-top:5px; font-size:12px" onclick="updateProfile()">Yadda Saxla</button>
+            </div>
+        </div>
+        <button class="sheet-btn" onclick="goGlobal()">🌐 Qlobal Çata Qayıt</button>
         <button class="sheet-btn" onclick="changeRoom()">🔒 Otaq Dəyiş</button>
-        <button class="sheet-btn" style="color:#ef4444" onclick="logout()">🛑 Çıxış</button>
+        <button class="sheet-btn" style="color:#ef4444" onclick="logout()">🛑 Hesabdan Çıx</button>
     </div></div>
 
     <div id="themeSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet">
-        <button class="sheet-btn" onclick="setTheme('')">🌑 Standart</button>
+        <button class="sheet-btn" onclick="setTheme('')">🌑 Gecə</button>
         <button class="sheet-btn" onclick="setTheme('theme-blue')">🌊 Okean</button>
         <button class="sheet-btn" onclick="setTheme('theme-purple')">🔮 Bənövşəyi</button>
     </div></div>
 
     <div id="attachSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet">
-        <button class="sheet-btn" onclick="document.getElementById('fInp').click()">🖼 Şəkil</button>
-        <button class="sheet-btn" onclick="sendLoc()">📍 Məkan</button>
-    </div></div>
-
-    <div id="msgSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet">
-        <button class="sheet-btn" onclick="startEdit()">✍️ Redaktə</button>
-        <button class="sheet-btn" style="color:#ef4444" onclick="deleteMsg()">🗑 Sil</button>
+        <button class="sheet-btn" onclick="document.getElementById('fInp').click()">🖼 Şəkil Göndər</button>
+        <button class="sheet-btn" onclick="sendLoc()">📍 Məkan Paylaş</button>
     </div></div>
 
     <div id="dmSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet">
@@ -128,56 +130,57 @@
     const sb = supabase.createClient(SB_URL, SB_KEY);
 
     let user = JSON.parse(localStorage.getItem('x_user'));
-    let room = 'General', selectedId, isEditing = false, mediaRecorder, chunks = [];
-    let uploadedAvaUrl = "";
+    let room = 'General', uploadedUrl = "";
 
     function checkLogin() {
         if(user) {
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('mainApp').style.display = 'flex';
             document.getElementById('myAva').src = user.ava;
+            document.getElementById('settingsAva').src = user.ava;
+            document.getElementById('changeNickInp').value = user.nick;
             initChat();
         }
     }
 
-    async function previewAva() {
-        const file = document.getElementById('avaFile').files[0];
+    async function uploadAva(isLogin) {
+        const file = isLogin ? document.getElementById('avaFile').files[0] : document.getElementById('changeAvaFile').files[0];
         if(!file) return;
+
+        const name = `ava_${Date.now()}.png`;
+        const { data } = await sb.storage.from('audio_messages').upload(name, file);
+        uploadedUrl = `${SB_URL}/storage/v1/object/public/audio_messages/${name}`;
         
-        // Önizləmə üçün
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            document.getElementById('avaPrev').src = e.target.result;
+        if(isLogin) {
+            document.getElementById('avaPrev').src = uploadedUrl;
             document.getElementById('avaPrev').style.display = 'block';
             document.getElementById('avaPlus').style.display = 'none';
+        } else {
+            document.getElementById('settingsAva').src = uploadedUrl;
+            // Ayarlar zamanı dərhal profilə tətbiq etmək üçün updateProfile çağıra bilərik
         }
-        reader.readAsDataURL(file);
-
-        // Supabase-ə yüklə
-        document.getElementById('loadingText').style.display = 'block';
-        document.getElementById('loginBtn').disabled = true;
-        
-        const fileName = `ava_${Date.now()}.png`;
-        const { data, error } = await sb.storage.from('audio_messages').upload(fileName, file);
-        
-        if(!error) {
-            uploadedAvaUrl = `${SB_URL}/storage/v1/object/public/audio_messages/${fileName}`;
-            document.getElementById('loadingText').innerText = "✅ Şəkil hazırdır!";
-        }
-        document.getElementById('loginBtn').disabled = false;
     }
 
     function handleLogin() {
         const nick = document.getElementById('nickInp').value.trim();
-        if(!nick) return alert('Ad yazın!');
-        
-        const ava = uploadedAvaUrl || `https://ui-avatars.com/api/?name=${nick}&background=random`;
+        if(!nick) return alert('Adınızı yazın');
+        const ava = uploadedUrl || `https://ui-avatars.com/api/?name=${nick}&background=random`;
         user = { nick, ava };
         localStorage.setItem('x_user', JSON.stringify(user));
         location.reload();
     }
 
-    // Çat Funksiyaları
+    function updateProfile() {
+        const newNick = document.getElementById('changeNickInp').value.trim();
+        if(!newNick) return;
+        user.nick = newNick;
+        if(uploadedUrl) user.ava = uploadedUrl;
+        localStorage.setItem('x_user', JSON.stringify(user));
+        alert("Profil yeniləndi!");
+        location.reload();
+    }
+
+    // ÇAT FUNKSİYALARI
     function initChat() {
         document.body.className = localStorage.getItem('theme') || '';
         loadMsgs();
@@ -186,51 +189,32 @@
 
     async function loadMsgs() {
         const { data } = await sb.from('messages').select('*').eq('group_id', room).order('created_at',{ascending:true});
-        const c = document.getElementById('chat'); c.innerHTML = '';
+        const chatDiv = document.getElementById('chat'); chatDiv.innerHTML = '';
         data.forEach(m => {
             const isMe = m.nickname === user.nick;
             let body = '', j;
             try { j = JSON.parse(m.content);
-                if(j.type==='audio') body = `<audio src="${j.url}" controls></audio>`;
-                else if(j.type==='image') body = `<img src="${j.url}" class="msg-img">`;
+                if(j.type==='image') body = `<img src="${j.url}" class="msg-img">`;
                 else if(j.type==='loc') body = `<a href="${j.url}" target="_blank" style="color:var(--blue)">📍 Məkan</a>`;
                 else body = j.text;
-            } catch { body = m.content; j={}; }
+            } catch { body = m.content; }
 
             const div = document.createElement('div');
             div.className = `msg-box ${isMe ? 'me' : 'other'}`;
             div.innerHTML = `
-                <div ontouchstart="hStart('${m.id}')" ontouchend="hEnd()" onmousedown="hStart('${m.id}')" onmouseup="hEnd()">
-                    ${!isMe ? `<b onclick="openDM('${m.nickname}')" style="color:var(--blue);font-size:11px;display:block;margin-bottom:2px">👤 ${m.nickname}</b>` : ''}
-                    ${body}
-                    <div style="font-size:10px;opacity:0.4;text-align:right;margin-top:3px">${new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
-                </div>`;
-            c.appendChild(div);
+                ${!isMe ? `<b onclick="openDM('${m.nickname}')" style="color:var(--blue);font-size:11px;display:block;margin-bottom:2px">👤 ${m.nickname}</b>` : ''}
+                ${body}
+                <div style="font-size:9px;opacity:0.4;text-align:right;margin-top:3px">${new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
+            `;
+            chatDiv.appendChild(div);
         });
-        c.scrollTop = c.scrollHeight;
+        chatDiv.scrollTop = chatDiv.scrollHeight;
     }
 
     async function sendText() {
         const i = document.getElementById('mInp'); if(!i.value.trim()) return;
         const val = i.value; i.value = '';
         await sb.from('messages').insert([{ nickname:user.nick, group_id:room, content: JSON.stringify({text:val, type:'text'}) }]);
-    }
-
-    async function handleVoice() {
-        const btn = document.getElementById('micBtn');
-        if(!mediaRecorder || mediaRecorder.state === 'inactive') {
-            const s = await navigator.mediaDevices.getUserMedia({audio:true});
-            mediaRecorder = new MediaRecorder(s); chunks = [];
-            mediaRecorder.ondataavailable = e => chunks.push(e.data);
-            mediaRecorder.onstop = async () => {
-                const blob = new Blob(chunks, {type:'audio/webm'});
-                const name = `v_${Date.now()}.webm`;
-                await sb.storage.from('audio_messages').upload(name, blob);
-                const url = `${SB_URL}/storage/v1/object/public/audio_messages/${name}`;
-                await sb.from('messages').insert([{ nickname:user.nick, group_id:room, content: JSON.stringify({url, type:'audio'}) }]);
-            };
-            mediaRecorder.start(); btn.style.background = '#ef4444';
-        } else { mediaRecorder.stop(); btn.style.background = '#1e2126'; }
     }
 
     function openDM(target) {
@@ -247,9 +231,8 @@
     function goGlobal() { room = 'General'; document.getElementById('roomTitle').innerText = 'General'; closeSheets(); loadMsgs(); }
     function openSheet(id) { document.getElementById(id).classList.add('active'); }
     function closeSheets() { document.querySelectorAll('.sheet-overlay').forEach(s => s.classList.remove('active')); }
-    function hStart(id) { selectedId = id; holdTimer = setTimeout(() => openSheet('msgSheet'), 500); }
-    function hEnd() { clearTimeout(holdTimer); }
     function setTheme(t) { document.body.className = t; localStorage.setItem('theme', t); closeSheets(); }
+    function changeRoom() { const n = prompt('Otaq:'); if(n) { room = n; document.getElementById('roomTitle').innerText = n; loadMsgs(); } closeSheets(); }
 
     checkLogin();
 </script>
