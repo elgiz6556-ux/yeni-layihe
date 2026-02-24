@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>X-Chat Ultimate</title>
+    <title>X-Chat Ultimate + DM</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { 
@@ -39,7 +39,6 @@
         .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: none; align-items: flex-end; }
         .sheet-overlay.active { display: flex; }
         .sheet { width: 100%; background: var(--panel); border-radius: 20px 20px 0 0; padding: 20px; transform: translateY(100%); transition: 0.3s; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
-        .sheet-overlay.active .sheet { transform: translateY(0); }
         .sheet-btn { width: 100%; padding: 15px; background: rgba(255,255,255,0.05); border: none; color: #fff; border-radius: 12px; margin-bottom: 10px; text-align: left; font-size: 16px; }
 
         audio { width: 200px; height: 35px; filter: invert(1); margin-top: 5px; }
@@ -72,8 +71,8 @@
     </div>
 
     <div id="menuSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet" onclick="event.stopPropagation()">
-        <button class="sheet-btn" onclick="changeRoom()">🔒 Otağı Dəyiş</button>
-        <button class="sheet-btn" onclick="location.reload()">🔄 Yenilə</button>
+        <button class="sheet-btn" style="background:var(--blue)" onclick="goGlobal()">🌐 Qlobal Çata Qayıt</button>
+        <button class="sheet-btn" onclick="changeRoom()">🔒 Şifrəli Otağa Gir</button>
         <button class="sheet-btn" style="color:#ef4444" onclick="localStorage.clear(); location.reload();">🛑 Çıxış</button>
     </div></div>
 
@@ -94,6 +93,11 @@
         </div>
         <button id="editBtn" class="sheet-btn" onclick="startEdit()">✍️ Redaktə Et</button>
         <button class="sheet-btn" style="color:#ef4444" onclick="deleteMsg()">🗑 Mesajı Sil</button>
+    </div></div>
+
+    <div id="dmSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet" onclick="event.stopPropagation()">
+        <h3 id="dmTargetName" style="margin-top:0; color:var(--blue); text-align:center"></h3>
+        <button id="dmBtn" class="sheet-btn" style="background:var(--blue); color:#fff; text-align:center; font-weight:bold">💬 Şəxsi Mesaj (DM) Yaz</button>
     </div></div>
 
     <input type="file" id="fInp" hidden accept="image/*" onchange="uploadFile()">
@@ -130,10 +134,15 @@
             } catch { body = m.content; }
 
             const div = document.createElement('div');
-            div.className = `msg-box ${m.nickname===user.nick?'me':'other'}`;
+            const isMe = m.nickname === user.nick;
+            div.className = `msg-box ${isMe ? 'me' : 'other'}`;
+            
+            // Xüsusi: Başqasının adına basanda DM menyusu açılır
+            const senderHTML = !isMe ? `<b style="font-size:11px; display:block; color:var(--blue); padding-bottom:3px; cursor:pointer;" onclick="openDM('${m.nickname}')" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">👤 ${m.nickname}</b>` : '';
+
             div.innerHTML = `
                 <div ontouchstart="startHold('${m.id}')" ontouchend="clearHold()" onmousedown="startHold('${m.id}')" onmouseup="clearHold()">
-                    <b style="font-size:11px; display:block; color:var(--blue)">${m.nickname}</b>
+                    ${senderHTML}
                     ${body} ${m.updated_at!==m.created_at?'<span class="edit-label">(redaktə)</span>':''}
                     <div style="font-size:10px; opacity:0.5; text-align:right">${new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
                     ${react.length?`<div style="position:absolute; bottom:-10px; right:10px; background:#1e293b; padding:2px 5px; border-radius:10px; font-size:12px">${react.join('')}</div>`:''}
@@ -190,6 +199,27 @@
             await sb.from('messages').insert([{ nickname:user.nick, group_id:room, content: JSON.stringify({url, type:'loc'}) }]);
             closeSheets();
         });
+    }
+
+    // DM Logic
+    function openDM(targetNick) {
+        document.getElementById('dmTargetName').innerText = targetNick;
+        document.getElementById('dmBtn').onclick = () => {
+            // İki istifadəçi adı əlifba sırası ilə düzülür və unikal DM otağı yaradılır (Məs: DM_Ali_Veli)
+            const dmRoom = 'DM_' + [user.nick, targetNick].sort().join('_');
+            room = dmRoom;
+            document.getElementById('roomTitle').innerText = '👤 ' + targetNick;
+            closeSheets();
+            loadMsgs();
+        };
+        openSheet('dmSheet');
+    }
+
+    function goGlobal() {
+        room = 'General';
+        document.getElementById('roomTitle').innerText = 'General';
+        closeSheets();
+        loadMsgs();
     }
 
     // UI Tools
