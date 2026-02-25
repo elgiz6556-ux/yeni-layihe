@@ -3,112 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>X-Chat V5 TITAN</title>
+    <title>X-Chat V6 SOCIAL</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { 
-            --bg: #0b0d10; --panel: #16191f; --blue: #3b82f6; 
-            --me: #2b5278; --other: #1c2128; --text: #ffffff; 
-        }
+        :root { --bg: #0b0d10; --panel: #16191f; --blue: #3b82f6; --me: #2b5278; --other: #1c2128; --text: #ffffff; }
         .theme-blue { --bg: #0a192f; --panel: #112240; --me: #233554; --blue: #64ffda; }
         .theme-purple { --bg: #1a1025; --panel: #2d1b3d; --me: #4b2d61; --blue: #bd93f9; }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; transition: background 0.3s; }
+        body { background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; transition: 0.3s; }
 
-        /* GİRİŞ EKRANI */
         #loginPage { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
         .card { background: var(--panel); width: 100%; max-width: 400px; padding: 30px; border-radius: 28px; text-align: center; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .ava-box { width: 80px; height: 80px; border-radius: 50%; background: #000; margin: 0 auto 15px; border: 2px dashed var(--blue); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; position: relative; }
         .ava-box img { width: 100%; height: 100%; object-fit: cover; }
-        input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 14px; border-radius: 12px; margin-bottom: 15px; outline: none; font-size: 15px; transition: 0.2s; }
+        input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 14px; border-radius: 12px; margin-bottom: 15px; outline: none; font-size: 15px; }
         input:focus { border-color: var(--blue); }
-        .main-btn { width: 100%; background: var(--blue); color: #fff; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.2s; }
-        .main-btn:active { transform: scale(0.97); }
+        .main-btn { width: 100%; background: var(--blue); color: #fff; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 15px; }
 
-        /* ƏSAS TƏTBİQ */
         #mainApp { display: none; height: 100%; flex-direction: column; }
         header { background: var(--panel); padding: max(10px, env(safe-area-inset-top)) 15px 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); z-index: 10; }
         
         #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 20px 20px; }
-        
-        .msg-box { max-width: 82%; padding: 10px 14px; border-radius: 18px; position: relative; font-size: 15px; line-height: 1.4; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 2px 5px rgba(0,0,0,0.2); word-wrap: break-word; }
+        .msg-box { max-width: 82%; padding: 10px 14px; border-radius: 18px; position: relative; font-size: 15px; line-height: 1.4; word-wrap: break-word; }
         .me { align-self: flex-end; background: var(--me); border-bottom-right-radius: 4px; }
         .other { align-self: flex-start; background: var(--other); border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
 
-        /* REPLY BOX (CAVAB) */
-        .reply-quote { background: rgba(0,0,0,0.25); border-left: 3px solid var(--blue); padding: 6px 10px; border-radius: 6px; margin-bottom: 6px; font-size: 13px; cursor: pointer; }
-        #replyPreview { display: none; background: var(--panel); padding: 10px 15px; border-top: 1px solid rgba(255,255,255,0.05); align-items: center; justify-content: space-between; font-size: 13px; }
-
-        .footer { background: var(--panel); padding: 10px 10px calc(env(safe-area-inset-bottom) + 10px); display: flex; align-items: center; gap: 8px; position: relative; }
+        .footer { background: var(--panel); padding: 10px 10px calc(env(safe-area-inset-bottom) + 10px); display: flex; align-items: center; gap: 8px; }
         .inp-wrap { flex: 1; background: #000; border-radius: 24px; padding: 0 15px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.1); }
         #mInp { border: none; background: transparent; color: #fff; padding: 12px 0; flex: 1; outline: none; }
         .btn { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; font-size: 18px; cursor: pointer; }
 
-        /* SHEETS */
         .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; display: none; align-items: flex-end; backdrop-filter: blur(2px); opacity: 0; transition: 0.3s; }
         .sheet-overlay.active { display: flex; opacity: 1; }
-        .sheet { width: 100%; background: var(--panel); border-radius: 24px 24px 0 0; padding: 20px; transform: translateY(100%); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); padding-bottom: max(20px, env(safe-area-inset-bottom)); box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
+        .sheet { width: 100%; background: var(--panel); border-radius: 24px 24px 0 0; padding: 20px; transform: translateY(100%); transition: 0.3s; padding-bottom: max(20px, env(safe-area-inset-bottom)); max-height: 80vh; overflow-y: auto;}
         .sheet-overlay.active .sheet { transform: translateY(0); }
         .sheet-btn { width: 100%; padding: 16px; background: rgba(255,255,255,0.05); border: none; color: #fff; border-radius: 14px; margin-bottom: 8px; text-align: left; font-size: 15px; font-weight: 500; }
-        .sheet-btn:active { background: rgba(255,255,255,0.1); }
 
-        /* Medya */
-        audio { width: 220px; height: 35px; filter: invert(1) hue-rotate(180deg); margin-top: 5px; outline: none; }
-        img.msg-img { max-width: 100%; border-radius: 12px; margin-top: 5px; cursor: pointer; }
-        .tick { font-size: 10px; color: #38bdf8; margin-left: 4px; }
-
-        @keyframes popIn { from { opacity: 0; transform: scale(0.9) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-        @keyframes pulseRec { 0%, 100% { background: #ef4444; } 50% { background: #991b1b; } }
-        .rec { animation: pulseRec 1.5s infinite !important; color: white !important; }
+        /* Dostlar Paneli Üçün Xüsusi Dizayn */
+        .friend-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 12px; margin-bottom: 8px; }
+        .req-dot { width: 10px; height: 10px; background: #ef4444; border-radius: 50%; position: absolute; top: -2px; right: -2px; display: none; }
+        .action-btn { padding: 8px 15px; border-radius: 8px; border: none; color: white; cursor: pointer; font-size: 12px; font-weight: bold; }
+        
+        img.msg-img { max-width: 100%; border-radius: 12px; margin-top: 5px; }
     </style>
 </head>
 <body>
 
     <div id="loginPage">
         <div class="card">
-            <h2 style="margin-bottom: 20px; color: var(--blue);">X-Chat TITAN</h2>
+            <h2 style="margin-bottom: 20px; color: var(--blue);">X-Chat V6</h2>
             <div class="ava-box" onclick="document.getElementById('avaFile').click()">
                 <img id="avaPrev" style="display:none">
                 <span id="avaPlus" style="font-size:24px">📸</span>
             </div>
-            <input type="file" id="avaFile" hidden accept="image/*" onchange="uploadAva(true)">
+            <input type="file" id="avaFile" hidden accept="image/*" onchange="uploadAva()">
             <input type="text" id="nickInp" placeholder="Adınız (Nik)">
-            <input type="text" id="statusInp" placeholder="Status (məs: Məşğul)">
-            <button class="main-btn" id="loginBtn" onclick="handleLogin()">Sistemə Daxil Ol</button>
-            <div id="loadingText" style="display:none; margin-top:10px; font-size:12px; color:var(--blue)">Hazırlanır...</div>
+            <button class="main-btn" onclick="handleLogin()">Sistemə Daxil Ol</button>
         </div>
     </div>
 
     <div id="mainApp">
         <header>
-            <div style="display:flex; align-items:center; gap:12px; cursor:pointer" onclick="openSettings()">
+            <div style="display:flex; align-items:center; gap:10px; cursor:pointer" onclick="openSheet('settingsSheet')">
                 <img id="myAva" style="width:40px; height:40px; border-radius:50%; border:2px solid var(--blue); object-fit:cover">
                 <div>
                     <b id="roomTitle" style="font-size:16px">General</b>
-                    <div style="font-size:11px; color:#10b981">● Onlayn <span id="myStatusHeader" style="opacity:0.6; margin-left:5px"></span></div>
                 </div>
             </div>
-            <div style="display:flex; gap:15px; font-size:20px">
-                <span onclick="openSheet('searchSheet')">🔍</span>
+            <div style="display:flex; gap:15px; font-size:22px; position: relative;">
+                <span onclick="openFriends()" style="position:relative">👥<div id="reqDot" class="req-dot"></div></span>
                 <span onclick="openSheet('themeSheet')">🎨</span>
             </div>
         </header>
 
         <div id="chat"></div>
 
-        <div id="replyPreview">
-            <div style="border-left:3px solid var(--blue); padding-left:10px">
-                <b id="repName" style="color:var(--blue); font-size:12px"></b>
-                <div id="repText" style="color:#aaa; max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis"></div>
-            </div>
-            <span onclick="cancelReply()" style="font-size:20px; cursor:pointer; opacity:0.6">&times;</span>
-        </div>
-
         <div class="footer">
-            <span onclick="openSheet('attachSheet')" style="font-size:26px; padding:0 8px; color:var(--blue); cursor:pointer">+</span>
-            <button class="btn" id="micBtn" style="background:#1e2126; color:var(--blue)" onclick="handleVoice()">🎙</button>
+            <span onclick="openSheet('attachSheet')" style="font-size:26px; padding:0 8px; color:var(--blue)">+</span>
             <div class="inp-wrap">
                 <input type="text" id="mInp" placeholder="Mesaj yaz..." onkeypress="if(event.key==='Enter') sendMsg()">
             </div>
@@ -116,368 +88,277 @@
         </div>
     </div>
 
-    <div id="settingsSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet" onclick="event.stopPropagation()">
-        <div style="display:flex; justify-content:space-between; margin-bottom:15px">
-            <h2>Ayarlar</h2>
-            <span onclick="closeSheets()" style="font-size:28px; opacity:0.5">&times;</span>
-        </div>
-        <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:18px; margin-bottom:15px">
-            <div style="display:flex; gap:15px; align-items:center">
-                <div class="ava-box" style="margin:0; width:65px; height:65px" onclick="document.getElementById('changeAvaFile').click()">
-                    <img id="settingsAva" src="">
-                    <div style="position:absolute; bottom:0; background:rgba(0,0,0,0.6); width:100%; font-size:9px; text-align:center; padding:2px">DƏYİŞ</div>
-                    <input type="file" id="changeAvaFile" hidden accept="image/*" onchange="uploadAva(false)">
-                </div>
-                <div style="flex:1">
-                    <input type="text" id="changeNickInp" style="margin-bottom:8px; padding:10px" placeholder="Adınız">
-                    <input type="text" id="changeStatusInp" style="margin:0; padding:10px" placeholder="Status">
-                </div>
-            </div>
-            <button class="main-btn" style="margin-top:15px; padding:12px" onclick="updateProfile()">Yadda Saxla</button>
-        </div>
-        <button class="sheet-btn" onclick="goGlobal()">🌐 Qlobal Çat</button>
-        <button class="sheet-btn" onclick="changeRoom()">🔒 Özəl Otağa Keç</button>
-        <button class="sheet-btn" style="color:#ef4444; background:rgba(239, 68, 68, 0.1)" onclick="logout()">🛑 Çıxış Et</button>
-    </div></div>
-
-    <div id="msgSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet" onclick="event.stopPropagation()">
-        <div style="display:flex; justify-content:space-around; font-size:32px; margin-bottom:20px; background:rgba(255,255,255,0.05); padding:10px; border-radius:20px">
-            <span onclick="addReact('❤️')">❤️</span><span onclick="addReact('😂')">😂</span><span onclick="addReact('👍')">👍</span><span onclick="addReact('🔥')">🔥</span>
-        </div>
-        <button class="sheet-btn" onclick="prepareReply()">↩️ Cavabla (Reply)</button>
-        <button class="sheet-btn" onclick="startEdit()">✍️ Redaktə Et</button>
-        <button class="sheet-btn" style="color:#ef4444" onclick="deleteMsg()">🗑 Mesajı Sil</button>
-    </div></div>
-
-    <div id="attachSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet" onclick="event.stopPropagation()">
-        <button class="sheet-btn" onclick="document.getElementById('fInp').click()">🖼 Şəkil Göndər</button>
-        <button class="sheet-btn" onclick="sendLoc()">📍 Məkan Paylaş</button>
-    </div></div>
-    
-    <div id="themeSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet" onclick="event.stopPropagation()">
-        <button class="sheet-btn" onclick="setTheme('')">🌑 Qaranlıq (Default)</button>
-        <button class="sheet-btn" onclick="setTheme('theme-blue')">🌊 Okean Mavisi</button>
-        <button class="sheet-btn" onclick="setTheme('theme-purple')">🔮 Neon Bənövşəyi</button>
-    </div></div>
-
-    <div id="searchSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet" onclick="event.stopPropagation()">
-        <input type="text" id="searchBox" placeholder="Mesajlarda axtar..." oninput="filterMsgs()" style="margin-bottom:0">
-    </div></div>
-
     <div id="dmSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet" onclick="event.stopPropagation()">
         <div style="text-align:center; margin-bottom:15px">
-            <img id="dmAva" src="" style="width:60px; height:60px; border-radius:50%; margin-bottom:10px">
+            <img id="dmAva" src="" style="width:70px; height:70px; border-radius:50%; margin-bottom:10px; border:2px solid var(--blue)">
             <h3 id="dmTargetName" style="margin:0; color:var(--blue)"></h3>
-            <p id="dmTargetStatus" style="font-size:12px; opacity:0.6; margin-top:5px"></p>
         </div>
-        <button id="dmBtn" class="sheet-btn" style="background:var(--blue); text-align:center">💬 Şəxsi Çata Başla</button>
+        <button id="dmBtn" class="sheet-btn" style="background:var(--blue); text-align:center">💬 DM Yaz</button>
+        <button id="addFriendBtn" class="sheet-btn" style="background:rgba(16, 185, 129, 0.2); color:#10b981; text-align:center; border: 1px solid rgba(16, 185, 129, 0.4)">🤝 Dostluq Göndər</button>
     </div></div>
 
+    <div id="friendsSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet" onclick="event.stopPropagation()">
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px">
+            <h2>👥 Sosial Panel</h2>
+            <span onclick="closeSheets()" style="font-size:28px; opacity:0.5">×</span>
+        </div>
+        
+        <h4 style="color:var(--blue); margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px">🔔 Dostluq İstəkləri</h4>
+        <div id="requestsList" style="margin-bottom:20px; font-size:13px; color:#aaa">İstək yoxdur.</div>
+
+        <h4 style="color:var(--blue); margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px">🤝 Mənim Dostlarım</h4>
+        <div id="friendsListContainer" style="font-size:13px; color:#aaa">Hələ dostun yoxdur.</div>
+    </div></div>
+
+    <div id="settingsSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet">
+        <button class="sheet-btn" onclick="goGlobal()">🌐 Qlobal Çat</button>
+        <button class="sheet-btn" style="color:#ef4444" onclick="logout()">🛑 Çıxış Et</button>
+    </div></div>
+    
+    <div id="themeSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet">
+        <button class="sheet-btn" onclick="setTheme('')">🌑 Qaranlıq</button>
+        <button class="sheet-btn" onclick="setTheme('theme-blue')">🌊 Okean</button>
+    </div></div>
+
+    <div id="attachSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet">
+        <button class="sheet-btn" onclick="document.getElementById('fInp').click()">🖼 Şəkil Göndər</button>
+    </div></div>
     <input type="file" id="fInp" hidden accept="image/*" onchange="uploadFile()">
 
 <script>
-    // SUPABASE CONFIG (Sənin məlumatların)
+    // SUPABASE
     const SB_URL = 'https://pyknspxnwnilhqsazidj.supabase.co';
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(SB_URL, SB_KEY);
 
-    // STATE YÖNETİMİ
     let user = JSON.parse(localStorage.getItem('x_user'));
+    let myFriends = JSON.parse(localStorage.getItem('x_friends')) || []; 
     let room = 'General';
-    let selectedMsg = null; // {id, text, sender, status, ava}
-    let isEditing = false;
-    let replyingTo = null; // Cavab verilən mesajın datası
-    let mediaRecorder, chunks = [];
     let uploadedAvaUrl = "";
-    let holdTimer;
+    let pendingRequests = [];
 
-    // --- İNİSİALİZASİYA (BAŞLANĞIC) ---
+    // BAŞLANĞIC
     function checkLogin() {
         if(user) {
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('mainApp').style.display = 'flex';
             document.getElementById('myAva').src = user.ava;
-            document.getElementById('myStatusHeader').innerText = "- " + (user.status || "Onlayn");
             document.body.className = localStorage.getItem('theme') || '';
-            loadMsgs();
             
-            // Realtime Dinləmə
-            sb.channel('updates').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, () => loadMsgs()).subscribe();
+            loadMsgs();
+            fetchFriendRequests(); // Girən kimi istəkləri yoxla
+            
+            // Realtime: Həm normal mesajları, həm də sənə gələn dostluq istəklərini dinləyirik
+            sb.channel('updates').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, payload => {
+                const m = payload.new;
+                if(m.group_id === room) loadMsgs(); // Əgər otaqdasansa mesajı yenilə
+                if(m.group_id === 'REQ_' + user.nick) handleSystemMsg(m); // Əgər sənə sistem/dostluq mesajı gəlibsə
+            }).subscribe();
         }
     }
 
-    // --- PROFİL VƏ LOGİN ---
-    async function uploadAva(isLogin) {
-        const file = isLogin ? document.getElementById('avaFile').files[0] : document.getElementById('changeAvaFile').files[0];
-        if(!file) return;
-
-        if(isLogin) { document.getElementById('loadingText').style.display = 'block'; document.getElementById('loginBtn').disabled = true; }
-        
-        const name = `ava_${Date.now()}.png`;
-        const { data, error } = await sb.storage.from('audio_messages').upload(name, file);
-        
-        if(!error) {
-            uploadedAvaUrl = `${SB_URL}/storage/v1/object/public/audio_messages/${name}`;
-            if(isLogin) {
-                document.getElementById('avaPrev').src = uploadedAvaUrl;
-                document.getElementById('avaPrev').style.display = 'block';
-                document.getElementById('avaPlus').style.display = 'none';
-                document.getElementById('loadingText').innerText = "✅ Şəkil Hazırdır!";
-                document.getElementById('loginBtn').disabled = false;
-            } else {
-                document.getElementById('settingsAva').src = uploadedAvaUrl;
-            }
-        }
+    async function uploadAva() {
+        const file = document.getElementById('avaFile').files[0]; if(!file) return;
+        const { data } = await sb.storage.from('audio_messages').upload(`ava_${Date.now()}.png`, file);
+        uploadedAvaUrl = `${SB_URL}/storage/v1/object/public/audio_messages/${data.path}`;
+        document.getElementById('avaPrev').src = uploadedAvaUrl;
+        document.getElementById('avaPrev').style.display = 'block';
+        document.getElementById('avaPlus').style.display = 'none';
     }
 
     function handleLogin() {
         const nick = document.getElementById('nickInp').value.trim();
-        const status = document.getElementById('statusInp').value.trim() || "Mən X-Chat istifadə edirəm!";
         if(!nick) return alert('Ad vacibdir!');
-        
-        const ava = uploadedAvaUrl || `https://ui-avatars.com/api/?name=${nick}&background=random`;
-        user = { nick, ava, status };
+        user = { nick, ava: uploadedAvaUrl || `https://ui-avatars.com/api/?name=${nick}&background=random` };
         localStorage.setItem('x_user', JSON.stringify(user));
         location.reload();
     }
 
-    function openSettings() {
-        document.getElementById('changeNickInp').value = user.nick;
-        document.getElementById('changeStatusInp').value = user.status;
-        document.getElementById('settingsAva').src = user.ava;
-        openSheet('settingsSheet');
-    }
+    // --- DOSTLUQ SİSTEMİ MƏNTİQİ ---
 
-    function updateProfile() {
-        const nick = document.getElementById('changeNickInp').value.trim();
-        if(!nick) return;
-        user.nick = nick;
-        user.status = document.getElementById('changeStatusInp').value.trim() || "Onlayn";
-        if(uploadedAvaUrl) user.ava = uploadedAvaUrl;
+    // 1. Profilə basanda açılan modal
+    function openDM(targetNick, targetAva) {
+        if(targetNick === user.nick) return;
+        document.getElementById('dmTargetName').innerText = targetNick;
+        document.getElementById('dmAva').src = targetAva;
         
-        localStorage.setItem('x_user', JSON.stringify(user));
-        alert("Profil Yeniləndi! ✨");
-        location.reload();
+        // Əgər artıq dostdursa, "Dostluq at" düyməsini gizlət
+        const isFriend = myFriends.find(f => f.nick === targetNick);
+        const addBtn = document.getElementById('addFriendBtn');
+        
+        if(isFriend) {
+            addBtn.style.display = 'none';
+        } else {
+            addBtn.style.display = 'block';
+            addBtn.onclick = () => sendFriendReq(targetNick, targetAva);
+        }
+
+        document.getElementById('dmBtn').onclick = () => {
+            room = 'DM_' + [user.nick, targetNick].sort().join('_');
+            document.getElementById('roomTitle').innerText = '👤 ' + targetNick;
+            closeSheets(); loadMsgs();
+        };
+        openSheet('dmSheet');
     }
 
-    // --- ÇAT VƏ MESAJLAŞMA ---
+    // 2. Dostluq İstəyi Göndərmək
+    async function sendFriendReq(targetNick, targetAva) {
+        addBtn = document.getElementById('addFriendBtn');
+        addBtn.innerText = "⏳ Göndərilir...";
+        
+        // Məlumatı bazaya sistem mesajı kimi yazırıq (group_id = 'REQ_HedefAd')
+        const payload = { type: 'friend_request', from: user.nick, ava: user.ava };
+        await sb.from('messages').insert([{ nickname: user.nick, group_id: 'REQ_' + targetNick, content: JSON.stringify(payload) }]);
+        
+        addBtn.innerText = "✅ Göndərildi!";
+        addBtn.style.background = "transparent";
+        setTimeout(closeSheets, 1000);
+    }
+
+    // 3. Gələn Sistem Mesajlarını (İstəkləri) Oxumaq
+    function handleSystemMsg(m) {
+        try {
+            let data = JSON.parse(m.content);
+            if(data.type === 'friend_request') {
+                document.getElementById('reqDot').style.display = 'block'; // Qırmızı nöqtəni yandır
+                fetchFriendRequests(); // Siyahını yenilə
+            }
+            if(data.type === 'req_accepted') {
+                // Qarşı tərəf qəbul edibsə, onu dostlarına əlavə et
+                if(!myFriends.find(f => f.nick === data.from)) {
+                    myFriends.push({ nick: data.from, ava: data.ava });
+                    localStorage.setItem('x_friends', JSON.stringify(myFriends));
+                    alert(`🎉 ${data.from} dostluq istəyini qəbul etdi!`);
+                }
+                // Həmin təsdiq mesajını bazadan sil ki, təkrar gəlməsin
+                sb.from('messages').delete().eq('id', m.id).then();
+            }
+        } catch(e) {}
+    }
+
+    // 4. Bütün gözləyən istəkləri bazadan çəkmək
+    async function fetchFriendRequests() {
+        const { data } = await sb.from('messages').select('*').eq('group_id', 'REQ_' + user.nick);
+        pendingRequests = data.filter(m => { try{ return JSON.parse(m.content).type === 'friend_request'; }catch{return false;} });
+        
+        if(pendingRequests.length > 0) document.getElementById('reqDot').style.display = 'block';
+        else document.getElementById('reqDot').style.display = 'none';
+        
+        renderFriendsPanel();
+    }
+
+    // 5. Dostlar Panelini UI-da Göstərmək
+    function openFriends() {
+        renderFriendsPanel();
+        openSheet('friendsSheet');
+    }
+
+    function renderFriendsPanel() {
+        // İstəklər siyahısı
+        const reqDiv = document.getElementById('requestsList');
+        if(pendingRequests.length === 0) {
+            reqDiv.innerHTML = "Yeni istək yoxdur.";
+        } else {
+            reqDiv.innerHTML = pendingRequests.map(m => {
+                let d = JSON.parse(m.content);
+                return `
+                <div class="friend-item">
+                    <div style="display:flex; align-items:center; gap:10px">
+                        <img src="${d.ava}" style="width:35px; height:35px; border-radius:50%">
+                        <b style="color:#fff">${d.from}</b>
+                    </div>
+                    <div>
+                        <button class="action-btn" style="background:#10b981; margin-right:5px" onclick="acceptReq('${m.id}', '${d.from}', '${d.ava}')">Qəbul et</button>
+                        <button class="action-btn" style="background:#ef4444" onclick="rejectReq('${m.id}')">Sil</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // Dostlarım siyahısı
+        const frDiv = document.getElementById('friendsListContainer');
+        if(myFriends.length === 0) {
+            frDiv.innerHTML = "Hələ dostun yoxdur. Çatda kimsə tap!";
+        } else {
+            frDiv.innerHTML = myFriends.map(f => `
+                <div class="friend-item" onclick="openDM('${f.nick}', '${f.ava}')" style="cursor:pointer">
+                    <div style="display:flex; align-items:center; gap:10px">
+                        <img src="${f.ava}" style="width:35px; height:35px; border-radius:50%">
+                        <b style="color:#fff">${f.nick}</b>
+                    </div>
+                    <span style="color:var(--blue)">💬 Yaz</span>
+                </div>
+            `).join('');
+        }
+    }
+
+    // 6. İstəyi Qəbul Etmək
+    async function acceptReq(msgId, senderNick, senderAva) {
+        // 1. Öz siyahıma əlavə edirəm
+        myFriends.push({ nick: senderNick, ava: senderAva });
+        localStorage.setItem('x_friends', JSON.stringify(myFriends));
+        
+        // 2. İstək mesajını bazadan silirəm
+        await sb.from('messages').delete().eq('id', msgId);
+        
+        // 3. Qarşı tərəfə "Qəbul etdim" mesajı göndərirəm ki, o da məni əlavə etsin
+        const payload = { type: 'req_accepted', from: user.nick, ava: user.ava };
+        await sb.from('messages').insert([{ nickname: user.nick, group_id: 'REQ_' + senderNick, content: JSON.stringify(payload) }]);
+        
+        fetchFriendRequests(); // Ekranı yenilə
+    }
+
+    // 7. İstəyi Rədd Etmək
+    async function rejectReq(msgId) {
+        await sb.from('messages').delete().eq('id', msgId);
+        fetchFriendRequests();
+    }
+
+    // --- NORMAL ÇAT FUNKSİYALARI ---
     async function loadMsgs() {
         const { data } = await sb.from('messages').select('*').eq('group_id', room).order('created_at',{ascending:true});
-        const c = document.getElementById('chat'); 
-        
-        // C scroll pozisiyasını yadda saxla ki, yuxarı atmasın
-        const isAtBottom = c.scrollHeight - c.scrollTop <= c.clientHeight + 50;
-        c.innerHTML = '';
-        
+        const c = document.getElementById('chat'); c.innerHTML = '';
         data.forEach(m => {
             const isMe = m.nickname === user.nick;
             let body = '', j = {};
+            try { j = JSON.parse(m.content); } catch { j = {text: m.content}; }
             
-            try { 
-                j = JSON.parse(m.content); 
-            } catch { 
-                j = { text: m.content, type: 'text' }; 
-            }
-
-            // Məzmun növünü təyin et
-            if(j.type==='audio') body = `<audio src="${j.url}" controls></audio>`;
-            else if(j.type==='image') body = `<img src="${j.url}" class="msg-img" onclick="window.open('${j.url}')">`;
-            else if(j.type==='loc') body = `<a href="${j.url}" target="_blank" style="color:#38bdf8; font-weight:bold; text-decoration:none">📍 Məkanımı Göndərdim</a>`;
+            if(j.type==='image') body = `<img src="${j.url}" class="msg-img">`;
             else body = j.text || '';
-
-            // Reply (Cavab) varsa yuxarısında göstər
-            let replyHtml = '';
-            if(j.replyTo) {
-                replyHtml = `<div class="reply-quote" onclick="alert('Bu mesaj \\n${j.replyTo.sender}\\n tərəfindən yazılıb.')">
-                    <b style="color:var(--blue); font-size:11px">${j.replyTo.sender}</b><br>
-                    <span style="color:#ddd">${j.replyTo.text.length > 30 ? j.replyTo.text.substring(0,30)+'...' : j.replyTo.text}</span>
-                </div>`;
-            }
-
-            // Reaksiyalar
-            let reactHtml = (j.reactions && j.reactions.length) ? `<div style="position:absolute; bottom:-12px; right:15px; background:var(--panel); padding:2px 6px; border-radius:12px; font-size:12px; border:1px solid rgba(255,255,255,0.1)">${j.reactions.join('')}</div>` : '';
-
-            // Mesaj Vaxtı və Ticks
-            const timeStr = new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-            const tick = isMe ? `<span class="tick">✓✓</span>` : '';
 
             const div = document.createElement('div');
             div.className = `msg-box ${isMe ? 'me' : 'other'}`;
-            // Məlumatları DOM-a ötürmək üçün (uzun basanda istifadə edəcəyik)
-            const safeText = (j.text || 'Media').replace(/'/g, "\\'");
-            const safeStatus = (j.userStatus || '').replace(/'/g, "\\'");
-            
             div.innerHTML = `
-                <div ontouchstart="hStart('${m.id}', '${safeText}', '${m.nickname}')" ontouchend="hEnd()" onmousedown="hStart('${m.id}', '${safeText}', '${m.nickname}')" onmouseup="hEnd()">
-                    ${!isMe ? `<div style="display:flex; align-items:center; gap:5px; margin-bottom:4px; cursor:pointer" onclick="openDM('${m.nickname}', '${j.userAva || ''}', '${safeStatus}')">
-                        <img src="${j.userAva || 'https://ui-avatars.com/api/?name='+m.nickname}" style="width:16px; height:16px; border-radius:50%">
-                        <b style="color:var(--blue); font-size:12px;">${m.nickname}</b>
-                        <span style="font-size:9px; opacity:0.5; font-weight:normal">${j.userStatus || ''}</span>
-                    </div>` : ''}
-                    
-                    ${replyHtml}
-                    ${body}
-                    
-                    <div style="font-size:10px; opacity:0.5; text-align:right; margin-top:5px; display:flex; justify-content:flex-end; align-items:center; gap:3px">
-                        ${timeStr} ${tick}
-                    </div>
-                    ${reactHtml}
-                </div>`;
+                ${!isMe ? `<div onclick="openDM('${m.nickname}', '${j.userAva || ''}')" style="color:var(--blue); font-size:12px; margin-bottom:4px; cursor:pointer; font-weight:bold">👤 ${m.nickname}</div>` : ''}
+                ${body}
+                <div style="font-size:10px; opacity:0.5; text-align:right; margin-top:5px">${new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
+            `;
             c.appendChild(div);
         });
-        
-        if(isAtBottom) c.scrollTop = c.scrollHeight;
+        c.scrollTop = c.scrollHeight;
     }
 
     async function sendMsg() {
-        const i = document.getElementById('mInp'); 
-        const val = i.value.trim(); 
-        if(!val) return;
+        const i = document.getElementById('mInp'); const val = i.value.trim(); if(!val) return;
         i.value = '';
-
-        if(isEditing) {
-            // Redaktə
-            const { data } = await sb.from('messages').select('content').eq('id', selectedMsg.id).single();
-            let c = JSON.parse(data.content); 
-            c.text = val;
-            await sb.from('messages').update({ content: JSON.stringify(c) }).eq('id', selectedMsg.id);
-            isEditing = false;
-        } else {
-            // Yeni Mesaj (Reply ilə birlikdə)
-            let payload = { 
-                text: val, 
-                type: 'text', 
-                reactions: [],
-                userAva: user.ava,
-                userStatus: user.status
-            };
-            if(replyingTo) {
-                payload.replyTo = replyingTo;
-                cancelReply(); // Göndərəndən sonra reply box-u bağla
-            }
-            await sb.from('messages').insert([{ nickname:user.nick, group_id:room, content: JSON.stringify(payload) }]);
-        }
-        document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
-    }
-
-    // --- SƏS VƏ FAYL YÜKLƏMƏ ---
-    async function handleVoice() {
-        const btn = document.getElementById('micBtn');
-        if(!mediaRecorder || mediaRecorder.state === 'inactive') {
-            try {
-                const s = await navigator.mediaDevices.getUserMedia({audio:true});
-                mediaRecorder = new MediaRecorder(s); chunks = [];
-                mediaRecorder.ondataavailable = e => chunks.push(e.data);
-                mediaRecorder.onstop = async () => {
-                    btn.classList.remove('rec');
-                    const blob = new Blob(chunks, {type:'audio/webm'});
-                    const name = `v_${Date.now()}.webm`;
-                    await sb.storage.from('audio_messages').upload(name, blob);
-                    const url = `${SB_URL}/storage/v1/object/public/audio_messages/${name}`;
-                    
-                    let payload = { url, type:'audio', userAva: user.ava, userStatus: user.status };
-                    if(replyingTo) { payload.replyTo = replyingTo; cancelReply(); }
-                    
-                    await sb.from('messages').insert([{ nickname:user.nick, group_id:room, content: JSON.stringify(payload) }]);
-                };
-                mediaRecorder.start(); 
-                btn.classList.add('rec');
-            } catch(e) { alert("Mikrofona icazə verilməyib!"); }
-        } else { 
-            mediaRecorder.stop(); 
-        }
+        await sb.from('messages').insert([{ nickname:user.nick, group_id:room, content: JSON.stringify({text:val, type:'text', userAva: user.ava}) }]);
     }
 
     async function uploadFile() {
         const f = document.getElementById('fInp').files[0]; if(!f) return;
         closeSheets();
-        const name = `img_${Date.now()}_${f.name}`;
-        await sb.storage.from('audio_messages').upload(name, f);
-        const url = `${SB_URL}/storage/v1/object/public/audio_messages/${name}`;
-        await sb.from('messages').insert([{ nickname:user.nick, group_id:room, content: JSON.stringify({url, type:'image', userAva: user.ava, userStatus: user.status}) }]);
+        const { data } = await sb.storage.from('audio_messages').upload(`img_${Date.now()}_${f.name}`, f);
+        const url = `${SB_URL}/storage/v1/object/public/audio_messages/${data.path}`;
+        await sb.from('messages').insert([{ nickname:user.nick, group_id:room, content: JSON.stringify({url, type:'image', userAva: user.ava}) }]);
     }
 
-    function sendLoc() {
-        navigator.geolocation.getCurrentPosition(async p => {
-            const url = `https://www.google.com/maps?q=$${p.coords.latitude},${p.coords.longitude}`;
-            await sb.from('messages').insert([{ nickname:user.nick, group_id:room, content: JSON.stringify({url, type:'loc', userAva: user.ava, userStatus: user.status}) }]);
-            closeSheets();
-        });
-    }
-
-    // --- INTERAKTİV FUNKSİYALAR (REPLY, EDIT, DM) ---
-    function hStart(id, text, sender) { 
-        selectedMsg = {id, text, sender}; 
-        holdTimer = setTimeout(() => openSheet('msgSheet'), 400); 
-    }
-    function hEnd() { clearTimeout(holdTimer); }
-
-    function prepareReply() {
-        replyingTo = { id: selectedMsg.id, text: selectedMsg.text, sender: selectedMsg.sender };
-        document.getElementById('repName').innerText = selectedMsg.sender;
-        document.getElementById('repText').innerText = selectedMsg.text;
-        document.getElementById('replyPreview').style.display = 'flex';
-        closeSheets();
-        document.getElementById('mInp').focus();
-    }
-    
-    function cancelReply() {
-        replyingTo = null;
-        document.getElementById('replyPreview').style.display = 'none';
-    }
-
-    function startEdit() { 
-        if(selectedMsg.sender !== user.nick) return alert("Yalnız öz mesajını redaktə edə bilərsən!");
-        isEditing = true; 
-        document.getElementById('mInp').value = selectedMsg.text; 
-        closeSheets(); 
-        document.getElementById('mInp').focus(); 
-    }
-
-    async function deleteMsg() { 
-        if(selectedMsg.sender !== user.nick) return alert("Bunu silə bilməzsən!");
-        if(confirm('Mesaj silinsin?')) await sb.from('messages').delete().eq('id', selectedMsg.id); 
-        closeSheets(); 
-    }
-
-    async function addReact(emoji) {
-        const { data } = await sb.from('messages').select('content').eq('id', selectedMsg.id).single();
-        let c = JSON.parse(data.content); 
-        if(!c.reactions) c.reactions = []; 
-        c.reactions.push(emoji);
-        await sb.from('messages').update({ content: JSON.stringify(c) }).eq('id', selectedMsg.id);
-        closeSheets();
-    }
-
-    function openDM(targetNick, targetAva, targetStatus) {
-        if(targetNick === user.nick) return; // Özünə DM yaza bilməzsən
-        document.getElementById('dmTargetName').innerText = targetNick;
-        document.getElementById('dmAva').src = targetAva || `https://ui-avatars.com/api/?name=${targetNick}&background=random`;
-        document.getElementById('dmTargetStatus').innerText = targetStatus || "Onlayn";
-        
-        document.getElementById('dmBtn').onclick = () => {
-            room = 'DM_' + [user.nick, targetNick].sort().join('_');
-            document.getElementById('roomTitle').innerText = '👤 ' + targetNick;
-            closeSheets(); 
-            loadMsgs();
-        };
-        openSheet('dmSheet');
-    }
-
-    // --- UTILS ---
     function openSheet(id) { document.getElementById(id).classList.add('active'); }
     function closeSheets() { document.querySelectorAll('.sheet-overlay').forEach(s => s.classList.remove('active')); }
     function goGlobal() { room = 'General'; document.getElementById('roomTitle').innerText = 'General'; closeSheets(); loadMsgs(); }
-    function changeRoom() { const n = prompt('Otaq Adı:'); if(n) { room = n; document.getElementById('roomTitle').innerText = '🔒 '+n; loadMsgs(); } closeSheets(); }
     function setTheme(t) { document.body.className = t; localStorage.setItem('theme', t); closeSheets(); }
     function logout() { localStorage.clear(); location.reload(); }
-    function filterMsgs() {
-        const t = document.getElementById('searchBox').value.toLowerCase();
-        document.querySelectorAll('.msg-box').forEach(m => m.style.display = m.innerText.toLowerCase().includes(t)?'block':'none');
-    }
 
     checkLogin();
 </script>
 </body>
 </html>
- 
