@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>X-Chat V13 PREMIUM</title>
+    <title>X-Chat V14 FIX</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg: #0b0d10; --panel: #16191f; --blue: #3b82f6; --me: #2b5278; --other: #1c2128; --text: #ffffff; }
@@ -30,8 +30,6 @@
         .sheet-overlay.active .sheet { transform: translateY(0); }
         
         .sheet-btn { width: 100%; padding: 15px; background: rgba(255,255,255,0.05); border: none; color: #fff; border-radius: 15px; margin-bottom: 10px; text-align: left; display: flex; align-items: center; gap: 10px; }
-        input.edit-inp { width: 100%; background: #000; border: 1px solid var(--blue); color: #fff; padding: 12px; border-radius: 10px; margin-bottom: 10px; }
-
         @keyframes pop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
@@ -44,7 +42,6 @@
                 <div><b id="roomTitle">Qlobal Çat</b><div style="font-size:10px; color:#10b981">● Online</div></div>
             </div>
             <div style="display:flex; gap:15px; font-size:22px">
-                <span onclick="openSheet('friendsSheet')">👥</span>
                 <span onclick="renderRooms()">🏠</span>
             </div>
         </div>
@@ -53,39 +50,24 @@
     <div id="chat"></div>
 
     <div class="footer">
-        <span onclick="openSheet('attachSheet')" style="font-size:25px; color:var(--blue)">+</span>
+        <span onclick="openSheet('attachSheet')" style="font-size:25px; color:var(--blue); cursor:pointer">+</span>
         <div class="inp-wrap"><input type="text" id="mInp" placeholder="Mesaj..." onkeypress="if(event.key==='Enter') sendMsg()"></div>
         <button onclick="sendMsg()" style="background:var(--blue); border:none; color:#fff; width:40px; height:40px; border-radius:50%">➤</button>
     </div>
 
-    <div id="profileEditSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet" onclick="event.stopPropagation()">
-        <h3>Profili Redaktə Et</h3>
-        <div style="text-align:center; margin:15px 0">
-            <img id="editAvaPrev" style="width:80px; height:80px; border-radius:50%; border:2px solid var(--blue); object-fit:cover">
-            <button onclick="document.getElementById('newAvaFile').click()" style="display:block; margin:10px auto; background:none; border:none; color:var(--blue)">Şəkli Dəyiş</button>
-            <input type="file" id="newAvaFile" hidden accept="image/*" onchange="updateAvaPreview()">
-        </div>
-        <input type="text" id="editNick" class="edit-inp" placeholder="Yeni Ləqəb">
-        <input type="password" id="editPass" class="edit-inp" placeholder="Yeni Giriş Şifrəsi">
-        <button class="sheet-btn" onclick="saveProfile()" style="background:var(--blue); justify-content:center; font-weight:bold">Yadda Saxla</button>
-        <button class="sheet-btn" onclick="logout()" style="color:red; justify-content:center">Çıxış Et</button>
-    </div></div>
-
     <div id="roomsSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet" onclick="event.stopPropagation()">
         <h3>Otaqlar</h3>
-        <button class="sheet-btn" onclick="createNewRoomUI()" style="background:var(--blue); font-weight:bold">➕ Yeni Otaq (Şifrəli/Məkanlı)</button>
+        <button class="sheet-btn" onclick="createNewRoomUI()" style="background:var(--blue); font-weight:bold">➕ Yeni Otaq Yarat</button>
         <div id="roomsList" style="margin-top:10px"></div>
     </div></div>
 
-    <div id="friendsSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet" onclick="event.stopPropagation()">
-        <h3>Dostlar</h3>
-        <div id="friendsList"></div>
+    <div id="profileEditSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet" onclick="event.stopPropagation()">
+        <h3>Profil Ayarları</h3>
+        <button class="sheet-btn" onclick="logout()" style="color:red">🛑 Hesabdan Çıx</button>
     </div></div>
 
     <div id="attachSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet">
-        <button class="sheet-btn" onclick="document.getElementById('imgFile').click()">🖼 Şəkil</button>
-        <button class="sheet-btn" onclick="sendLocation()">📍 Məkan</button>
-        <input type="file" id="imgFile" hidden onchange="uploadImg()">
+        <button class="sheet-btn" onclick="sendLocation()">📍 Məkan Paylaş</button>
     </div></div>
 
 <script>
@@ -94,119 +76,113 @@
     const sb = supabase.createClient(SB_URL, SB_KEY);
 
     let user = JSON.parse(localStorage.getItem('x_user'));
-    let currentRoom = { name: 'General' };
+    let currentRoomName = 'General';
     let myRooms = JSON.parse(localStorage.getItem('x_rooms')) || [{ name: 'General' }];
 
-    // --- BAŞLANĞIC YOXLA ---
     if(!user) {
-        const n = prompt("X-Chat-a xoş gəldiniz! Ləqəbiniz:");
-        const p = prompt("Giriş şifrəsi təyin edin:");
-        user = { nick: n || 'Anonim', pass: p || '', ava: `https://ui-avatars.com/api/?name=${n}` };
+        let n = prompt("Ləqəbiniz:");
+        user = { nick: n || 'Qonaq', ava: `https://ui-avatars.com/api/?name=${n}` };
         localStorage.setItem('x_user', JSON.stringify(user));
         location.reload();
     }
 
     function init() {
         document.getElementById('headAva').src = user.ava;
-        document.getElementById('editAvaPrev').src = user.ava;
-        document.getElementById('editNick').value = user.nick;
         loadMsgs();
         sb.channel('updates').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, () => loadMsgs()).subscribe();
     }
 
-    // --- MESAJLARI YÜKLƏ ---
     async function loadMsgs() {
-        const { data } = await sb.from('messages').select('*').eq('group_id', currentRoom.name).order('created_at', {ascending:true});
+        const { data } = await sb.from('messages').select('*').eq('group_id', currentRoomName).order('created_at', {ascending:true});
         const chat = document.getElementById('chat'); chat.innerHTML = '';
         data.forEach(m => {
             let j = {}; try { j = JSON.parse(m.content); } catch { j = {text: m.content}; }
             const isMe = m.nickname === user.nick;
             const div = document.createElement('div');
             div.className = `msg-box ${isMe ? 'me' : 'other'}`;
-            
-            let contentHtml = j.type === 'loc' ? `<a href="${j.url}" target="_blank" style="color:cyan">📍 Məkan Paylaşdı</a>` : 
-                             (j.type === 'img' ? `<img src="${j.url}" style="max-width:100%; border-radius:10px">` : `<div>${j.text || ''}</div>`);
-            
-            div.innerHTML = `${!isMe ? `<b style="font-size:11px; color:var(--blue)">${m.nickname}</b><br>` : ''}${contentHtml}`;
+            div.innerHTML = `${!isMe ? `<b style="font-size:11px; color:var(--blue)">${m.nickname}</b><br>` : ''}${j.text || ''}`;
             chat.appendChild(div);
         });
         chat.scrollTop = chat.scrollHeight;
     }
 
-    async function sendMsg(extra = {}) {
+    async function sendMsg() {
         const inp = document.getElementById('mInp');
-        if(!inp.value && !extra.type) return;
-        const payload = { text: inp.value, ...extra };
+        if(!inp.value) return;
+        const payload = { text: inp.value };
+        await sb.from('messages').insert([{ nickname: user.nick, group_id: currentRoomName, content: JSON.stringify(payload) }]);
         inp.value = '';
-        await sb.from('messages').insert([{ nickname: user.nick, group_id: currentRoom.name, content: JSON.stringify(payload) }]);
     }
 
-    // --- MƏKAN ƏSASLI OTAQ YARATMA ---
+    // --- TƏMİR EDİLMİŞ OTAQ SİSTEMİ ---
     function createNewRoomUI() {
-        const name = prompt("Otaq adı:"); if(!name) return;
-        const type = confirm("Bu otaq MƏKAN KİLİDLİ olsun? (Yalnız 100m yaxındakılar girə bilsin)");
+        const name = prompt("Otaq adı nə olsun?"); if(!name) return;
         
-        if(type) {
+        const isZone = confirm("Bu otaq MƏKAN KİLİDLİ olsun? (Yalnız sizin yaxınınızda olanlar girə biləcək)");
+        let pass = prompt("Otaq üçün şifrə təyin edin (Şifrəsiz istəyirsinizsə boş qoyun):");
+        
+        if(isZone) {
+            alert("Koordinatlarınız alınır, zəhmət olmasa icazə verin...");
             navigator.geolocation.getCurrentPosition(pos => {
-                const newR = { name, lat: pos.coords.latitude, lng: pos.coords.longitude, isZone: true };
+                const newR = { 
+                    name: name, 
+                    lat: pos.coords.latitude, 
+                    lng: pos.coords.longitude, 
+                    isZone: true,
+                    pass: pass || null 
+                };
                 myRooms.push(newR);
                 saveRooms();
-            });
+                alert("Məkan əsaslı otaq yaradıldı!");
+                enterRoom(newR);
+            }, (err) => alert("GPS xətası: " + err.message));
         } else {
-            const pass = prompt("Şifrə qoyulsun? (Boşdursa şifrəsiz)");
-            myRooms.push({ name, pass: pass || null, isZone: false });
+            const newR = { name: name, isZone: false, pass: pass || null };
+            myRooms.push(newR);
             saveRooms();
+            enterRoom(newR);
         }
     }
 
     function renderRooms() {
         const list = document.getElementById('roomsList'); list.innerHTML = '';
         myRooms.forEach(r => {
-            list.innerHTML += `<button class="sheet-btn" onclick='tryJoinRoom(${JSON.stringify(r)})'>
-                🏠 ${r.name} ${r.isZone ? '📍' : (r.pass ? '🔒' : '')}
-            </button>`;
+            const icon = r.isZone ? '📍' : (r.pass ? '🔒' : '🌍');
+            const btn = document.createElement('button');
+            btn.className = 'sheet-btn';
+            btn.innerHTML = `${icon} ${r.name}`;
+            btn.onclick = () => tryJoinRoom(r);
+            list.appendChild(btn);
         });
         openSheet('roomsSheet');
     }
 
     function tryJoinRoom(r) {
+        // 1. Şifrə yoxlanışı
+        if(r.pass) {
+            const inputPass = prompt("Bu otaq şifrəlidir. Şifrəni daxil edin:");
+            if(inputPass !== r.pass) return alert("Səhv şifrə!");
+        }
+
+        // 2. Məkan yoxlanışı
         if(r.isZone) {
+            alert("Məkanınız yoxlanılır...");
             navigator.geolocation.getCurrentPosition(pos => {
                 const dist = getDist(pos.coords.latitude, pos.coords.longitude, r.lat, r.lng);
-                if(dist > 0.1) return alert("Siz bu otaqdan çox uzaqdasınız!");
+                // Radius 0.2 km (200 metr) edildi ki, giriş daha rahat olsun
+                if(dist > 0.2) return alert("Təəssüf, bu otağa girmək üçün məkana çox uzaqsınız!");
                 enterRoom(r);
-            });
-        } else if(r.pass) {
-            if(prompt("Şifrə:") !== r.pass) return alert("Səhv şifrə!");
-            enterRoom(r);
+            }, () => alert("GPS-ə icazə verilmədi. Məkan otağına girilə bilməz."));
         } else {
             enterRoom(r);
         }
     }
 
     function enterRoom(r) {
-        currentRoom = r;
+        currentRoomName = r.name;
         document.getElementById('roomTitle').innerText = r.name;
-        closeSheets(); loadMsgs();
-    }
-
-    // --- PROFİL REDAKTƏ ---
-    async function updateAvaPreview() {
-        const file = document.getElementById('newAvaFile').files[0];
-        const name = `ava_${Date.now()}.png`;
-        await sb.storage.from('audio_messages').upload(name, file);
-        const url = `${SB_URL}/storage/v1/object/public/audio_messages/${name}`;
-        document.getElementById('editAvaPrev').src = url;
-        user.tempAva = url;
-    }
-
-    function saveProfile() {
-        user.nick = document.getElementById('editNick').value;
-        if(document.getElementById('editPass').value) user.pass = document.getElementById('editPass').value;
-        if(user.tempAva) user.ava = user.tempAva;
-        localStorage.setItem('x_user', JSON.stringify(user));
-        alert("Profil yeniləndi!");
-        location.reload();
+        closeSheets(); 
+        loadMsgs();
     }
 
     // --- KÖMƏKÇİ ---
@@ -217,7 +193,7 @@
         const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
-    function saveRooms() { localStorage.setItem('x_rooms', JSON.stringify(myRooms)); renderRooms(); }
+    function saveRooms() { localStorage.setItem('x_rooms', JSON.stringify(myRooms)); }
     function openSheet(id) { document.getElementById(id).classList.add('active'); }
     function closeSheets() { document.querySelectorAll('.sheet-overlay').forEach(s => s.classList.remove('active')); }
     function logout() { localStorage.clear(); location.reload(); }
@@ -226,3 +202,4 @@
 </script>
 </body>
 </html>
+ 
