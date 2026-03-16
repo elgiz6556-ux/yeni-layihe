@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>X-Chat ENDGAME</title>
+    <title>X-Chat</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg: #0b0d10; --panel: #16191f; --blue: #3b82f6; --me: #2b5278; --other: #1c2128; --text: #ffffff; --ghost: linear-gradient(45deg, #4b5563, #1f2937); }
@@ -26,7 +26,7 @@
         .footer { background: var(--panel); padding: 10px 10px 35px; display: flex; align-items: center; gap: 10px; }
         .inp-wrap { flex: 1; background: #000; border-radius: 25px; padding: 0 15px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.1); }
         #mInp { border: none; background: transparent; color: #fff; padding: 12px 0; flex: 1; outline: none; }
-        .ghost-btn { width: 35px; height: 35px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .ghost-btn { width: 35px; height: 35px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; }
         .ghost-btn.active { background: var(--blue); box-shadow: 0 0 10px var(--blue); border: none; }
 
         /* MODALS (SHEETS) */
@@ -34,7 +34,7 @@
         .sheet-overlay.active { display: flex; }
         .sheet { width: 100%; background: var(--panel); border-radius: 30px 30px 0 0; padding: 25px; transform: translateY(100%); transition: 0.3s; max-height: 85vh; overflow-y: auto; }
         .sheet-overlay.active .sheet { transform: translateY(0); }
-        .sheet-btn { width: 100%; padding: 15px; background: rgba(255,255,255,0.05); border: none; color: #fff; border-radius: 15px; margin-bottom: 10px; text-align: left; display: flex; align-items: center; gap: 12px; }
+        .sheet-btn { width: 100%; padding: 15px; background: rgba(255,255,255,0.05); border: none; color: #fff; border-radius: 15px; margin-bottom: 10px; text-align: left; display: flex; align-items: center; gap: 12px; cursor: pointer; }
 
         @keyframes evaporate { 80% { opacity: 0.5; filter: blur(2px); } 100% { opacity: 0; display: none; } }
         @keyframes pop { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -48,7 +48,7 @@
                 <img id="headAva" src="">
                 <div><b id="roomTitle">Qlobal Çat</b><div id="mood" style="font-size:10px; color:#10b981">● Aktiv</div></div>
             </div>
-            <div style="display:flex; gap:18px; font-size:22px">
+            <div style="display:flex; gap:18px; font-size:22px; cursor: pointer;">
                 <span onclick="openFriends()" style="position:relative">👥<div id="reqDot" style="display:none; width:10px; height:10px; background:red; border-radius:50%; position:absolute; top:-2px; right:-2px"></div></span>
                 <span onclick="renderRooms()">🏠</span>
             </div>
@@ -58,10 +58,10 @@
     <div id="chat"></div>
 
     <div class="footer">
-        <span onclick="openSheet('attachSheet')" style="font-size:25px; color:var(--blue)">+</span>
+        <span onclick="openSheet('attachSheet')" style="font-size:25px; color:var(--blue); cursor: pointer;">+</span>
         <div class="ghost-btn" id="gBtn" onclick="toggleGhost()">👻</div>
         <div class="inp-wrap"><input type="text" id="mInp" placeholder="Mesaj..." onkeypress="if(event.key==='Enter') sendMsg()"></div>
-        <button onclick="sendMsg()" style="background:var(--blue); border:none; color:#fff; width:40px; height:40px; border-radius:50%">➤</button>
+        <button onclick="sendMsg()" style="background:var(--blue); border:none; color:#fff; width:40px; height:40px; border-radius:50%; cursor: pointer;">➤</button>
     </div>
 
     <div id="roomsSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet" onclick="event.stopPropagation()">
@@ -80,8 +80,7 @@
         <div style="text-align:center; margin:15px 0">
             <img id="setAva" style="width:80px; height:80px; border-radius:50%; border:2px solid var(--blue); object-fit:cover">
         </div>
-        <button class="sheet-btn" onclick="changeProfile()">✏️ Ad və Şəkli Dəyiş</button>
-        <button class="sheet-btn" onclick="logout()" style="color:red">🛑 Çıxış</button>
+        <button class="sheet-btn" onclick="logout()" style="color:red; justify-content: center;">🛑 Hesabdan Çıx</button>
     </div></div>
 
     <div id="attachSheet" class="sheet-overlay" onclick="closeSheets()"><div class="sheet">
@@ -98,14 +97,13 @@
     let user = JSON.parse(localStorage.getItem('x_user'));
     let curRoom = { name: 'General' };
     let isGhost = false;
-    let myRooms = JSON.parse(localStorage.getItem('x_rooms')) || [{ name: 'General' }];
+    let myRooms = JSON.parse(localStorage.getItem('x_rooms')) || [{ name: 'General', isZone: false, pass: null }];
     let myFriends = JSON.parse(localStorage.getItem('x_friends')) || [];
 
     // --- SİSTEMİ BAŞLAT ---
     if(!user) {
-        const n = prompt("Ləqəbiniz:");
-        const p = prompt("Giriş şifrəniz:");
-        user = { nick: n || 'Anonim', pass: p || '123', ava: `https://ui-avatars.com/api/?name=${n}` };
+        const n = prompt("X-Chat-a xoş gəldiniz! Ləqəbinizi qeyd edin:");
+        user = { nick: n || 'Anonim', ava: `https://ui-avatars.com/api/?name=${n || 'Anonim'}&background=random` };
         localStorage.setItem('x_user', JSON.stringify(user));
         location.reload();
     }
@@ -122,7 +120,7 @@
         }).subscribe();
     }
 
-    // --- MESAJLAR (FIXED JSON) ---
+    // --- MESAJLAR ---
     async function loadMsgs() {
         const { data } = await sb.from('messages').select('*').eq('group_id', curRoom.name).order('created_at', {ascending:true});
         const chat = document.getElementById('chat'); chat.innerHTML = '';
@@ -132,7 +130,7 @@
             const div = document.createElement('div');
             div.className = `msg-box ${isMe ? 'me' : 'other'} ${j.mode === 'ghost' ? 'ghost-msg' : ''}`;
             
-            let body = j.type === 'loc' ? `<a href="${j.url}" target="_blank" style="color:cyan">📍 Məkan</a>` : 
+            let body = j.type === 'loc' ? `<a href="${j.url}" target="_blank" style="color:cyan">📍 Məkan Paylaşdı</a>` : 
                        (j.type === 'img' ? `<img src="${j.url}" style="max-width:100%; border-radius:10px">` : `<div>${j.text || ''}</div>`);
             
             div.innerHTML = `${!isMe ? `<b onclick="viewUser('${m.nickname}','${j.ava}')" style="font-size:11px; color:var(--blue); cursor:pointer">${m.nickname}</b><br>` : ''}${body}`;
@@ -152,11 +150,11 @@
         await sb.from('messages').insert([{ nickname: user.nick, group_id: curRoom.name, content: JSON.stringify(payload) }]);
     }
 
-    // --- OTAQ SİSTEMİ (FIXED GPS & PASS) ---
+    // --- OTAQ SİSTEMİ ---
     function createRoom() {
-        const n = prompt("Otaq adı:"); if(!n) return;
-        const isZ = confirm("MƏKAN KİLİDLİ olsun? (Yalnız 200m yaxındakılar)");
-        const p = prompt("Otaq şifrəsi (İstəmirsinizsə boş qoyun):") || null;
+        const n = prompt("Otaq adı nə olsun?"); if(!n) return;
+        const isZ = confirm("MƏKAN KİLİDLİ olsun? (Yalnız sizin yaxınınızda olanlar girə biləcək)");
+        const p = prompt("Otaq şifrəsi təyin edin (Şifrəsiz istəyirsinizsə boş qoyun):") || null;
 
         if(isZ) {
             navigator.geolocation.getCurrentPosition(pos => {
@@ -164,7 +162,7 @@
                 myRooms.push(roomObj);
                 saveRooms();
                 enterRoom(roomObj);
-            }, () => alert("GPS icazəsi lazımdır!"));
+            }, () => alert("Məkan otağı yaratmaq üçün GPS icazəsi lazımdır!"));
         } else {
             const roomObj = { name: n, isZone: false, pass: p };
             myRooms.push(roomObj);
@@ -186,12 +184,13 @@
     }
 
     function tryJoin(r) {
-        if(r.pass && prompt("Şifrə:") !== r.pass) return alert("Səhv şifrə!");
+        if(r.pass && prompt("Bu otaq şifrəlidir. Şifrəni daxil edin:") !== r.pass) return alert("Səhv şifrə!");
         if(r.isZone) {
+            alert("Məkanınız yoxlanılır...");
             navigator.geolocation.getCurrentPosition(pos => {
-                if(getDist(pos.coords.latitude, pos.coords.longitude, r.lat, r.lng) > 0.2) return alert("Çox uzaqdasınız!");
+                if(getDist(pos.coords.latitude, pos.coords.longitude, r.lat, r.lng) > 0.2) return alert("Təəssüf, bu otağa girmək üçün məkana çox uzaqsınız!");
                 enterRoom(r);
-            });
+            }, () => alert("GPS icazəsi verilmədi."));
         } else { enterRoom(r); }
     }
 
@@ -200,7 +199,7 @@
     // --- SOSİAL & DM ---
     function viewUser(nick, ava) {
         if(nick === user.nick) return;
-        if(confirm(`${nick} adlı istifadəçiyə DM yazmaq istəyirsiniz?`)) {
+        if(confirm(`${nick} adlı istifadəçiyə Şəxsi Mesaj (DM) yazmaq istəyirsiniz?`)) {
             const dmID = "DM_" + [user.nick, nick].sort().join("_");
             enterRoom({ name: dmID });
         }
@@ -209,7 +208,8 @@
     async function openFriends() {
         document.getElementById('reqDot').style.display='none';
         const { data } = await sb.from('messages').select('*').eq('group_id', 'REQ_'+user.nick);
-        const cont = document.getElementById('socialContent'); cont.innerHTML = '<h4>İstəklər</h4>';
+        const cont = document.getElementById('socialContent'); cont.innerHTML = '<h4>Gələn İstəklər</h4>';
+        if(data.length === 0) cont.innerHTML += '<p style="font-size:13px; color:gray; margin-top:10px;">Hələ ki, yeni istək yoxdur.</p>';
         data.forEach(req => {
             const d = JSON.parse(req.content);
             cont.innerHTML += `<div class="sheet-btn" onclick="acceptFriend('${d.from}')">🤝 ${d.from} (Qəbul et)</div>`;
@@ -220,11 +220,14 @@
     // --- TOOLS ---
     function toggleGhost() { isGhost = !isGhost; document.getElementById('gBtn').classList.toggle('active', isGhost); }
     function sendLoc() { navigator.geolocation.getCurrentPosition(p => sendMsg({type:'loc', url: `https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`})); closeSheets(); }
+    
+    // Məsafə hesablama düsturu (Haversine)
     function getDist(la1, lo1, la2, lo2) {
         const R = 6371; const dLat = (la2-la1)*Math.PI/180; const dLon = (lo2-lo1)*Math.PI/180;
         const a = Math.sin(dLat/2)**2 + Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLon/2)**2;
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
+    
     function syncMood() { const h = new Date().getHours(); document.body.style.background = (h>19||h<7) ? "#05070a" : "#0b0d10"; }
     function saveRooms() { localStorage.setItem('x_rooms', JSON.stringify(myRooms)); }
     function openSheet(id) { document.getElementById(id).classList.add('active'); }
@@ -235,4 +238,3 @@
 </script>
 </body>
 </html>
- 
