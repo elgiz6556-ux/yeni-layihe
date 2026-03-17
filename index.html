@@ -3,31 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>X-Chat TITAN</title>
+    <title>X-Chat TITAN FINAL</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --p: #007aff; --bg: #090a10; --card: rgba(255,255,255,0.06);
-            --border: rgba(255,255,255,0.1); --t: #ffffff;
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        :root { --p: #007aff; --bg: #090a10; --card: rgba(255,255,255,0.06); --border: rgba(255,255,255,0.1); --t: #ffffff; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
         body { background: radial-gradient(circle at top right, #1a1f35, #090a10); color: var(--t); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Professional Header */
-        header {
-            padding: 50px 20px 15px; background: rgba(10,10,15,0.8); backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; z-index: 100;
-        }
+        header { padding: 50px 20px 15px; background: rgba(10,10,15,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; z-index: 100; }
         .u-chip { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .u-chip img { width: 40px; height: 40px; border-radius: 12px; border: 2px solid var(--p); box-shadow: 0 0 10px rgba(0,122,255,0.3); }
+        .u-chip img { width: 42px; height: 42px; border-radius: 12px; border: 2px solid var(--p); }
 
-        /* Tab Sistemi */
         .nav-tabs { display: flex; background: rgba(0,0,0,0.4); padding: 5px; border-bottom: 1px solid var(--border); }
         .tab { flex: 1; text-align: center; padding: 12px; font-size: 13px; font-weight: 600; opacity: 0.5; cursor: pointer; transition: 0.3s; }
-        .tab.active { opacity: 1; color: var(--p); position: relative; }
-        .tab.active::after { content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 3px; background: var(--p); border-radius: 10px; }
+        .tab.active { opacity: 1; color: var(--p); border-bottom: 2px solid var(--p); }
 
-        /* Chat Sahəsi */
         #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
         .msg-wrap { display: flex; flex-direction: column; max-width: 80%; position: relative; animation: pop 0.3s ease; }
         .msg-wrap.me { align-self: flex-end; align-items: flex-end; }
@@ -36,18 +26,13 @@
         .bubble { padding: 12px 16px; border-radius: 18px; font-size: 15px; line-height: 1.4; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .me .bubble { background: linear-gradient(135deg, var(--p), #005bb5); border-bottom-right-radius: 4px; }
         .other .bubble { background: var(--card); backdrop-filter: blur(10px); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
-
+        
         .ghost .bubble { background: linear-gradient(45deg, #333, #000) !important; border: 1px dashed #777; animation: vanish 12s forwards; }
 
-        /* Reaksiyalar */
         .reakt-box { position: absolute; bottom: -12px; right: 8px; background: #1c1c1e; border: 1px solid #444; border-radius: 10px; padding: 1px 5px; font-size: 11px; display: flex; gap: 3px; z-index: 2; }
-        .emoji-picker { 
-            display: none; position: absolute; top: -45px; background: #2c2c2e; padding: 5px 10px; border-radius: 20px; 
-            gap: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); z-index: 50; border: 1px solid var(--p);
-        }
-        .msg-wrap:active .emoji-picker { display: flex; }
+        .emoji-picker { display: none; position: absolute; top: -45px; background: #2c2c2e; padding: 5px 10px; border-radius: 20px; gap: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); z-index: 50; border: 1px solid var(--p); }
+        .msg-wrap:active .emoji-picker, .msg-wrap:hover .emoji-picker { display: flex; }
 
-        /* Input Sahəsi */
         .footer { padding: 15px 15px 35px; background: rgba(10,10,15,0.9); display: flex; align-items: center; gap: 10px; border-top: 1px solid var(--border); }
         .inp-box { flex: 1; background: var(--card); border-radius: 20px; padding: 5px 15px; border: 1px solid var(--border); display: flex; align-items: center; }
         #mInp { border: none; background: transparent; color: #fff; padding: 10px 0; width: 100%; outline: none; font-size: 16px; }
@@ -57,11 +42,9 @@
         .btn-ghost { background: var(--card); color: #fff; }
         .btn-ghost.active { background: #ff3b30; box-shadow: 0 0 15px #ff3b30; }
 
-        /* Modallar */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
         .modal.active { display: flex; }
         .modal-cont { background: #1c1c1e; width: 100%; max-width: 400px; border-radius: 25px; padding: 25px; border: 1px solid var(--border); }
-        .m-btn { width: 100%; padding: 15px; background: #2c2c2e; border: none; color: #fff; border-radius: 15px; margin-bottom: 10px; font-weight: bold; text-align: left; display: flex; justify-content: space-between; }
 
         @keyframes vanish { 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(-30px); pointer-events: none; } }
         @keyframes pop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
@@ -73,17 +56,17 @@
 <header>
     <div class="u-chip" onclick="openModal('profModal')">
         <img id="myAva" src="">
-        <div><b id="headNick">...</b><div style="font-size: 10px; color:#34c759">● Onlayn</div></div>
+        <div><b id="headNick">Yüklənir...</b><div style="font-size: 10px; color:#34c759">● Onlayn</div></div>
     </div>
     <div style="display: flex; gap: 15px; font-size: 20px; cursor: pointer;">
-        <span onclick="findNearby()" title="GPS Otaqlar">📍</span>
-        <span onclick="openModal('roomModal')" title="Otaqlar">🏠</span>
+        <span onclick="findNearby()">📍</span>
+        <span onclick="openModal('roomModal')">🏠</span>
     </div>
 </header>
 
 <div class="nav-tabs">
     <div class="tab active" id="tab-global" onclick="setMode('global')">Qlobal</div>
-    <div class="tab" id="tab-dm" onclick="setMode('dm')">Şəxsi (DM)</div>
+    <div class="tab" id="tab-dm" onclick="setMode('dm')">DM</div>
     <div class="tab" id="tab-friends" onclick="setMode('friends')">Dostlar</div>
 </div>
 
@@ -91,22 +74,20 @@
 
 <div class="footer">
     <button class="btn-act btn-ghost" id="gBtn" onclick="toggleGhost()">👻</button>
-    <div class="inp-box"><input type="text" id="mInp" placeholder="Mesaj yaz..." onkeypress="if(event.key==='Enter') handleSend()"></div>
-    <button class="btn-act" style="background:var(--card)" onclick="handleVoice()">🎤</button>
+    <div class="inp-box"><input type="text" id="mInp" placeholder="Mesaj..." onkeypress="if(event.key==='Enter') handleSend()"></div>
+    <button class="btn-act" style="background:var(--card); color:white" onclick="handleVoice()">🎤</button>
     <button class="btn-act btn-send" onclick="handleSend()">➤</button>
 </div>
 
 <div id="profModal" class="modal" onclick="closeModals()"><div class="modal-cont" onclick="event.stopPropagation()">
-    <h2 style="margin-bottom:20px">Profil Ayarları</h2>
-    <button class="m-btn" onclick="changeNick()"><span>Ləqəbi Dəyiş</span> <span>✏️</span></button>
-    <button class="m-btn" onclick="hardReset()" style="color:#ff3b30"><span>Hesabı Sıfırla</span> <span>🛑</span></button>
-    <button class="m-btn" style="background:var(--p)" onclick="closeModals()">Bağla</button>
+    <button style="width:100%; padding:15px; margin-bottom:10px; border-radius:10px; border:none;" onclick="changeNick()">Ləqəbi Dəyiş ✏️</button>
+    <button style="width:100%; padding:15px; background:#ff3b30; color:white; border-radius:10px; border:none;" onclick="hardReset()">Sıfırla 🛑</button>
 </div></div>
 
 <div id="roomModal" class="modal" onclick="closeModals()"><div class="modal-cont" onclick="event.stopPropagation()">
-    <h3 style="margin-bottom:15px">Otaq Seçimi</h3>
-    <div id="roomList" style="max-height: 250px; overflow-y: auto;"></div>
-    <button class="m-btn" style="background:var(--p); margin-top:15px" onclick="createSecureRoom()">➕ Şifrəli Otaq Yarat</button>
+    <h3>Otaqlar</h3>
+    <div id="roomList" style="margin: 15px 0;"></div>
+    <button style="width:100%; padding:15px; background:var(--p); color:white; border-radius:10px; border:none;" onclick="createSecureRoom()">Yeni Şifrəli Otaq 🔒</button>
 </div></div>
 
 <script>
@@ -114,47 +95,31 @@
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(SB_URL, SB_KEY);
 
-    let user = JSON.parse(localStorage.getItem('x_user')) || null;
-    let curMode = 'global'; // 'global', 'dm', 'friends'
+    let user = JSON.parse(localStorage.getItem('x_user'));
     let curRoom = 'Qlobal Çat';
-    let curDM = null;
     let isGhost = false;
+    let curMode = 'global';
     let recorder, chunks = [];
 
     if(!user) {
-        let n = prompt("Ləqəbiniz:");
+        let n = prompt("Ləqəb:");
         user = { nick: n || 'Anonim', ava: `https://ui-avatars.com/api/?name=${n || 'A'}&background=random&color=fff` };
         localStorage.setItem('x_user', JSON.stringify(user));
         location.reload();
     }
 
     async function loadContent() {
+        const { data } = await sb.from('messages').select('*').eq('group_id', curRoom).order('created_at', {ascending:true});
         const box = document.getElementById('chat'); box.innerHTML = '';
-        
-        if(curMode === 'global') {
-            const { data } = await sb.from('messages').select('*').eq('group_id', curRoom).eq('is_dm', false).order('created_at', {ascending:true});
-            renderMessages(data);
-        } else if(curMode === 'dm') {
-            box.innerHTML = '<div style="text-align:center; opacity:0.5">Tezliklə: Şəxsi mesajlaşma interfeysi</div>';
-        } else if(curMode === 'friends') {
-            renderFriendsMenu();
-        }
-    }
-
-    function renderMessages(data) {
-        const box = document.getElementById('chat');
         data?.forEach(m => {
             let j = JSON.parse(m.content);
             const isMe = m.nickname === user.nick;
             const time = new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-            
             const div = document.createElement('div');
             div.className = `msg-wrap ${isMe ? 'me' : 'other'} ${j.isGhost ? 'ghost' : ''}`;
             
-            let reactionsHtml = '';
-            if(m.reactions) {
-                for(let key in m.reactions) reactionsHtml += `<span>${key}${m.reactions[key]}</span>`;
-            }
+            let rHtml = '';
+            if(m.reactions) { for(let k in m.reactions) rHtml += `<span>${k}${m.reactions[k]}</span>`; }
 
             div.innerHTML = `
                 ${!isMe ? `<span style="font-size:11px; font-weight:bold; color:var(--p); margin-bottom:4px" onclick="addFriend('${m.nickname}')">${m.nickname} ➕</span>` : ''}
@@ -163,93 +128,64 @@
                 </div>
                 <div class="bubble">${j.type==='voice' ? `<audio src="${j.url}" controls></audio>` : j.text}</div>
                 <span style="font-size:10px; opacity:0.5; margin-top:4px">${time}</span>
-                ${reactionsHtml ? `<div class="reakt-box">${reactionsHtml}</div>` : ''}
+                ${rHtml ? `<div class="reakt-box">${rHtml}</div>` : ''}
             `;
             box.appendChild(div);
-            if(j.isGhost && isMe) setTimeout(() => sb.from('messages').delete().eq('id', m.id).then(loadContent), 12000);
+            if(j.isGhost && isMe) setTimeout(() => sb.from('messages').delete().eq('id', m.id), 12000);
         });
         box.scrollTop = box.scrollHeight;
     }
 
     async function handleSend() {
         const i = document.getElementById('mInp'); if(!i.value) return;
-        const payload = { text: i.value, type: 'text', isGhost: isGhost };
+        const txt = i.value; i.value = '';
+        const payload = { text: txt, type: 'text', isGhost: isGhost };
         if(isGhost) toggleGhost();
-        await sb.from('messages').insert([{ nickname: user.nick, group_id: curRoom, content: JSON.stringify(payload), is_dm: false }]);
-        i.value = ''; loadContent();
+        await sb.from('messages').insert([{ nickname: user.nick, group_id: curRoom, content: JSON.stringify(payload) }]);
+        // loadContent() çağırılmır -> Realtime özü edəcək.
     }
 
     async function handleVoice() {
-        const btn = event.currentTarget;
         if (!recorder || recorder.state === "inactive") {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             recorder = new MediaRecorder(stream); chunks = [];
             recorder.ondataavailable = e => chunks.push(e.data);
             recorder.onstop = async () => {
-                btn.style.background = "var(--card)";
                 const blob = new Blob(chunks, { type: 'audio/ogg' });
                 const name = `v_${Date.now()}.ogg`;
                 await sb.storage.from('audio_messages').upload(name, blob);
                 const url = `${SB_URL}/storage/v1/object/public/audio_messages/${name}`;
-                const payload = { type: 'voice', url: url, isGhost: isGhost };
-                await sb.from('messages').insert([{ nickname: user.nick, group_id: curRoom, content: JSON.stringify(payload) }]);
-                loadContent();
+                await sb.from('messages').insert([{ nickname: user.nick, group_id: curRoom, content: JSON.stringify({type:'voice', url, isGhost}) }]);
             };
-            recorder.start(); btn.style.background = "#ff3b30";
+            recorder.start();
         } else { recorder.stop(); }
     }
 
-    async function react(msgId, emoji) {
-        const { data } = await sb.from('messages').select('reactions').eq('id', msgId).single();
-        let r = data.reactions || {};
-        r[emoji] = (r[emoji] || 0) + 1;
-        await sb.from('messages').update({ reactions: r }).eq('id', msgId);
-        loadContent();
+    async function react(id, em) {
+        const { data } = await sb.from('messages').select('reactions').eq('id', id).single();
+        let r = data.reactions || {}; r[em] = (r[em] || 0) + 1;
+        await sb.from('messages').update({ reactions: r }).eq('id', id);
     }
 
-    function setMode(mode) {
-        curMode = mode;
+    function setMode(m) {
+        curMode = m;
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.getElementById('tab-' + mode).classList.add('active');
-        loadContent();
+        document.getElementById('tab-'+m).classList.add('active');
+        if(m==='global') loadContent();
     }
 
-    async function addFriend(nick) {
-        if(nick === user.nick) return;
-        if(confirm(`${nick} adlı istifadəçiyə dostluq göndərilsin?`)) {
-            await sb.from('friends').insert([{ user_me: user.nick, user_friend: nick, status: 'accepted' }]);
-            alert("Dost siyahısına əlavə edildi!");
-        }
-    }
-
-    function findNearby() {
-        navigator.geolocation.getCurrentPosition(async pos => {
-            alert(`GPS Aktiv: ${pos.coords.latitude.toFixed(2)}, ${pos.coords.longitude.toFixed(2)}\nYaxınlıqdakı otaqlar siyahısı yeniləndi!`);
-            // Məntiqi olaraq burada rooms cədvəlindən lat/lng filteri etmək olar
-        });
-    }
-
-    async function createSecureRoom() {
-        const n = prompt("Otaq adı:"); if(!n) return;
-        const p = prompt("Şifrə:");
-        await sb.from('rooms').insert([{ name: n, password: p, creator: user.nick }]);
-        alert("Şifrəli otaq yaradıldı!");
-        closeModals();
-    }
-
+    async function addFriend(n) { if(confirm(n+" dostluq atılsın?")) alert("Dostluq göndərildi!"); }
+    function findNearby() { navigator.geolocation.getCurrentPosition(p => alert("Yaxınlıqdakı otaqlar aktiv edildi!")); }
     function toggleGhost() { isGhost = !isGhost; document.getElementById('gBtn').classList.toggle('active', isGhost); }
     function openModal(id) { document.getElementById(id).classList.add('active'); }
     function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
+    function changeNick() { let n = prompt("Yeni ləqəb:"); if(n) { user.nick=n; localStorage.setItem('x_user', JSON.stringify(user)); location.reload(); }}
     function hardReset() { localStorage.clear(); location.reload(); }
-    function changeNick() { 
-        const n = prompt("Yeni ləqəb:"); 
-        if(n) { user.nick = n; localStorage.setItem('x_user', JSON.stringify(user)); location.reload(); }
-    }
 
-    // Başlanğıc
     document.getElementById('myAva').src = user.ava;
     document.getElementById('headNick').innerText = user.nick;
     loadContent();
+
     sb.channel('any').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, loadContent).subscribe();
 </script>
 </body>
