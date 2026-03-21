@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>X-Chat TITAN FINAL</title>
+    <title>X-Chat TITAN GP</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --p: #007aff; --bg: #090a10; --card: rgba(255,255,255,0.06); --border: rgba(255,255,255,0.1); --t: #ffffff; }
@@ -19,7 +19,7 @@
         .tab.active { opacity: 1; color: var(--p); border-bottom: 2px solid var(--p); }
 
         #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
-        .msg-wrap { display: flex; flex-direction: column; max-width: 80%; position: relative; animation: pop 0.3s ease; }
+        .msg-wrap { display: flex; flex-direction: column; max-width: 80%; position: relative; animation: pop 0.3s ease; transition: 0.3s; }
         .msg-wrap.me { align-self: flex-end; align-items: flex-end; }
         .msg-wrap.other { align-self: flex-start; align-items: flex-start; }
 
@@ -110,10 +110,18 @@
 
     async function loadContent() {
         const { data } = await sb.from('messages').select('*').eq('group_id', curRoom).order('created_at', {ascending:true});
-        const box = document.getElementById('chat'); box.innerHTML = '';
+        const box = document.getElementById('chat'); 
+        box.innerHTML = ''; 
+        const now = new Date().getTime();
+
         data?.forEach(m => {
             let j = JSON.parse(m.content);
             const isMe = m.nickname === user.nick;
+            const msgTime = new Date(m.created_at).getTime();
+
+            // SÜZGƏC: Əgər Ghost mesajdırsa və vaxtı (12s) keçibsə, göstərmə
+            if (j.isGhost && (now - msgTime > 12000)) return;
+
             const time = new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
             const div = document.createElement('div');
             div.className = `msg-wrap ${isMe ? 'me' : 'other'} ${j.isGhost ? 'ghost' : ''}`;
@@ -123,15 +131,23 @@
 
             div.innerHTML = `
                 ${!isMe ? `<span style="font-size:11px; font-weight:bold; color:var(--p); margin-bottom:4px" onclick="addFriend('${m.nickname}')">${m.nickname} ➕</span>` : ''}
+                ${!j.isGhost ? `
                 <div class="emoji-picker">
-                    <span onclick="react('${m.id}', '❤️')">❤️</span> <span onclick="react('${m.id}', '😂')">😂</span> <span onclick="react('${m.id}', '🔥')">🔥</span>
-                </div>
+                    <span onclick="react('${m.id}', '❤️')">❤️</span> 
+                    <span onclick="react('${m.id}', '😂')">😂</span> 
+                    <span onclick="react('${m.id}', '🔥')">🔥</span>
+                </div>` : ''}
                 <div class="bubble">${j.type==='voice' ? `<audio src="${j.url}" controls></audio>` : j.text}</div>
                 <span style="font-size:10px; opacity:0.5; margin-top:4px">${time}</span>
                 ${rHtml ? `<div class="reakt-box">${rHtml}</div>` : ''}
             `;
             box.appendChild(div);
-            if(j.isGhost && isMe) setTimeout(() => sb.from('messages').delete().eq('id', m.id), 12000);
+
+            if(j.isGhost && isMe) {
+                setTimeout(() => {
+                    sb.from('messages').delete().eq('id', m.id).then(() => { div.style.display = 'none'; });
+                }, 12000);
+            }
         });
         box.scrollTop = box.scrollHeight;
     }
@@ -142,7 +158,6 @@
         const payload = { text: txt, type: 'text', isGhost: isGhost };
         if(isGhost) toggleGhost();
         await sb.from('messages').insert([{ nickname: user.nick, group_id: curRoom, content: JSON.stringify(payload) }]);
-        // loadContent() çağırılmır -> Realtime özü edəcək.
     }
 
     async function handleVoice() {
@@ -162,8 +177,12 @@
     }
 
     async function react(id, em) {
-        const { data } = await sb.from('messages').select('reactions').eq('id', id).single();
-        let r = data.reactions || {}; r[em] = (r[em] || 0) + 1;
+        const { data: msg } = await sb.from('messages').select('content, reactions').eq('id', id).single();
+        if(!msg) return;
+        const content = JSON.parse(msg.content);
+        if (content.isGhost) return; // Ghost mesaja reaksiya bloklanır
+
+        let r = msg.reactions || {}; r[em] = (r[em] || 0) + 1;
         await sb.from('messages').update({ reactions: r }).eq('id', id);
     }
 
@@ -171,7 +190,7 @@
         curMode = m;
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.getElementById('tab-'+m).classList.add('active');
-        if(m==='global') loadContent();
+        loadContent();
     }
 
     async function addFriend(n) { if(confirm(n+" dostluq atılsın?")) alert("Dostluq göndərildi!"); }
