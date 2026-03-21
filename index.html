@@ -2,163 +2,140 @@
 <html lang="az">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X-Chat | Real-Time Multi-Room Experience</title>
-    <meta name="description" content="Təhlükəsiz və sürətli mesajlaşma platforması.">
-    <meta property="og:title" content="X-Chat TITAN">
-    <meta property="og:image" content="https://your-link-to-preview.png">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>X-Chat TITAN | Secure & Real-time</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <style>
+        /* CSS 4.0: Modern & Responsive UI */
         :root {
-            --p: #007aff;
-            --bg: #090a10;
-            --card: #1c1c1e;
-            --border: rgba(255,255,255,0.1);
-            --text: #ffffff;
-            --success: #34c759;
+            --p: #007aff; --bg: #090a10; --card: #1c1c1e; --border: rgba(255,255,255,0.08);
+            --text: #ffffff; --error: #ff3b30; --system: #8e8e93;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { 
-            background: var(--bg); 
-            color: var(--text); 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
+            background: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif;
+            height: 100dvh; display: flex; flex-direction: column; overflow: hidden; margin: 0;
         }
 
-        /* --- UI: Animasiyalı Mesajlar --- */
-        @keyframes messageAppear {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Mesaj Animasiyaları */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(15px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; }
+        
         .msg { 
-            max-width: 75%; padding: 12px 16px; border-radius: 20px; 
-            font-size: 15px; line-height: 1.4; animation: messageAppear 0.3s ease forwards;
-            position: relative;
+            max-width: 80%; padding: 12px 16px; border-radius: 20px; font-size: 15px;
+            animation: slideIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); position: relative;
         }
         .msg.me { align-self: flex-end; background: var(--p); border-bottom-right-radius: 4px; }
         .msg.other { align-self: flex-start; background: var(--card); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
         
-        .msg-info { font-size: 10px; opacity: 0.6; margin-bottom: 4px; display: flex; justify-content: space-between; }
-
-        /* --- UI: Mobil Optimallıq --- */
-        header { 
-            padding: env(safe-area-inset-top) 20px 15px; 
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(15px);
-            border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
-        }
-
-        .footer { 
-            padding: 10px 15px calc(env(safe-area-inset-bottom) + 15px);
-            background: #000; border-top: 1px solid var(--border); display: flex; gap: 10px;
-        }
-
-        .inp-group { flex: 1; background: var(--card); border-radius: 25px; display: flex; padding: 0 15px; border: 1px solid var(--border); }
-        input { background: transparent; border: none; color: #fff; flex: 1; padding: 12px 0; font-size: 16px; }
-
-        .btn-send { background: var(--p); color: #fff; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; transition: 0.2s; }
-        .btn-send:active { transform: scale(0.9); }
-
-        /* Tab Bar */
+        .msg-meta { font-size: 10px; margin-bottom: 4px; opacity: 0.5; font-weight: 600; }
+        
+        /* Naviqasiya */
+        header { padding: 50px 20px 15px; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
         .tabs { display: flex; background: #000; border-bottom: 1px solid var(--border); }
-        .tab { flex: 1; text-align: center; padding: 15px; font-size: 12px; font-weight: 600; opacity: 0.5; transition: 0.3s; cursor: pointer; }
+        .tab { flex: 1; text-align: center; padding: 15px; font-size: 13px; opacity: 0.4; cursor: pointer; transition: 0.3s; }
         .tab.active { opacity: 1; color: var(--p); border-bottom: 2px solid var(--p); }
 
-        /* Modal UX */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; padding: 60px 20px; z-index: 1000; }
-        .modal.active { display: flex; }
-        .room-item { background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        /* Footer & Input */
+        .footer { padding: 10px 15px 30px; background: #000; display: flex; gap: 10px; border-top: 1px solid var(--border); }
+        .inp-wrap { flex: 1; background: var(--card); border-radius: 25px; padding: 0 15px; display: flex; align-items: center; border: 1px solid var(--border); }
+        input { background: transparent; border: none; color: #fff; flex: 1; padding: 12px 0; font-size: 16px; outline: none; }
+        
+        .send-btn { background: var(--p); border: none; width: 42px; height: 42px; border-radius: 50%; color: #fff; cursor: pointer; font-size: 18px; }
+        .send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* Status & Badge */
+        .badge { background: var(--error); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: 5px; }
     </style>
 </head>
 <body>
 
 <header>
     <div>
-        <b id="uName">Yüklənir...</b>
-        <div id="uStatus" style="font-size: 10px; color: var(--success)">● Onlayn</div>
+        <b id="displayNick">Yüklənir...</b>
+        <div style="font-size: 10px; color: var(--system)" id="roomIndicator">Qlobal Çat</div>
     </div>
-    <div style="display: flex; gap: 15px;">
-        <span onclick="toggleModal('roomModal')" style="cursor: pointer; font-size: 20px;">🏠</span>
-        <span onclick="toggleModal('profileModal')" style="cursor: pointer; font-size: 20px;">👤</span>
-    </div>
+    <div onclick="toggleRooms()" style="cursor: pointer; font-size: 20px;">🏠</div>
 </header>
 
 <div class="tabs">
-    <div class="tab active" id="t-global" onclick="switchMode('global')">Qlobal</div>
-    <div class="tab" id="t-dm" onclick="switchMode('dm')">Mesajlar</div>
-    <div class="tab" id="t-friends" onclick="switchMode('friends')">Dostlar</div>
+    <div class="tab active" id="tab-global" onclick="setMode('global')">Qlobal</div>
+    <div class="tab" id="tab-dm" onclick="setMode('dm')">DM <span id="dmCount" class="badge" style="display:none">0</span></div>
+    <div class="tab" id="tab-friends" onclick="setMode('friends')">Dostlar</div>
 </div>
 
 <div id="chat"></div>
 
-<div class="footer" id="chatFooter">
-    <div class="inp-group">
-        <input type="text" id="mInp" placeholder="Mesaj yazın..." autocomplete="off">
+<div class="footer">
+    <div class="inp-wrap">
+        <input type="text" id="mInp" placeholder="Mesajınızı yazın..." maxlength="500">
     </div>
-    <button class="btn-send" onclick="send()">➤</button>
-</div>
-
-<div id="roomModal" class="modal">
-    <h2 style="margin-bottom: 20px;">Aktiv Otaqlar</h2>
-    <div id="roomList" style="flex: 1; overflow-y: auto;"></div>
-    <button onclick="createRoom()" style="background: var(--p); color: #fff; padding: 15px; border: none; border-radius: 12px; font-weight: bold;">+ Yeni Otaq Yarat</button>
-    <button onclick="toggleModal('roomModal')" style="background: none; border: none; color: #777; margin-top: 15px;">Bağla</button>
+    <button class="send-btn" id="sendBtn" onclick="handleSend()">➤</button>
 </div>
 
 <script>
-    // --- KONFİQURASİYA ---
+    // --- BAZA VƏ AUTH ---
     const SB_URL = 'https://pyknspxnwnilhqsazidj.supabase.co';
-    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Bura öz key-ini qoy
     const sb = supabase.createClient(SB_URL, SB_KEY);
 
-    let user = JSON.parse(localStorage.getItem('x_chat_user'));
-    let curMode = 'global';
-    let curRoom = 'Qlobal';
-    let curDM = null;
+    let user = JSON.parse(localStorage.getItem('x_user')) || null;
+    let curMode = 'global', curRoom = 'Qlobal', curDM = null;
+    let lastMessageTime = 0; // Spam filter üçün
 
-    if (!user) {
-        let n = prompt("Xoş gəldiniz! Ləqəbiniz:");
-        user = { nick: n || 'Anonim' + Math.floor(Math.random()*1000) };
-        localStorage.setItem('x_chat_user', JSON.stringify(user));
+    if(!user) {
+        let n = prompt("Ləqəbiniz:");
+        user = { nick: n || "User" + Math.floor(Math.random()*999) };
+        localStorage.setItem('x_user', JSON.stringify(user));
         location.reload();
     }
-    document.getElementById('uName').innerText = user.nick;
+    document.getElementById('displayNick').innerText = user.nick;
 
-    // --- SƏRT FİLTRLƏMƏ MƏNTİQİ (Backend Integrity) ---
-    async function loadContent() {
-        const box = document.getElementById('chat');
+    // --- SPAM FİLTER SİSTEMİ ---
+    const BANNED_WORDS = ["söyüş1", "söyüş2", "reklam-linki.com"]; // Bura qadağan olunmuş sözləri yığ
+    
+    function validateMessage(text) {
+        // 1. Boş mesaj yoxlanışı
+        if(!text.trim()) return false;
         
-        if (curMode === 'global') {
-            const { data } = await sb.from('messages')
-                .select('*')
-                .eq('is_dm', false)
-                .eq('group_id', curRoom)
-                .order('created_at', { ascending: true });
-            render(data);
-            document.getElementById('chatFooter').style.display = 'flex';
-        } 
-        else if (curMode === 'dm') {
-            if (!curDM) {
-                renderInbox();
-                document.getElementById('chatFooter').style.display = 'none';
-            } else {
-                const { data } = await sb.from('messages')
-                    .select('*')
-                    .eq('is_dm', true)
-                    .or(`and(nickname.eq.${user.nick},recipient.eq.${curDM}),and(nickname.eq.${curDM},recipient.eq.${user.nick})`)
-                    .order('created_at', { ascending: true });
-                render(data);
-                document.getElementById('chatFooter').style.display = 'flex';
-            }
+        // 2. Sürətli mesaj göndərmə (Spam)
+        const now = Date.now();
+        if(now - lastMessageTime < 1500) { // 1.5 saniyə limit
+            alert("Çox sürətli yazırsınız! Bir az gözləyin.");
+            return false;
         }
-        else if (curMode === 'friends') {
-            renderFriends();
-            document.getElementById('chatFooter').style.display = 'none';
+
+        // 3. Söyüş filtri
+        let hasBadWord = BANNED_WORDS.some(word => text.toLowerCase().includes(word));
+        if(hasBadWord) {
+            alert("Mesajda uyğunsuz ifadə aşkarlandı!");
+            return false;
         }
+
+        lastMessageTime = now;
+        return true;
+    }
+
+    // --- REAL-TIME MƏNTİQİ ---
+    async function load() {
+        const box = document.getElementById('chat');
+        let query = sb.from('messages').select('*');
+
+        if(curMode === 'global') {
+            query = query.eq('is_dm', false).eq('group_id', curRoom);
+        } else if(curMode === 'dm' && curDM) {
+            query = query.eq('is_dm', true).or(`and(nickname.eq.${user.nick},recipient.eq.${curDM}),and(nickname.eq.${curDM},recipient.eq.${user.nick})`);
+        } else if(curMode === 'friends') {
+            return renderFriends();
+        }
+
+        const { data } = await query.order('created_at', {ascending: true});
+        render(data);
     }
 
     function render(data) {
@@ -168,83 +145,65 @@
             const isMe = m.nickname === user.nick;
             box.innerHTML += `
                 <div class="msg ${isMe ? 'me' : 'other'}">
-                    <div class="msg-info"><b>${m.nickname}</b></div>
+                    <div class="msg-meta">${m.nickname}</div>
                     <div>${m.content}</div>
                 </div>`;
         });
         box.scrollTop = box.scrollHeight;
     }
 
-    async function send() {
+    async function handleSend() {
         const inp = document.getElementById('mInp');
-        const val = inp.value.trim();
-        if (!val) return;
+        const text = inp.value;
 
-        const msg = {
+        if(!validateMessage(text)) return;
+
+        const payload = {
             nickname: user.nick,
-            content: val,
+            content: text,
             is_dm: curMode === 'dm',
             recipient: curMode === 'dm' ? curDM : null,
             group_id: curMode === 'global' ? curRoom : null
         };
 
         inp.value = '';
-        await sb.from('messages').insert([msg]);
+        const { error } = await sb.from('messages').insert([payload]);
+        if(error) alert("Xəta baş verdi!");
     }
 
-    // --- MULTI-ROOM SİSTEMİ ---
-    async function createRoom() {
-        const n = prompt("Otaq adı:");
-        if (!n) return;
-        const p = prompt("Şifrə (opsional):");
-        await sb.from('rooms').insert([{ name: n, password: p || null, creator: user.nick }]);
-        loadRooms();
-    }
+    // --- REAL-TIME SUBSCRIPTION (WebSocket) ---
+    // Bu hissə WebSocket inteqrasiyasının ürəyidir.
+    sb.channel('public:messages')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+          // Yalnız mənə aid olan və ya olduğum otağa aid mesaj gələndə yenilə
+          const msg = payload.new;
+          if(msg.is_dm && (msg.recipient === user.nick || msg.nickname === user.nick)) {
+              load(); // DM gəldi
+              updateDMCount();
+          } else if(!msg.is_dm && msg.group_id === curRoom) {
+              load(); // Qlobal mesaj gəldi
+          }
+      })
+      .subscribe();
 
-    async function loadRooms() {
-        const { data } = await sb.from('rooms').select('*').order('created_at', { ascending: false });
-        const list = document.getElementById('roomList');
-        list.innerHTML = '';
-        data?.forEach(r => {
-            list.innerHTML += `
-                <div class="room-item" onclick="joinRoom('${r.name}', '${r.password}')">
-                    <span>${r.password ? '🔒' : '🌍'} ${r.name}</span>
-                    <button style="background:var(--p); border:none; color:#fff; padding:5px 12px; border-radius:8px">Giriş</button>
-                </div>`;
-        });
-    }
-
-    function joinRoom(name, pass) {
-        if (pass && pass !== 'null') {
-            if (prompt("Şifrəni daxil edin:") !== pass) return alert("Səhv şifrə!");
-        }
-        curRoom = name;
-        curMode = 'global';
-        toggleModal('roomModal');
-        switchMode('global');
-    }
-
-    // --- NAVİQASİYA ---
-    function switchMode(m) {
+    // --- KÖMƏKÇİ FUNKSİYALAR ---
+    function setMode(m) {
         curMode = m;
-        curDM = null;
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.getElementById('t-' + m).classList.add('active');
-        loadContent();
+        document.getElementById('tab-' + m).classList.add('active');
+        load();
     }
 
-    function toggleModal(id) {
-        const m = document.getElementById(id);
-        m.classList.toggle('active');
-        if (id === 'roomModal' && m.classList.contains('active')) loadRooms();
+    async function updateDMCount() {
+        const { count } = await sb.from('messages').select('*', { count: 'exact', head: true }).eq('recipient', user.nick).eq('is_read', false);
+        const badge = document.getElementById('dmCount');
+        if(count > 0) { badge.innerText = count; badge.style.display = 'inline'; }
+        else badge.style.display = 'none';
     }
 
-    // --- REAL-TIME SİNC ---
-    sb.channel('db-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
-        loadContent();
-    }).subscribe();
-
-    loadContent();
+    // İlk yüklənmə
+    load();
+    updateDMCount();
 </script>
 
 </body>
