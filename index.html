@@ -3,62 +3,237 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>X-Chat TITAN ULTIMATE</title>
+    <title>X-Chat TITAN: Ultimate Edition</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
-        :root { --p: #007aff; --bg: #090a10; --card: rgba(255,255,255,0.06); --border: rgba(255,255,255,0.1); --t: #ffffff; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
-        body { background: radial-gradient(circle at top right, #1a1f35, #090a10); color: var(--t); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        /* --- DİZAYN SİSTEMİ (STİLLƏR) --- */
+        :root {
+            --p: #007aff; /* Apple Blue */
+            --bg: #090a10; 
+            --card: rgba(255, 255, 255, 0.06);
+            --border: rgba(255, 255, 255, 0.12);
+            --t: #ffffff;
+            --ghost-color: #ff3b30;
+        }
 
-        header { padding: 50px 20px 15px; background: rgba(10,10,15,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; z-index: 100; }
-        .u-chip { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .u-chip img { width: 42px; height: 42px; border-radius: 12px; border: 2px solid var(--p); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 
-        .nav-tabs { display: flex; background: rgba(0,0,0,0.4); padding: 5px; border-bottom: 1px solid var(--border); position: relative; }
-        .tab { flex: 1; text-align: center; padding: 12px; font-size: 13px; font-weight: 600; opacity: 0.5; cursor: pointer; transition: 0.3s; position: relative; }
+        body { 
+            background: radial-gradient(circle at top right, #1a1f35, #090a10); 
+            color: var(--t); 
+            height: 100dvh; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+        }
+
+        /* Header & Navigation */
+        header { 
+            padding: 50px 20px 15px; 
+            background: rgba(10, 10, 15, 0.85); 
+            backdrop-filter: blur(25px); 
+            border-bottom: 1px solid var(--border); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            z-index: 100; 
+        }
+
+        .u-chip { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .u-chip img { width: 44px; height: 44px; border-radius: 14px; border: 2px solid var(--p); object-fit: cover; }
+        .u-chip b { font-size: 16px; letter-spacing: 0.5px; }
+
+        .nav-tabs { display: flex; background: rgba(0,0,0,0.4); padding: 5px; border-bottom: 1px solid var(--border); }
+        .tab { 
+            flex: 1; 
+            text-align: center; 
+            padding: 14px; 
+            font-size: 13px; 
+            font-weight: 600; 
+            opacity: 0.4; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            position: relative; 
+        }
         .tab.active { opacity: 1; color: var(--p); border-bottom: 2px solid var(--p); }
-        .badge { position: absolute; top: 5px; right: 20%; background: #ff3b30; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; display: none; }
+        .badge { 
+            position: absolute; 
+            top: 8px; 
+            right: 15%; 
+            background: var(--ghost-color); 
+            color: white; 
+            font-size: 10px; 
+            min-width: 18px; 
+            height: 18px; 
+            border-radius: 50%; 
+            display: none; 
+            align-items: center; 
+            justify-content: center; 
+        }
 
-        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
-        .msg-wrap { display: flex; flex-direction: column; max-width: 80%; position: relative; animation: pop 0.3s ease; }
+        /* Çat Sahəsi */
+        #chat { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 18px; 
+            scroll-behavior: smooth; 
+        }
+
+        .msg-wrap { display: flex; flex-direction: column; max-width: 82%; position: relative; animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .msg-wrap.me { align-self: flex-end; align-items: flex-end; }
         .msg-wrap.other { align-self: flex-start; align-items: flex-start; }
 
-        .bubble { padding: 12px 16px; border-radius: 18px; font-size: 15px; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2); line-height: 1.4; }
-        .me .bubble { background: linear-gradient(135deg, var(--p), #005bb5); border-bottom-right-radius: 4px; }
-        .other .bubble { background: var(--card); border: 1px solid var(--border); border-bottom-left-radius: 4px; backdrop-filter: blur(10px); }
-        .ghost .bubble { background: linear-gradient(45deg, #333, #000) !important; border: 1px dashed #777; animation: vanish 12s forwards; }
+        .bubble { 
+            padding: 12px 16px; 
+            border-radius: 20px; 
+            font-size: 15px; 
+            position: relative; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); 
+            line-height: 1.5; 
+            word-wrap: break-word;
+        }
+        .me .bubble { background: linear-gradient(135deg, var(--p), #005bb5); border-bottom-right-radius: 5px; }
+        .other .bubble { background: var(--card); border: 1px solid var(--border); border-bottom-left-radius: 5px; backdrop-filter: blur(10px); }
+        
+        /* Ghost Animasiyası */
+        .ghost .bubble { 
+            background: linear-gradient(45deg, #222, #000) !important; 
+            border: 1px dashed #555 !important; 
+            animation: vanish 12s forwards cubic-bezier(0.4, 0, 1, 1); 
+        }
 
-        .reakt-box { position: absolute; bottom: -12px; right: 8px; background: #1c1c1e; border: 1px solid #444; border-radius: 10px; padding: 1px 5px; font-size: 11px; display: flex; gap: 3px; z-index: 2; }
-        .emoji-picker { display: none; position: absolute; top: -40px; background: #2c2c2e; padding: 5px 10px; border-radius: 20px; gap: 10px; z-index: 50; border: 1px solid var(--p); }
-        .msg-wrap:active .emoji-picker, .msg-wrap:hover .emoji-picker { display: flex; }
+        /* Reaksiyalar */
+        .reakt-box { 
+            position: absolute; 
+            bottom: -14px; 
+            right: 10px; 
+            background: #1c1c1e; 
+            border: 1px solid #333; 
+            border-radius: 12px; 
+            padding: 2px 6px; 
+            font-size: 12px; 
+            display: flex; 
+            gap: 4px; 
+            z-index: 5; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .emoji-picker { 
+            display: none; 
+            position: absolute; 
+            top: -45px; 
+            background: #2c2c2e; 
+            padding: 6px 12px; 
+            border-radius: 25px; 
+            gap: 12px; 
+            z-index: 60; 
+            border: 1px solid var(--p); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+        .msg-wrap:hover .emoji-picker, .msg-wrap:active .emoji-picker { display: flex; }
 
-        .tick { font-size: 11px; margin-left: 5px; opacity: 0.7; }
+        /* Ticks (Oxundu) */
+        .tick { font-size: 10px; margin-left: 6px; opacity: 0.6; font-weight: normal; }
         .tick.read { color: #34c759; opacity: 1; font-weight: bold; }
 
-        #typingArea { padding: 0 20px; font-size: 12px; color: var(--p); height: 15px; font-style: italic; opacity: 0; transition: 0.3s; }
+        /* Typing & Footer */
+        #typingArea { padding: 5px 20px; font-size: 12px; color: var(--p); height: 20px; opacity: 0; transition: 0.3s; font-style: italic; }
 
-        .item-list { background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); cursor: pointer; }
+        .footer { 
+            padding: 15px 15px 35px; 
+            background: rgba(10, 10, 15, 0.95); 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            border-top: 1px solid var(--border); 
+        }
+        .inp-box { 
+            flex: 1; 
+            background: var(--card); 
+            border-radius: 22px; 
+            padding: 6px 18px; 
+            border: 1px solid var(--border); 
+            display: flex; 
+            align-items: center; 
+        }
+        #mInp { border: none; background: transparent; color: #fff; padding: 10px 0; width: 100%; outline: none; font-size: 16px; }
 
-        .footer { padding: 10px 15px 30px; background: rgba(10,10,15,0.9); display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--border); }
-        .inp-box { flex: 1; background: var(--card); border-radius: 20px; padding: 5px 15px; border: 1px solid var(--border); display: flex; align-items: center; }
-        #mInp { border: none; background: transparent; color: #fff; padding: 10px 0; width: 100%; outline: none; font-size: 15px; }
+        .btn-act { 
+            width: 44px; 
+            height: 44px; 
+            border-radius: 15px; 
+            border: none; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            font-size: 18px; 
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+        .btn-act:active { transform: scale(0.9); }
+        .btn-ghost.active { background: var(--ghost-color); box-shadow: 0 0 15px var(--ghost-color); }
 
-        .btn-act { width: 40px; height: 40px; border-radius: 14px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; transition: 0.2s; }
+        /* Modallar */
+        .modal { 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0,0,0,0.85); 
+            display: none; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 1000; 
+            backdrop-filter: blur(10px); 
+            padding: 20px; 
+        }
+        .modal.active { display: flex; }
+        .modal-cont { 
+            background: #1c1c1e; 
+            width: 100%; 
+            max-width: 420px; 
+            border-radius: 30px; 
+            padding: 30px; 
+            border: 1px solid var(--border); 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+        }
+        .item-list { 
+            background: var(--card); 
+            padding: 16px; 
+            border-radius: 18px; 
+            margin-bottom: 12px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border: 1px solid var(--border); 
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .item-list:hover { background: rgba(255,255,255,0.1); }
 
-        @keyframes vanish { 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(-30px); pointer-events: none; } }
-        @keyframes pop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        audio { height: 35px; width: 180px; filter: invert(1); }
+        /* Keyframes */
+        @keyframes vanish { 0% { opacity: 1; } 90% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: translateY(-40px) scale(0.9); pointer-events: none; } }
+        @keyframes pop { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        
+        audio { height: 38px; width: 200px; filter: invert(1) hue-rotate(180deg); }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="u-chip">
+    <div class="u-chip" onclick="openModal('profModal')">
         <img id="myAva" src="">
-        <div><b id="headNick">Yüklənir...</b><div style="font-size: 10px; color:#34c759" id="chatTitle">● Onlayn</div></div>
+        <div>
+            <b id="headNick">Yüklənir...</b>
+            <div style="font-size: 10px; color:#34c759" id="statusTitle">● Onlayn</div>
+        </div>
     </div>
-    <div onclick="curDM=null; setMode('global')" style="cursor:pointer; font-size:22px;">🏠</div>
+    <div style="display: flex; gap: 18px;">
+        <span onclick="findNearby()" style="cursor:pointer; font-size: 20px;">📍</span>
+        <span onclick="openModal('roomModal')" style="cursor:pointer; font-size: 20px;">🏠</span>
+    </div>
 </header>
 
 <div class="nav-tabs">
@@ -71,13 +246,36 @@
 <div id="typingArea"></div>
 
 <div class="footer" id="fArea">
-    <button class="btn-act" style="background:var(--card); color:white;" onclick="toggleGhost()" id="gBtn">👻</button>
-    <div class="inp-box"><input type="text" id="mInp" placeholder="Mesaj..." oninput="emitTyping()" onkeypress="if(event.key==='Enter') handleSend()"></div>
-    <button class="btn-act" style="background:var(--card); color:white;" onclick="handleVoice()" id="vBtn">🎤</button>
-    <button class="btn-act" style="background:var(--p); color:white;" onclick="handleSend()">➤</button>
+    <button class="btn-act btn-ghost" id="gBtn" onclick="toggleGhost()" style="background:var(--card); color:white">👻</button>
+    <div class="inp-box">
+        <input type="text" id="mInp" placeholder="Mesaj yazın..." oninput="emitTyping()" onkeypress="if(event.key==='Enter') handleSend()">
+    </div>
+    <button class="btn-act" id="vBtn" onclick="handleVoice()" style="background:var(--card); color:white">🎤</button>
+    <button class="btn-act" onclick="handleSend()" style="background:var(--p); color:white">➤</button>
+</div>
+
+<div id="profModal" class="modal" onclick="closeModals()">
+    <div class="modal-cont" onclick="event.stopPropagation()">
+        <h2 style="margin-bottom: 20px;">Profil</h2>
+        <button style="width:100%; padding:16px; margin-bottom:12px; border-radius:15px; border:none; background: var(--p); color:white; font-weight:bold;" onclick="changeNick()">Ləqəbi Dəyiş ✏️</button>
+        <button style="width:100%; padding:16px; background:#ff3b30; color:white; border-radius:15px; border:none; font-weight:bold;" onclick="hardReset()">Hesabı Sıfırla 🛑</button>
+    </div>
+</div>
+
+<div id="roomModal" class="modal" onclick="closeModals()">
+    <div class="modal-cont" onclick="event.stopPropagation()">
+        <h2 style="margin-bottom: 10px;">Otaqlar</h2>
+        <p style="font-size: 12px; opacity: 0.6; margin-bottom: 20px;">Şifrəli və ya GPS-li otaq seçin.</p>
+        <div id="roomList" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;">
+            </div>
+        <button style="width:100%; padding:16px; background:var(--p); color:white; border-radius:15px; border:none; font-weight:bold;" onclick="createSecureRoom()">+ Yeni Otaq Yarat</button>
+    </div>
 </div>
 
 <script>
+    /* --- JAVASCRIPT MASTER LOGIC --- */
+
+    // 1. KONFİQURASİYA
     const SB_URL = 'https://pyknspxnwnilhqsazidj.supabase.co';
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5a25zcHhud25pbGhxc2F6aWRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyODE0MzAsImV4cCI6MjA4Mjg1NzQzMH0.NlU2cVFug6PH6rZ4RM-344-tPnoYQVrOzWKXOn5y3eU';
     const sb = supabase.createClient(SB_URL, SB_KEY);
@@ -90,63 +288,66 @@
     let recorder, chunks = [];
     let typingTimer;
 
-    // Realtime Broadcasting (Yazır... üçün)
-    const realtimeChannel = sb.channel('chat_events');
+    const realtimeChannel = sb.channel('x_chat_events');
 
+    // 2. İSTİFADƏÇİ YOXLANIŞI
     if(!user) {
-        let n = prompt("Ləqəb:");
-        user = { nick: n || 'Anonim', ava: `https://ui-avatars.com/api/?name=${n || 'A'}&background=random&color=fff` };
+        let n = prompt("Ləqəbinizi daxil edin:");
+        if(!n) n = "Anonim_" + Math.floor(Math.random() * 999);
+        user = { nick: n, ava: `https://ui-avatars.com/api/?name=${n}&background=random&color=fff&size=128` };
         localStorage.setItem('x_user', JSON.stringify(user));
         location.reload();
     }
 
-    async function checkNotifications() {
-        const { count } = await sb.from('messages').select('*', { count: 'exact', head: true }).eq('is_dm', true).eq('recipient', user.nick).eq('is_read', false);
-        const b = document.getElementById('dmBadge');
-        if(count > 0) { b.style.display = 'inline-block'; b.innerText = count; } else { b.style.display = 'none'; }
-    }
-
+    // 3. MƏLUMATLARIN YÜKLƏNMƏSİ (CORE FUNCTION)
     async function loadContent() {
         const box = document.getElementById('chat');
         const now = new Date().getTime();
-        checkNotifications();
+        updateBadge();
 
         if (curMode === 'global') {
-            document.getElementById('chatTitle').innerText = "Qlobal Çat";
+            document.getElementById('statusTitle').innerText = "📍 " + curRoom;
             const { data } = await sb.from('messages').select('*').eq('group_id', curRoom).eq('is_dm', false).order('created_at', {ascending:true});
             renderMessages(data, box, now);
             document.getElementById('fArea').style.display = 'flex';
         } 
         else if (curMode === 'friends') {
-            document.getElementById('chatTitle').innerText = "Dostlar";
+            document.getElementById('statusTitle').innerText = "Dostlar Siyahısı";
             const { data } = await sb.from('friends').select('*').or(`user_me.eq.${user.nick},user_friend.eq.${user.nick}`);
             renderFriends(data, box);
             document.getElementById('fArea').style.display = 'none';
         } 
         else if (curMode === 'dm') {
             if (!curDM) {
-                document.getElementById('chatTitle').innerText = "Söhbətlər";
+                document.getElementById('statusTitle').innerText = "Şəxsi Mesajlar";
                 renderDMInbox(box);
                 document.getElementById('fArea').style.display = 'none';
             } else {
-                document.getElementById('chatTitle').innerText = `Söhbət: ${curDM}`;
-                // Oxunmamışları oxundu olaraq işarələ
-                await sb.from('messages').update({ is_read: true }).eq('is_dm', true).eq('recipient', user.nick).eq('nickname', curDM).eq('is_read', false);
+                document.getElementById('statusTitle').innerText = "✉️ " + curDM;
+                // Oxundu kimi işarələ (Sonsuz dövrə qoruması ilə)
+                const { data: unread } = await sb.from('messages').select('id').match({is_dm: true, recipient: user.nick, nickname: curDM, is_read: false});
+                if(unread && unread.length > 0) {
+                    await sb.from('messages').update({ is_read: true }).match({ is_dm: true, recipient: user.nick, nickname: curDM, is_read: false });
+                }
                 
                 const { data } = await sb.from('messages').select('*').eq('is_dm', true).or(`and(nickname.eq.${user.nick},recipient.eq.${curDM}),and(nickname.eq.${curDM},recipient.eq.${user.nick})`).order('created_at', {ascending:true});
                 renderMessages(data, box, now);
                 document.getElementById('fArea').style.display = 'flex';
-                checkNotifications(); // Bildirişi yenilə
             }
         }
     }
 
+    // 4. MESAJLARIN EKRANA ÇIXARILMASI
     function renderMessages(data, box, now) {
         box.innerHTML = '';
         data?.forEach(m => {
-            let j = JSON.parse(m.content);
+            let j;
+            try { j = JSON.parse(m.content); } catch(e) { j = { text: m.content, type: 'text', isGhost: false }; }
+
             const isMe = m.nickname === user.nick;
             const msgTime = new Date(m.created_at).getTime();
+            
+            // Ghost Filtri: Vaxt bitibsə göstərmə
             if (j.isGhost && (now - msgTime > 12000)) return;
 
             const div = document.createElement('div');
@@ -155,15 +356,18 @@
             let rHtml = '';
             if(m.reactions) { for(let k in m.reactions) rHtml += `<span>${k}${m.reactions[k]}</span>`; }
             
-            // Oxundu işarəsi məntiqi (Yalnız göndərdiklərin üçün və DM-dirsə)
             let tickHtml = '';
-            if (isMe && m.is_dm) { tickHtml = `<span class="tick ${m.is_read ? 'read' : ''}">${m.is_read ? '✓✓' : '✓'}</span>`; }
+            if (isMe && m.is_dm) { 
+                tickHtml = `<span class="tick ${m.is_read ? 'read' : ''}">${m.is_read ? '✓✓' : '✓'}</span>`; 
+            }
 
             div.innerHTML = `
-                ${!isMe && curMode === 'global' ? `<small style="color:var(--p); cursor:pointer" onclick="addFriend('${m.nickname}')">${m.nickname} ➕</small>` : ''}
+                ${!isMe && curMode === 'global' ? `<small style="color:var(--p); margin-bottom:4px; font-weight:bold; cursor:pointer" onclick="addFriend('${m.nickname}')">${m.nickname} ➕</small>` : ''}
                 ${!j.isGhost ? `
                 <div class="emoji-picker">
-                    <span onclick="react('${m.id}', '❤️')">❤️</span> <span onclick="react('${m.id}', '😂')">😂</span> <span onclick="react('${m.id}', '🔥')">🔥</span>
+                    <span onclick="react('${m.id}', '❤️')">❤️</span> 
+                    <span onclick="react('${m.id}', '😂')">😂</span> 
+                    <span onclick="react('${m.id}', '🔥')">🔥</span>
                 </div>` : ''}
                 <div class="bubble">
                     ${j.type==='voice' ? `<audio src="${j.url}" controls></audio>` : j.text}
@@ -172,56 +376,114 @@
                 ${rHtml ? `<div class="reakt-box">${rHtml}</div>` : ''}
             `;
             box.appendChild(div);
-            if(j.isGhost && isMe) setTimeout(() => { sb.from('messages').delete().eq('id', m.id).then(() => div.style.display='none'); }, 12000);
+
+            // Ghost Silinmə Taymeri
+            if(j.isGhost && isMe) {
+                setTimeout(() => {
+                    sb.from('messages').delete().eq('id', m.id).then(() => { div.style.display = 'none'; });
+                }, 12000);
+            }
         });
         box.scrollTop = box.scrollHeight;
     }
 
-    // Dostlar və DM Inbox eyni məntiqdə davam edir (qısaldılıb)
-    function renderFriends(data, box) {
-        box.innerHTML = '<h3>Dostların</h3>';
-        data?.forEach(f => {
-            const fN = f.user_me === user.nick ? f.user_friend : f.user_me;
-            box.innerHTML += `<div class="item-list" onclick="startDM('${fN}')"><span>👤 ${fN}</span></div>`;
-        });
-    }
-
-    async function renderDMInbox(box) {
-        box.innerHTML = '<h3>Mesajlar</h3>';
-        const { data } = await sb.from('friends').select('*').or(`user_me.eq.${user.nick},user_friend.eq.${user.nick}`);
-        data?.forEach(f => {
-            const fN = f.user_me === user.nick ? f.user_friend : f.user_me;
-            box.innerHTML += `<div class="item-list" onclick="startDM('${fN}')"><span>✉️ ${fN}</span> <small style="color:var(--p)">Yaz</small></div>`;
-        });
-    }
-
+    // 5. MESAJ GÖNDƏRMƏ
     async function handleSend() {
-        const i = document.getElementById('mInp'); if(!i.value) return;
-        const payload = { text: i.value, type: 'text', isGhost: isGhost };
-        const ins = { nickname: user.nick, content: JSON.stringify(payload), is_dm: curMode === 'dm', recipient: curDM, group_id: curMode === 'global' ? curRoom : null };
-        i.value = ''; if(isGhost) toggleGhost();
+        const i = document.getElementById('mInp'); if(!i.value.trim()) return;
+        const txt = i.value; i.value = '';
+        const payload = { text: txt, type: 'text', isGhost: isGhost };
+        
+        const ins = { 
+            nickname: user.nick, 
+            content: JSON.stringify(payload), 
+            is_dm: curMode === 'dm', 
+            recipient: curDM, 
+            group_id: curMode === 'global' ? curRoom : null 
+        };
+
+        if(isGhost) toggleGhost();
         await sb.from('messages').insert([ins]);
     }
 
+    // 6. SƏSLİ MESAJ SİSTEMİ
     async function handleVoice() {
         const btn = document.getElementById('vBtn');
         if (!recorder || recorder.state === "inactive") {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            recorder = new MediaRecorder(stream); chunks = [];
-            recorder.ondataavailable = e => chunks.push(e.data);
-            recorder.onstop = async () => {
-                btn.style.background = "var(--card)";
-                const blob = new Blob(chunks, { type: 'audio/ogg' });
-                const name = `v_${Date.now()}.ogg`;
-                await sb.storage.from('audio_messages').upload(name, blob);
-                const url = `${SB_URL}/storage/v1/object/public/audio_messages/${name}`;
-                const payload = { type: 'voice', url, isGhost };
-                await sb.from('messages').insert([{ nickname: user.nick, content: JSON.stringify(payload), is_dm: curMode === 'dm', recipient: curDM, group_id: curMode === 'global' ? curRoom : null }]);
-            };
-            recorder.start(); btn.style.background = "#ff3b30";
-        } else { recorder.stop(); }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                recorder = new MediaRecorder(stream);
+                chunks = [];
+                recorder.ondataavailable = e => chunks.push(e.data);
+                recorder.onstop = async () => {
+                    btn.style.background = "var(--card)";
+                    const blob = new Blob(chunks, { type: 'audio/ogg' });
+                    const fName = `v_${Date.now()}.ogg`;
+                    const { data, error } = await sb.storage.from('audio_messages').upload(fName, blob);
+                    
+                    const url = `${SB_URL}/storage/v1/object/public/audio_messages/${fName}`;
+                    const payload = { type: 'voice', url, isGhost };
+                    await sb.from('messages').insert([{ 
+                        nickname: user.nick, content: JSON.stringify(payload), 
+                        is_dm: curMode === 'dm', recipient: curDM, 
+                        group_id: curMode === 'global' ? curRoom : null 
+                    }]);
+                };
+                recorder.start();
+                btn.style.background = "#ff3b30";
+            } catch(err) { alert("Mikrofon icazəsi verilmədi."); }
+        } else {
+            recorder.stop();
+        }
     }
 
+    // 7. OTAQ YARATMA VƏ İDARƏETMƏ
+    async function createSecureRoom() {
+        const rName = prompt("Otaq adı:"); if(!rName) return;
+        const pass = prompt("Şifrə (Boş qoysanız hamı girə bilər):");
+        const isGps = confirm("Yalnız yaxınlıqdakı insanlar görsün? (GPS)");
+
+        let lat = null, lon = null;
+        if (isGps) {
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                lat = pos.coords.latitude; lon = pos.coords.longitude;
+                await saveRoom(rName, pass, true, lat, lon);
+            }, () => alert("GPS icazəsi lazımdır."));
+        } else {
+            await saveRoom(rName, pass, false, null, null);
+        }
+    }
+
+    async function saveRoom(n, p, g, lt, ln) {
+        await sb.from('rooms').insert([{ name: n, password: p || null, is_gps: g, lat: lt, lon: ln, creator: user.nick }]);
+        alert("Otaq yaradıldı!");
+        listRooms();
+    }
+
+    async function listRooms() {
+        const { data } = await sb.from('rooms').select('*').order('created_at', {ascending: false});
+        const list = document.getElementById('roomList');
+        list.innerHTML = '';
+        data?.forEach(r => {
+            list.innerHTML += `
+                <div class="item-list" onclick="joinRoom('${r.name}', '${r.password}')">
+                    <div><b>${r.name}</b> <br><small>${r.password ? '🔒 Şifrəli' : '🌍 Açıq'} ${r.is_gps ? '📍 GPS' : ''}</small></div>
+                    <button style="background:var(--p); color:white; border:none; padding:6px 12px; border-radius:10px;">Giriş</button>
+                </div>`;
+        });
+    }
+
+    function joinRoom(name, pass) {
+        if(pass && pass !== "null") {
+            const check = prompt("Şifrəni daxil edin:");
+            if(check !== pass) return alert("Səhv şifrə!");
+        }
+        curRoom = name;
+        closeModals();
+        setMode('global');
+        alert(name + " otağına keçdiniz.");
+    }
+
+    // 8. KÖMƏKÇİ FUNKSİYALAR
     async function react(id, em) {
         const { data: msg } = await sb.from('messages').select('content, reactions').eq('id', id).single();
         if(JSON.parse(msg.content).isGhost) return;
@@ -229,34 +491,52 @@
         await sb.from('messages').update({ reactions: r }).eq('id', id);
     }
 
-    // Yazır... Məntiqi (Broadcast)
     function emitTyping() {
-        realtimeChannel.send({ type: 'broadcast', event: 'typing', payload: { from: user.nick, targetMode: curMode, target: curMode === 'dm' ? curDM : curRoom } });
+        realtimeChannel.send({ type: 'broadcast', event: 'typing', payload: { from: user.nick, mode: curMode, target: curMode==='dm'?curDM:curRoom } });
     }
-    
+
     realtimeChannel.on('broadcast', { event: 'typing' }, (e) => {
         const p = e.payload;
-        // Əgər həmin adam eyni qrupda yazırsa və ya DM-də mənə yazırsa
-        if((p.targetMode === 'global' && curMode === 'global') || (p.targetMode === 'dm' && p.target === user.nick && curDM === p.from)) {
+        if((p.mode === curMode && p.target === (curMode==='dm'?user.nick:curRoom)) && p.from !== user.nick) {
             const tArea = document.getElementById('typingArea');
-            tArea.innerText = `${p.from} yazır...`;
+            tArea.innerText = p.from + " yazır...";
             tArea.style.opacity = 1;
             clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => { tArea.style.opacity = 0; }, 2000);
+            typingTimer = setTimeout(() => tArea.style.opacity = 0, 2000);
         }
     }).subscribe();
 
-    function setMode(m) { curMode = m; document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.getElementById('tab-'+m).classList.add('active'); loadContent(); }
-    function startDM(nick) { curDM = nick; curMode = 'dm'; setMode('dm'); }
-    async function addFriend(n) { if(n === user.nick) return; await sb.from('friends').insert([{ user_me: user.nick, user_friend: n }]); alert("Əlavə edildi!"); setMode('friends'); }
-    function toggleGhost() { isGhost = !isGhost; document.getElementById('gBtn').style.background = isGhost ? "#ff3b30" : "var(--card)"; }
+    async function updateBadge() {
+        const { count } = await sb.from('messages').select('*', { count: 'exact', head: true }).eq('recipient', user.nick).eq('is_read', false);
+        const b = document.getElementById('dmBadge');
+        if(count > 0) { b.innerText = count; b.style.display = 'flex'; } else { b.style.display = 'none'; }
+    }
 
+    function setMode(m) {
+        curMode = m;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-'+m).classList.add('active');
+        loadContent();
+    }
+
+    function openModal(id) { 
+        document.getElementById(id).classList.add('active'); 
+        if(id === 'roomModal') listRooms();
+    }
+    function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
+    function toggleGhost() { isGhost = !isGhost; document.getElementById('gBtn').classList.toggle('active', isGhost); }
+    function changeNick() { let n = prompt("Yeni ləqəb:"); if(n) { user.nick=n; localStorage.setItem('x_user', JSON.stringify(user)); location.reload(); }}
+    function hardReset() { if(confirm("Bütün məlumatlar silinsin?")) { localStorage.clear(); location.reload(); }}
+
+    // Başlanğıc
     document.getElementById('myAva').src = user.ava;
     document.getElementById('headNick').innerText = user.nick;
     loadContent();
 
-    sb.channel('db_changes').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, loadContent).subscribe();
+    // REALTIME DINLƏYİCİ
+    sb.channel('db-changes').on('postgres_changes', {event:'*', schema:'public', table:'messages'}, loadContent).subscribe();
+    sb.channel('db-rooms').on('postgres_changes', {event:'*', schema:'public', table:'rooms'}, listRooms).subscribe();
+
 </script>
 </body>
 </html>
- 
